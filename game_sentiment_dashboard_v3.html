@@ -369,9 +369,8 @@
             </div>
             <div class="chip-group" id="platformChips">
               <button class="chip active" data-platform="全部">全部平台</button>
-              <button class="chip" data-platform="微博">微博</button>
               <button class="chip" data-platform="B站">B站</button>
-              <button class="chip" data-platform="小红书">小红书</button>
+              <button class="chip" data-platform="小黑盒">小黑盒</button>
               <button class="chip" data-platform="Steam">Steam</button>
             </div>
             <div class="search"><input id="topicSearch" placeholder="搜索主题或关键词" /></div>
@@ -555,24 +554,24 @@ const dashboardData = {
       week_id: "2026-W26", label: "6.22—6.28", start: "2026-06-22", end: "2026-06-28",
       kpis: { volume: 18320, wow: 8.4, negative_rate: 31, risk_topics: 2, new_topics: 3, persistent_topics: 4, sentiment_score: .59 },
       sentiment: { positive: 48, neutral: 21, negative: 31 },
-      platforms: { 微博: 34, B站: 29, 小红书: 18, Steam: 12, 其他: 7 },
+      platforms: { B站: 50, 小黑盒: 31, Steam: 12, 其他: 7 },
       events: [{date:"6.24",title:"开发者访谈发布",desc:"角色与世界观讨论提升。"},{date:"6.27",title:"首次压力测试",desc:"性能与服务器话题开始出现。"}],
       topics: [
         {id:"T101",chain:"C001",name:"世界观与剧情期待",keywords:["世界观","剧情","设定"],status:"上升",count:4200,wow:22,negative:16,share:22.9,sentiment:.71,trend:[18,22,25,31,34,39,46],platform:"B站",risk:"机会",first_seen:"6.15",weeks:2,cumulative:6950,quotes:["世界观铺得很大，希望正式版本能接住。","美术设定很有辨识度。"]},
         {id:"T102",chain:"C002",name:"压力测试性能",keywords:["掉帧","显卡","优化"],status:"新生",count:2860,wow:100,negative:58,share:15.6,sentiment:.39,trend:[2,3,8,14,22,31,39],platform:"Steam",risk:"风险",first_seen:"6.27",weeks:1,cumulative:2860,quotes:["配置不低，但战斗场景会突然掉帧。","希望尽快公布优化计划。"]},
-        {id:"T103",chain:"C003",name:"角色美术评价",keywords:["角色","立绘","建模"],status:"高位持续",count:3460,wow:6,negative:21,share:18.9,sentiment:.66,trend:[31,34,33,37,35,39,41],platform:"小红书",risk:"机会",first_seen:"6.8",weeks:3,cumulative:8850,quotes:["角色建模比PV里更耐看。","服装细节很完整。"]}
+        {id:"T103",chain:"C003",name:"角色美术评价",keywords:["角色","立绘","建模"],status:"高位持续",count:3460,wow:6,negative:21,share:18.9,sentiment:.66,trend:[31,34,33,37,35,39,41],platform:"小黑盒",risk:"机会",first_seen:"6.8",weeks:3,cumulative:8850,quotes:["角色建模比PV里更耐看。","服装细节很完整。"]}
       ]
     },
     {
       week_id: "2026-W27", label: "6.29—7.5", start: "2026-06-29", end: "2026-07-05",
       kpis: { volume: 21460, wow: 17.1, negative_rate: 36, risk_topics: 3, new_topics: 2, persistent_topics: 5, sentiment_score: .55 },
       sentiment: { positive: 43, neutral: 21, negative: 36 },
-      platforms: { 微博: 31, B站: 25, 小红书: 14, Steam: 24, 其他: 6 },
+      platforms: { B站: 40, 小黑盒: 30, Steam: 24, 其他: 6 },
       events: [{date:"7.1",title:"测试资格扩容",desc:"服务器承载和资格分配引发讨论。"},{date:"7.4",title:"测试补丁上线",desc:"部分性能问题缓解。"}],
       topics: [
         {id:"T201",chain:"C002",name:"测试性能与优化",keywords:["掉帧","闪退","补丁"],status:"上升",count:4980,wow:74,negative:61,share:23.2,sentiment:.37,trend:[32,41,55,61,63,70,74],platform:"Steam",risk:"风险",first_seen:"6.27",weeks:2,cumulative:7840,quotes:["补丁后还是会卡顿。","显存占用似乎异常。"]},
-        {id:"T202",chain:"C004",name:"测试资格分配",keywords:["资格","抽取","测试"],status:"新生",count:3380,wow:100,negative:47,share:15.8,sentiment:.49,trend:[5,13,20,39,43,45,47],platform:"微博",risk:"观察",first_seen:"7.1",weeks:1,cumulative:3380,quotes:["一直预约但没有资格。","能否增加更多测试名额？"]},
-        {id:"T203",chain:"C003",name:"角色美术评价",keywords:["角色","建模","动作"],status:"高位持续",count:3750,wow:8,negative:20,share:17.5,sentiment:.67,trend:[36,39,38,42,44,43,45],platform:"小红书",risk:"机会",first_seen:"6.8",weeks:4,cumulative:12600,quotes:["动作细节比预期好。","角色辨识度很高。"]},
+        {id:"T202",chain:"C004",name:"测试资格分配",keywords:["资格","抽取","测试"],status:"新生",count:3380,wow:100,negative:47,share:15.8,sentiment:.49,trend:[5,13,20,39,43,45,47],platform:"B站",risk:"观察",first_seen:"7.1",weeks:1,cumulative:3380,quotes:["一直预约但没有资格。","能否增加更多测试名额？"]},
+        {id:"T203",chain:"C003",name:"角色美术评价",keywords:["角色","建模","动作"],status:"高位持续",count:3750,wow:8,negative:20,share:17.5,sentiment:.67,trend:[36,39,38,42,44,43,45],platform:"小黑盒",risk:"机会",first_seen:"6.8",weeks:4,cumulative:12600,quotes:["动作细节比预期好。","角色辨识度很高。"]},
         {id:"T204",chain:"C001",name:"剧情设定讨论",keywords:["剧情","阵营","伏笔"],status:"稳定延续",count:2890,wow:-31,negative:18,share:13.5,sentiment:.69,trend:[42,38,34,31,29,27,24],platform:"B站",risk:"机会",first_seen:"6.15",weeks:3,cumulative:9840,quotes:["测试内容里已经有不少伏笔。"]}
       ]
     },
@@ -580,29 +579,29 @@ const dashboardData = {
       week_id: "2026-W28", label: "7.6—7.12", start: "2026-07-06", end: "2026-07-12",
       kpis: { volume: 26780, wow: 24.8, negative_rate: 42, risk_topics: 4, new_topics: 2, persistent_topics: 6, sentiment_score: .50 },
       sentiment: { positive: 37, neutral: 21, negative: 42 },
-      platforms: { 微博: 36, B站: 22, 小红书: 13, Steam: 23, 其他: 6 },
+      platforms: { B站: 42, 小黑盒: 29, Steam: 23, 其他: 6 },
       events: [{date:"7.7",title:"新角色PV发布",desc:"角色形象迅速成为本周最大新增话题。"},{date:"7.9",title:"服务器异常",desc:"晚间大面积排队与掉线。"},{date:"7.11",title:"官方致歉",desc:"负面声量短暂回落。"}],
       topics: [
-        {id:"T301",chain:"C005",name:"新角色PV评价",keywords:["新角色","PV","配音","造型"],status:"新生",count:6220,wow:100,negative:29,share:23.2,sentiment:.63,trend:[18,49,72,78,70,61,55],platform:"微博",risk:"机会",first_seen:"7.7",weeks:1,cumulative:6220,quotes:["PV质感很强，配音也很贴角色。","造型和旧设定差异有点大。"]},
-        {id:"T302",chain:"C006",name:"服务器排队与掉线",keywords:["排队","掉线","服务器"],status:"新生",count:5860,wow:100,negative:76,share:21.9,sentiment:.27,trend:[2,6,12,68,87,81,69],platform:"微博",risk:"风险",first_seen:"7.9",weeks:1,cumulative:5860,quotes:["排队半小时进去后又掉线。","高峰期完全无法正常测试。"]},
+        {id:"T301",chain:"C005",name:"新角色PV评价",keywords:["新角色","PV","配音","造型"],status:"新生",count:6220,wow:100,negative:29,share:23.2,sentiment:.63,trend:[18,49,72,78,70,61,55],platform:"B站",risk:"机会",first_seen:"7.7",weeks:1,cumulative:6220,quotes:["PV质感很强，配音也很贴角色。","造型和旧设定差异有点大。"]},
+        {id:"T302",chain:"C006",name:"服务器排队与掉线",keywords:["排队","掉线","服务器"],status:"新生",count:5860,wow:100,negative:76,share:21.9,sentiment:.27,trend:[2,6,12,68,87,81,69],platform:"B站",risk:"风险",first_seen:"7.9",weeks:1,cumulative:5860,quotes:["排队半小时进去后又掉线。","高峰期完全无法正常测试。"]},
         {id:"T303",chain:"C002",name:"性能优化与闪退",keywords:["优化","闪退","帧率"],status:"高位持续",count:4870,wow:-2,negative:64,share:18.2,sentiment:.34,trend:[70,67,64,60,65,63,59],platform:"Steam",risk:"风险",first_seen:"6.27",weeks:3,cumulative:12710,quotes:["新补丁降低了卡顿，但闪退还在。","性能问题开始影响游玩意愿。"]},
-        {id:"T304",chain:"C004",name:"测试资格公平性",keywords:["资格","公平","名额"],status:"回落",count:2480,wow:-27,negative:44,share:9.3,sentiment:.50,trend:[45,43,39,34,29,25,21],platform:"微博",risk:"观察",first_seen:"7.1",weeks:2,cumulative:5860,quotes:["资格问题热度下降，但仍有人质疑分配机制。"]},
-        {id:"T305",chain:"C003",name:"角色美术与动作",keywords:["角色","动作","建模"],status:"稳定延续",count:3260,wow:-13,negative:19,share:12.2,sentiment:.69,trend:[46,44,43,40,38,37,35],platform:"小红书",risk:"机会",first_seen:"6.8",weeks:5,cumulative:15860,quotes:["实机动作比PV更自然。"]}
+        {id:"T304",chain:"C004",name:"测试资格公平性",keywords:["资格","公平","名额"],status:"回落",count:2480,wow:-27,negative:44,share:9.3,sentiment:.50,trend:[45,43,39,34,29,25,21],platform:"B站",risk:"观察",first_seen:"7.1",weeks:2,cumulative:5860,quotes:["资格问题热度下降，但仍有人质疑分配机制。"]},
+        {id:"T305",chain:"C003",name:"角色美术与动作",keywords:["角色","动作","建模"],status:"稳定延续",count:3260,wow:-13,negative:19,share:12.2,sentiment:.69,trend:[46,44,43,40,38,37,35],platform:"小黑盒",risk:"机会",first_seen:"6.8",weeks:5,cumulative:15860,quotes:["实机动作比PV更自然。"]}
       ]
     },
     {
       week_id: "2026-W29", label: "7.13—7.19", start: "2026-07-13", end: "2026-07-19",
       kpis: { volume: 29420, wow: 9.9, negative_rate: 45, risk_topics: 4, new_topics: 2, persistent_topics: 7, sentiment_score: .47 },
       sentiment: { positive: 34, neutral: 21, negative: 45 },
-      platforms: { 微博: 38, B站: 20, 小红书: 11, Steam: 25, 其他: 6 },
+      platforms: { B站: 45, 小黑盒: 24, Steam: 25, 其他: 6 },
       events: [{date:"7.14",title:"1.2版本补丁",desc:"性能评价分化，部分玩家称改善明显。"},{date:"7.16",title:"概率活动开启",desc:"抽取规则引发集中质疑。"},{date:"7.18",title:"联名周边公布",desc:"正面互动快速增长。"}],
       topics: [
         {id:"T401",chain:"C002",name:"1.2版本性能优化",keywords:["1.2补丁","帧率","闪退","显存"],status:"高位持续",count:6480,wow:33,negative:59,share:22.0,sentiment:.39,trend:[59,71,78,74,70,67,63],platform:"Steam",risk:"风险",first_seen:"6.27",weeks:4,cumulative:19190,quotes:["帧率确实稳定了一些，但城市场景仍会掉。","闪退次数减少，显存占用还很高。"]},
-        {id:"T402",chain:"C007",name:"概率活动规则争议",keywords:["概率","保底","活动池","公告"],status:"新生",count:5940,wow:100,negative:78,share:20.2,sentiment:.24,trend:[2,3,9,33,79,92,88],platform:"微博",risk:"风险",first_seen:"7.16",weeks:1,cumulative:5940,quotes:["公告里的概率说明不够清楚。","保底规则和玩家理解有偏差。"]},
-        {id:"T403",chain:"C006",name:"服务器异常后续",keywords:["排队","补偿","掉线","公告"],status:"回落",count:3860,wow:-34,negative:62,share:13.1,sentiment:.35,trend:[69,62,55,48,44,39,34],platform:"微博",risk:"风险",first_seen:"7.9",weeks:2,cumulative:9720,quotes:["排队少了，但高峰期掉线没有完全解决。","补偿方案争议较大。"]},
-        {id:"T404",chain:"C008",name:"联名周边评价",keywords:["联名","周边","设计","限量"],status:"新生",count:4180,wow:100,negative:12,share:14.2,sentiment:.79,trend:[1,2,3,5,24,66,83],platform:"小红书",risk:"机会",first_seen:"7.18",weeks:1,cumulative:4180,quotes:["周边设计比想象中克制，很适合收藏。","希望别做成限量秒没。"]},
+        {id:"T402",chain:"C007",name:"概率活动规则争议",keywords:["概率","保底","活动池","公告"],status:"新生",count:5940,wow:100,negative:78,share:20.2,sentiment:.24,trend:[2,3,9,33,79,92,88],platform:"B站",risk:"风险",first_seen:"7.16",weeks:1,cumulative:5940,quotes:["公告里的概率说明不够清楚。","保底规则和玩家理解有偏差。"]},
+        {id:"T403",chain:"C006",name:"服务器异常后续",keywords:["排队","补偿","掉线","公告"],status:"回落",count:3860,wow:-34,negative:62,share:13.1,sentiment:.35,trend:[69,62,55,48,44,39,34],platform:"B站",risk:"风险",first_seen:"7.9",weeks:2,cumulative:9720,quotes:["排队少了，但高峰期掉线没有完全解决。","补偿方案争议较大。"]},
+        {id:"T404",chain:"C008",name:"联名周边评价",keywords:["联名","周边","设计","限量"],status:"新生",count:4180,wow:100,negative:12,share:14.2,sentiment:.79,trend:[1,2,3,5,24,66,83],platform:"小黑盒",risk:"机会",first_seen:"7.18",weeks:1,cumulative:4180,quotes:["周边设计比想象中克制，很适合收藏。","希望别做成限量秒没。"]},
         {id:"T405",chain:"C005",name:"新角色设定讨论",keywords:["角色设定","背景","配音","强度"],status:"稳定延续",count:3540,wow:-43,negative:31,share:12.0,sentiment:.61,trend:[55,51,47,43,39,35,31],platform:"B站",risk:"机会",first_seen:"7.7",weeks:2,cumulative:9760,quotes:["设定讨论从外观转向角色背景和技能。"]},
-        {id:"T406",chain:"C003",name:"角色美术长期口碑",keywords:["角色","建模","动作","审美"],status:"回落",count:2110,wow:-35,negative:18,share:7.2,sentiment:.71,trend:[35,33,30,28,24,22,20],platform:"小红书",risk:"机会",first_seen:"6.8",weeks:6,cumulative:17970,quotes:["角色美术已经形成较稳定的正面认知。"]}
+        {id:"T406",chain:"C003",name:"角色美术长期口碑",keywords:["角色","建模","动作","审美"],status:"回落",count:2110,wow:-35,negative:18,share:7.2,sentiment:.71,trend:[35,33,30,28,24,22,20],platform:"小黑盒",risk:"机会",first_seen:"6.8",weeks:6,cumulative:17970,quotes:["角色美术已经形成较稳定的正面认知。"]}
       ]
     }
   ]
@@ -921,7 +920,7 @@ const schemaExample = {
     week_id:"2026-W29", label:"7.13—7.19", start:"2026-07-13", end:"2026-07-19",
     kpis:{ volume:29420, wow:9.9, negative_rate:45, risk_topics:4, new_topics:2, persistent_topics:7, sentiment_score:0.47 },
     sentiment:{ positive:34, neutral:21, negative:45 },
-    platforms:{ 微博:38, B站:20, 小红书:11, Steam:25, 其他:6 },
+    platforms:{ B站:45, 小黑盒:24, Steam:25, 其他:6 },
     events:[{date:"7.16",title:"事件名称",desc:"事件说明"}],
     topics:[{
       id:"T401", chain:"C002", name:"1.2版本性能优化",
