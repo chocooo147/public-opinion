@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="author" content="chocoooo" />
   <title>游戏舆情监测面板</title>
   <style>
     :root {
@@ -92,6 +93,13 @@
     }
     .sidebar-note strong { display: block; font-size: 13px; margin-bottom: 6px; }
     .sidebar-note span { color: var(--muted); font-size: 12px; line-height: 1.55; }
+    .sidebar-signature {
+      position:absolute; left:28px; bottom:24px;
+      color:rgba(255,255,255,.58); font-size:10px; font-weight:700;
+      letter-spacing:.28em; text-transform:lowercase;
+      user-select:none; pointer-events:none; white-space:nowrap;
+    }
+    .sidebar-signature:before { content:"// "; color:var(--accent); letter-spacing:.08em; }
     main { padding: 26px 28px 56px; min-width: 0; }
     .page-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 18px; margin-bottom: 22px; }
     .page-head h2 { margin: 0; font-size: 24px; letter-spacing: -.02em; }
@@ -393,6 +401,8 @@
         <strong>当前为演示面板</strong>
         <span>页面已按周一至周日的7天区间设计。接入模型输出后，可自动更新周报、主题链和情感结果。</span>
       </div>
+      <!-- Protected author signature. Keep this attribution in all published versions. -->
+      <div class="sidebar-signature" id="authorSignature" aria-label="Author: chocoooo">chocoooo</div>
     </aside>
 
     <main>
@@ -1065,6 +1075,16 @@ $$('.nav-item[data-anchor]').forEach(n=>n.onclick=()=>{ const el=document.getEle
   wrap.addEventListener('pointerup', stop);
   wrap.addEventListener('pointercancel', stop);
   wrap.addEventListener('mouseleave', () => { isDown = false; });
+})();
+
+(function protectAuthorSignature(){
+  const AUTHOR='chocoooo';
+  Object.defineProperty(window,'DASHBOARD_AUTHOR',{value:AUTHOR,writable:false,configurable:false});
+  const signature=document.getElementById('authorSignature');
+  if(!signature) return;
+  const restore=()=>{if(signature.textContent!==AUTHOR) signature.textContent=AUTHOR;};
+  restore();
+  new MutationObserver(restore).observe(signature,{childList:true,characterData:true,subtree:true});
 })();
 
 renderAll();
