@@ -20,6 +20,9 @@
       --neutral: #e7b94f;
       --negative: #ff3340;
       --warning: #ff9f43;
+      --sentiment-positive: #ff6670;
+      --sentiment-neutral: #b51c27;
+      --sentiment-negative: #590b11;
       --shadow: 0 18px 45px rgba(0,0,0,.28);
       --radius: 2px;
     }
@@ -143,13 +146,13 @@
     .grid-line { stroke: rgba(255,255,255,.06); stroke-width: 1; }
     .volume-line { fill: none; stroke: var(--accent); stroke-width: 3; filter: drop-shadow(0 7px 8px rgba(156,124,255,.24)); }
     .negative-line { fill: none; stroke: var(--negative); stroke-width: 2; stroke-dasharray: 5 6; }
-    .area { fill: url(#areaGradient); opacity: .28; }
+    .area { fill: url(#areaGradient); opacity: 1; }
     .point { fill: var(--panel); stroke: var(--accent); stroke-width: 3; }
     .point-neg { fill: var(--panel); stroke: var(--negative); stroke-width: 2; }
     .donut-wrap { display: grid; place-items: center; height: 210px; position: relative; }
     .donut {
       width: 154px; height: 154px; border-radius: 50%;
-      background: conic-gradient(var(--positive) 0 var(--p1), var(--neutral) var(--p1) var(--p2), var(--negative) var(--p2) 100%);
+      background: conic-gradient(var(--sentiment-positive) 0 var(--p1), var(--sentiment-neutral) var(--p1) var(--p2), var(--sentiment-negative) var(--p2) 100%);
       position: relative; box-shadow: 0 10px 36px rgba(0,0,0,.28);
     }
     .donut:after { content:""; position:absolute; inset: 18px; background: var(--panel); border-radius: 50%; border: 1px solid var(--line); }
@@ -173,6 +176,10 @@
     .s-high { color: #d1c5ff; background: rgba(156,124,255,.12); border-color: rgba(156,124,255,.20); }
     .s-down { color: #97eab9; background: rgba(55,214,122,.10); border-color: rgba(55,214,122,.18); }
     .s-revive { color: #ffd28f; background: rgba(255,159,67,.10); border-color: rgba(255,159,67,.18); }
+    .type-wide { color:#fff; background:#7f1118; border-color:#e52a34; }
+    .type-niche { color:#ff9aa1; background:rgba(255,51,64,.035); border:1px dashed #a92a31; }
+    .type-burst { color:#fff; background:#f21f2b; border-color:#ff7078; font-weight:700; }
+    .type-single { color:#bdbdbd; background:transparent; border-color:#555; }
     .spark { width: 64px; height: 24px; display: inline-block; vertical-align: middle; }
     .flow-wrap {
       width: 100%;
@@ -308,7 +315,11 @@
     .topic-table th{color:#888;text-transform:uppercase;letter-spacing:.08em;border-bottom:2px solid var(--accent)}
     .topic-table tbody tr:hover{background:rgba(242,31,43,.075)}
     .status,.guardrail,.risk-level,.method-step,.formula-line,.risk-item,.detail-kpi,.timeline-box,.quote,.modal,pre{border-radius:0}
-    .s-high{color:#ffd7d9;background:rgba(242,31,43,.12);border-color:rgba(242,31,43,.28)}
+    .s-new{color:#8de7ff;background:rgba(46,183,219,.11);border-color:rgba(70,205,238,.42)}
+    .s-up{color:#ffbd83;background:rgba(255,135,38,.10);border-color:rgba(255,135,38,.38)}
+    .s-high{color:#ffd7d9;background:rgba(145,20,29,.30);border-color:rgba(242,31,43,.55)}
+    .s-down{color:#8ee7b2;background:rgba(42,174,96,.10);border-color:rgba(42,174,96,.38)}
+    .s-revive{color:#ffe39b;background:rgba(231,185,79,.10);border-color:rgba(231,185,79,.42)}
     .flow-node-current{fill:rgba(242,31,43,.17);stroke:rgba(242,31,43,.6)}.flow-link{stroke:rgba(242,31,43,.42)}
     .platform-bar i,.score-bar i{background:linear-gradient(90deg,#8d0b12,var(--accent))}
     .method-step{background:linear-gradient(135deg,rgba(242,31,43,.08),rgba(255,255,255,.015))}.method-step b:before{content:"▸ ";color:var(--accent)}
@@ -681,6 +692,7 @@ const staticTranslations = new Map([
 ]);
 const statusTranslations={'新生':'New','上升':'Rising','高位持续':'Sustained high','稳定延续':'Stable','回落':'Declining','复燃':'Resurgent'};
 const displayStatus=s=>state.lang==='zh'?s:(statusTranslations[s]||s);
+const topicTypeClass=s=>({'广泛热议':'type-wide','圈层议题':'type-niche','爆发事件':'type-burst','单点观察':'type-single'}[s]||'type-single');
 function applyLanguage(){
   document.documentElement.lang=state.lang==='zh'?'zh-CN':'en';
   document.title=state.lang==='zh'?'游戏舆情周度监测面板':'Weekly Game Sentiment Dashboard';
@@ -725,7 +737,7 @@ function renderTrend(){
   const yN=v=>H-p.b-(v/maxN)*(H-p.t-p.b);
   const line=(arr,yfn)=>arr.map((v,i)=>`${i?'L':'M'} ${x(i)} ${yfn(v)}`).join(' ');
   const area=`${line(vols,yV)} L ${x(vols.length-1)} ${H-p.b} L ${x(0)} ${H-p.b} Z`;
-  let html=`<defs><linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#9c7cff"/><stop offset="100%" stop-color="#9c7cff" stop-opacity="0"/></linearGradient></defs>`;
+  let html=`<defs><linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#f21f2b" stop-opacity=".28"/><stop offset="72%" stop-color="#f21f2b" stop-opacity=".08"/><stop offset="100%" stop-color="#f21f2b" stop-opacity=".015"/></linearGradient></defs>`;
   for(let i=0;i<5;i++){
     const yy=p.t+i*((H-p.t-p.b)/4); const value=Math.round(maxV-(i*maxV/4));
     html+=`<line class="grid-line" x1="${p.l}" x2="${W-p.r}" y1="${yy}" y2="${yy}"/><text class="axis-text" x="6" y="${yy+4}">${fmt(value)}</text>`;
@@ -742,7 +754,7 @@ function renderSentiment(){
   const p1=s.positive+"%", p2=(s.positive+s.neutral)+"%";
   $("#donut").style.setProperty("--p1",p1); $("#donut").style.setProperty("--p2",p2);
   $("#sentimentScore").textContent=w.kpis.sentiment_score.toFixed(2);
-  const rows=[[tr('positive'),s.positive,'var(--positive)'],[tr('neutral'),s.neutral,'var(--neutral)'],[tr('negative'),s.negative,'var(--negative)']];
+  const rows=[[tr('positive'),s.positive,'var(--sentiment-positive)'],[tr('neutral'),s.neutral,'var(--sentiment-neutral)'],[tr('negative'),s.negative,'var(--sentiment-negative)']];
   $("#sentimentList").innerHTML=rows.map(r=>`<div class="sentiment-row"><span>${r[0]}</span><div class="bar"><i style="width:${r[1]}%;background:${r[2]}"></i></div><b style="color:${r[2]}">${r[1]}%</b></div>`).join('');
 }
 
@@ -760,13 +772,13 @@ function renderTopicTable(){
   const topics=filteredTopics().sort(state.sort==='heat' ? ((a,b)=>b.heat_score-a.heat_score) : ((a,b)=>b.risk_score-a.risk_score)).slice(0,10);
   $("#topicTableBody").innerHTML=topics.map(t=>`<tr data-topic="${t.id}">
     <td><span class="topic-name">${t.name}</span><span class="topic-sub">${t.keywords.join(' · ')}</span></td>
-    <td><span class="status ${t.topic_type==='爆发事件'?'s-revive':'s-high'}">${t.topic_type}</span></td>
+    <td><span class="status ${topicTypeClass(t.topic_type)}">${t.topic_type}</span></td>
     <td><span class="status ${statusClass(t.status)}">${displayStatus(t.status)}</span></td>
     <td>${t.video_count} / ${t.creator_count}<span class="topic-sub">视频 / 作者</span></td>
     <td><span class="score">${t.consensus_score}</span><div class="score-bar"><i style="width:${t.consensus_score}%"></i></div></td>
     <td><span class="score">${t.heat_score}</span><div class="score-bar"><i style="width:${t.heat_score}%"></i></div></td>
     <td style="color:${t.negative>=60?'var(--negative)':t.negative<=25?'var(--positive)':'var(--neutral)'}">${t.negative}%</td>
-    <td>${sparkline(t.trend,t.negative>=60?'#ff5e74':'#9c7cff')}</td>
+    <td>${sparkline(t.trend,t.negative>=60?'#ff3340':'#d92530')}</td>
   </tr>`).join('') || `<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:28px">${tr('empty')}</td></tr>`;
   $$("#topicTableBody tr[data-topic]").forEach(tr=>tr.addEventListener('click',()=>openTopic(tr.dataset.topic)));
 }
