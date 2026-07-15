@@ -261,6 +261,8 @@
     .timeline-box p { margin:5px 0 0; color:var(--muted); font-size:10px; line-height:1.55; }
     .quote { padding:12px; border-radius:11px; background:rgba(255,255,255,.025); border:1px solid var(--line); font-size:11px; color:#cbd3e6; line-height:1.7; margin-bottom:9px; }
     .quote small { display:block; color:var(--muted); margin-top:6px; }
+    .toolbar-select { background:rgba(255,255,255,.04); color:#dbe3f4; border:1px solid var(--line); border-radius:9px; padding:7px 28px 7px 10px; font-size:11px; cursor:pointer; }
+    .topic-tools { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
     .modal { position:fixed; left:50%; top:50%; transform:translate(-50%,-48%) scale(.98); width:min(760px,92vw); max-height:86vh; overflow:auto; z-index:51; background:#111620; border:1px solid var(--line); border-radius:18px; box-shadow:0 30px 100px rgba(0,0,0,.55); opacity:0; pointer-events:none; transition:.2s; }
     .modal.show { opacity:1; pointer-events:auto; transform:translate(-50%,-50%) scale(1); }
     .modal-head { padding:18px 20px; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; }
@@ -307,6 +309,7 @@
     </div>
     <div class="top-actions">
       <div class="status-pill"><span class="dot"></span> BERTopic 模型待接入</div>
+      <button class="btn" id="langBtn" aria-label="Switch language">EN</button>
       <button class="btn" id="schemaBtn">数据接入说明</button>
       <button class="btn primary" id="importBtn">导入 JSON</button>
       <input class="hidden" type="file" id="fileInput" accept="application/json" />
@@ -397,7 +400,13 @@
                 <h3 class="panel-title">本周核心主题</h3>
                 <p class="panel-desc">点击主题可查看跨周主题链、代表文本和情绪变化。</p>
               </div>
-              <div class="legend"><span>按风险优先级排序</span></div>
+              <div class="topic-tools">
+                <span class="legend" id="sortHint">按风险优先级排序</span>
+                <select class="toolbar-select" id="topicSort" aria-label="主题排序方式">
+                  <option value="risk">风险优先级</option>
+                  <option value="heat">热议度</option>
+                </select>
+              </div>
             </div>
             <div style="overflow:auto"><table class="topic-table">
               <thead><tr><th>主题</th><th>状态</th><th>声量</th><th>周环比</th><th>负面率</th><th>主题占比</th><th>7日趋势</th></tr></thead>
@@ -548,10 +557,42 @@ const dashboardData = {
   ]
 };
 
-let state = { weekIndex: dashboardData.weeks.length - 1, platform: "全部", search: "" };
+dashboardData.weeks.forEach(w=>w.topics.forEach(t=>{
+  t.quotes=t.quotes||[];
+  while(t.quotes.length<3) t.quotes.push(`关于“${t.name}”的讨论仍在持续，玩家期待后续说明与改进。`);
+}));
+let state = { weekIndex: dashboardData.weeks.length - 1, platform: "全部", search: "", sort: "risk", lang: "zh" };
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
-const fmt = n => n >= 10000 ? (n/10000).toFixed(2)+"万" : n.toLocaleString("zh-CN");
+const fmt = n => state.lang==='zh' ? (n >= 10000 ? (n/10000).toFixed(2)+"万" : n.toLocaleString("zh-CN")) : n.toLocaleString("en-US");
+const copy = {
+  zh:{riskSort:'按风险优先级排序',heatSort:'按热议度排序',riskOption:'风险优先级',heatOption:'热议度',empty:'没有符合筛选条件的主题',positive:'积极',neutral:'中性',negative:'消极',volume:'声量',negativeRate:'负面率',week:'周',representative:'代表文本',sample:'演示样本'},
+  en:{riskSort:'Sorted by risk priority',heatSort:'Sorted by discussion volume',riskOption:'Risk priority',heatOption:'Discussion volume',empty:'No topics match the filters',positive:'Positive',neutral:'Neutral',negative:'Negative',volume:'Volume',negativeRate:'Negative rate',week:'weeks',representative:'Representative posts',sample:'Demo sample'}
+};
+const tr = key => copy[state.lang][key];
+const staticTranslations = new Map([
+  ['游戏舆情监测中心','Game Sentiment Monitor'],['周度主题识别 · 跨周主题链 · 情感与风险融合','Weekly topic discovery · Cross-week topic chains · Sentiment and risk'],
+  ['BERTopic 模型待接入','BERTopic integration pending'],['数据接入说明','Data schema'],['导入 JSON','Import JSON'],['舆情总览','Overview'],['主题监测','Topics'],['主题演化','Evolution'],['情感分析','Sentiment'],['风险与机会','Risk & Opportunity'],['下载数据模板','Download template'],
+  ['本周核心主题','Core Topics This Week'],['点击主题可查看跨周主题链、代表文本和情绪变化。','Select a topic to view its cross-week chain, representative posts, and sentiment changes.'],
+  ['本周总声量','Total volume this week'],['负面情绪占比','Negative sentiment share'],['高风险主题','High-risk topics'],['本周新增主题','New topics this week'],['跨周持续主题','Persistent topics'],['平均情感分','Average sentiment'],
+  ['主题','Topic'],['状态','Status'],['声量','Volume'],['周环比','WoW'],['负面率','Negative rate'],['主题占比','Topic share'],['7日趋势','7-day trend'],
+  ['本周情感结构','Sentiment This Week'],['平均情感分','Average sentiment'],['平台声量分布','Platform Volume'],['本周关键事件','Key Events'],
+  ['跨周主题演化关系','Cross-week Topic Evolution'],['主题风险—机会矩阵','Topic Risk–Opportunity Matrix'],['行动优先级','Action Priorities'],['高频关键词','Top Keywords'],['持续主题链概览','Persistent Topic Chains'],
+  ['全部平台','All platforms'],['搜索主题或关键词','Search topics or keywords'],['主题详情','Topic Details'],['关键词','Keywords'],['跨周演化','Cross-week evolution'],['初步建议','Initial recommendation']
+]);
+const statusTranslations={'新生':'New','上升':'Rising','高位持续':'Sustained high','稳定延续':'Stable','回落':'Declining','复燃':'Resurgent'};
+const displayStatus=s=>state.lang==='zh'?s:(statusTranslations[s]||s);
+function applyLanguage(){
+  document.documentElement.lang=state.lang==='zh'?'zh-CN':'en';
+  document.title=state.lang==='zh'?'游戏舆情周度监测面板':'Weekly Game Sentiment Dashboard';
+  document.querySelectorAll('body *').forEach(el=>{
+    if(el.children.length===0){ const raw=(el.dataset.zhText||el.textContent).trim(); if(!el.dataset.zhText && staticTranslations.has(raw)) el.dataset.zhText=raw; if(el.dataset.zhText) el.textContent=state.lang==='zh'?el.dataset.zhText:staticTranslations.get(el.dataset.zhText); }
+  });
+  $('#topicSearch').placeholder=state.lang==='zh'?'搜索主题或关键词':'Search topics or keywords';
+  $('#langBtn').textContent=state.lang==='zh'?'EN':'中文';
+  $('#sortHint').textContent=state.sort==='risk'?tr('riskSort'):tr('heatSort');
+  $('#topicSort').options[0].textContent=tr('riskOption'); $('#topicSort').options[1].textContent=tr('heatOption');
+}
 const statusClass = s => ({"新生":"s-new","上升":"s-up","高位持续":"s-high","稳定延续":"s-high","回落":"s-down","复燃":"s-revive"}[s] || "s-high");
 
 function populateWeekSelect(){
@@ -602,7 +643,7 @@ function renderSentiment(){
   const p1=s.positive+"%", p2=(s.positive+s.neutral)+"%";
   $("#donut").style.setProperty("--p1",p1); $("#donut").style.setProperty("--p2",p2);
   $("#sentimentScore").textContent=w.kpis.sentiment_score.toFixed(2);
-  const rows=[['积极',s.positive,'var(--positive)'],['中性',s.neutral,'var(--neutral)'],['消极',s.negative,'var(--negative)']];
+  const rows=[[tr('positive'),s.positive,'var(--positive)'],[tr('neutral'),s.neutral,'var(--neutral)'],[tr('negative'),s.negative,'var(--negative)']];
   $("#sentimentList").innerHTML=rows.map(r=>`<div class="sentiment-row"><span>${r[0]}</span><div class="bar"><i style="width:${r[1]}%;background:${r[2]}"></i></div><b style="color:${r[2]}">${r[1]}%</b></div>`).join('');
 }
 
@@ -617,14 +658,14 @@ function sparkline(vals, color="#9c7cff"){
 }
 
 function renderTopicTable(){
-  const topics=filteredTopics().sort((a,b)=>(b.negative*b.share)-(a.negative*a.share));
+  const topics=filteredTopics().sort(state.sort==='heat' ? ((a,b)=>b.count-a.count) : ((a,b)=>(b.negative*b.share)-(a.negative*a.share)));
   $("#topicTableBody").innerHTML=topics.map(t=>`<tr data-topic="${t.id}">
     <td><span class="topic-name">${t.name}</span><span class="topic-sub">${t.keywords.join(' · ')}</span></td>
-    <td><span class="status ${statusClass(t.status)}">${t.status}</span></td>
+    <td><span class="status ${statusClass(t.status)}">${displayStatus(t.status)}</span></td>
     <td>${fmt(t.count)}</td><td class="${t.wow>=0?'up':'down'}">${t.wow>=0?'+':''}${t.wow}%</td>
     <td style="color:${t.negative>=60?'var(--negative)':t.negative<=25?'var(--positive)':'var(--neutral)'}">${t.negative}%</td>
     <td>${t.share}%</td><td>${sparkline(t.trend,t.negative>=60?'#ff5e74':'#9c7cff')}</td>
-  </tr>`).join('') || `<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:28px">没有符合筛选条件的主题</td></tr>`;
+  </tr>`).join('') || `<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:28px">${tr('empty')}</td></tr>`;
   $$("#topicTableBody tr[data-topic]").forEach(tr=>tr.addEventListener('click',()=>openTopic(tr.dataset.topic)));
 }
 
@@ -761,7 +802,7 @@ function chainRows(){
 }
 
 function renderChains(){
-  $("#chainTableBody").innerHTML=chainRows().map(t=>`<tr data-topic="${t.id}"><td><span class="topic-name">${t.name}</span><span class="topic-sub">${t.chain}</span></td><td>${t.first_seen}</td><td>${t.weeks}周</td><td>${fmt(t.cumulative)}</td><td><span class="status ${statusClass(t.status)}">${t.status}</span></td></tr>`).join('');
+  $("#chainTableBody").innerHTML=chainRows().map(t=>`<tr data-topic="${t.id}"><td><span class="topic-name">${t.name}</span><span class="topic-sub">${t.chain}</span></td><td>${t.first_seen}</td><td>${t.weeks}${state.lang==='zh'?'周':' '+tr('week')}</td><td>${fmt(t.cumulative)}</td><td><span class="status ${statusClass(t.status)}">${displayStatus(t.status)}</span></td></tr>`).join('');
   $$("#chainTableBody tr").forEach(el=>el.onclick=()=>openTopic(el.dataset.topic));
 }
 
@@ -781,7 +822,7 @@ function openTopic(id){
     <div class="section-title">关键词</div><div>${t.keywords.map(k=>`<span class="status s-high" style="margin:0 5px 5px 0">${k}</span>`).join('')}</div>
     <div class="section-title">跨周演化</div>
     <div class="timeline">${history.map(h=>`<div class="timeline-row"><time>${h.w.label}</time><div class="timeline-box"><strong>${h.t.name} · ${h.t.status}</strong><p>声量 ${fmt(h.t.count)}，负面率 ${h.t.negative}%，周环比 ${h.t.wow>=0?'+':''}${h.t.wow}%</p></div></div>`).join('')}</div>
-    <div class="section-title">代表文本</div>${t.quotes.map(q=>`<div class="quote">“${q}”<small>${t.platform} · 演示样本</small></div>`).join('')}
+    <div class="section-title">${tr('representative')}</div>${t.quotes.slice(0,3).map(q=>`<div class="quote">“${q}”<small>${t.platform} · ${tr('sample')}</small></div>`).join('')}
     <div class="section-title">初步建议</div>
     <div class="quote">${t.risk==='风险'?'优先核查声量增长来源、核心负面诉求与官方回应效果；建议加入人工情感复核。':'可提炼高共鸣关键词，转化为角色内容、社媒传播或社区运营素材。'}</div>`;
   $("#drawerMask").classList.add('show'); $("#drawer").classList.add('show');
@@ -791,7 +832,7 @@ function closeDrawer(){ $("#drawerMask").classList.remove('show'); $("#drawer").
 
 function renderAll(){
   populateWeekSelect(); const w=currentWeek(); $("#weekTitle").textContent=w.label;
-  renderKpis(); renderTrend(); renderSentiment(); renderTopicTable(); renderPlatforms(); renderEvents(); renderFlow(); renderMatrix(); renderRiskList(); renderKeywords(); renderChains();
+  renderKpis(); renderTrend(); renderSentiment(); renderTopicTable(); renderPlatforms(); renderEvents(); renderFlow(); renderMatrix(); renderRiskList(); renderKeywords(); renderChains(); applyLanguage();
 }
 
 const schemaExample = {
@@ -809,7 +850,7 @@ const schemaExample = {
       trend:[59,71,78,74,70,67,63], platform:"Steam", risk:"风险",
       first_seen:"6.27", weeks:4, cumulative:19190,
       topic_embedding:[0.012,-0.084,0.126],
-      quotes:["代表性文本1","代表性文本2"]
+      quotes:["代表性文本1","代表性文本2","代表性文本3"]
     }]
   }]
 };
@@ -819,6 +860,8 @@ function closeSchema(){ $("#modalMask").classList.remove('show'); $("#schemaModa
 function downloadJSON(obj,name){ const blob=new Blob([JSON.stringify(obj,null,2)],{type:'application/json'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=name; a.click(); URL.revokeObjectURL(url); }
 
 $("#weekSelect").addEventListener('change',e=>{state.weekIndex=+e.target.value; renderAll();});
+$("#topicSort").addEventListener('change',e=>{state.sort=e.target.value; $("#sortHint").textContent=state.sort==='risk'?tr('riskSort'):tr('heatSort'); renderTopicTable();});
+$("#langBtn").addEventListener('click',()=>{state.lang=state.lang==='zh'?'en':'zh'; renderAll();});
 $("#platformChips").addEventListener('click',e=>{ if(!e.target.matches('.chip')) return; $$("#platformChips .chip").forEach(c=>c.classList.remove('active')); e.target.classList.add('active'); state.platform=e.target.dataset.platform; renderTopicTable(); renderMatrix(); });
 $("#topicSearch").addEventListener('input',e=>{state.search=e.target.value.trim(); renderTopicTable(); renderMatrix();});
 $("#drawerClose").onclick=closeDrawer; $("#drawerMask").onclick=closeDrawer;
