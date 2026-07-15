@@ -263,6 +263,23 @@
     .quote small { display:block; color:var(--muted); margin-top:6px; }
     .toolbar-select { background:rgba(255,255,255,.04); color:#dbe3f4; border:1px solid var(--line); border-radius:9px; padding:7px 28px 7px 10px; font-size:11px; cursor:pointer; }
     .topic-tools { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+    .method-grid { display:grid; grid-template-columns:1.15fr .85fr; gap:16px; margin-bottom:16px; }
+    .method-flow { display:grid; grid-template-columns:repeat(5,1fr); gap:8px; align-items:stretch; }
+    .method-step { position:relative; padding:13px 10px; border:1px solid var(--line); border-radius:11px; background:rgba(255,255,255,.02); min-height:72px; }
+    .method-step:not(:last-child):after { content:'›'; position:absolute; right:-8px; top:26px; z-index:2; color:var(--accent-2); font-size:18px; }
+    .method-step b { display:block; font-size:11px; color:#f2f4fb; }
+    .method-step span { display:block; margin-top:6px; font-size:9px; line-height:1.5; color:var(--muted); }
+    .formula { display:grid; gap:9px; }
+    .formula-line { display:flex; height:28px; overflow:hidden; border-radius:8px; background:rgba(255,255,255,.035); }
+    .formula-segment { display:grid; place-items:center; min-width:42px; font-size:9px; color:#fff; border-right:1px solid rgba(255,255,255,.16); }
+    .formula-segment:last-child { border-right:0; }
+    .formula-text { font-size:10px; color:var(--muted); line-height:1.7; }
+    .formula-text strong { color:#e8ecf7; }
+    .guardrails { display:flex; gap:8px; flex-wrap:wrap; margin-top:12px; }
+    .guardrail { padding:6px 8px; border-radius:8px; border:1px solid rgba(156,124,255,.18); background:rgba(156,124,255,.07); color:#cfc5ff; font-size:9px; }
+    .score { font-variant-numeric:tabular-nums; font-weight:700; color:#e8e1ff; }
+    .score-bar { width:72px; height:5px; margin-top:5px; border-radius:99px; background:rgba(255,255,255,.06); overflow:hidden; }
+    .score-bar i { display:block; height:100%; border-radius:inherit; background:linear-gradient(90deg,var(--accent),var(--accent-2)); }
     .modal { position:fixed; left:50%; top:50%; transform:translate(-50%,-48%) scale(.98); width:min(760px,92vw); max-height:86vh; overflow:auto; z-index:51; background:#111620; border:1px solid var(--line); border-radius:18px; box-shadow:0 30px 100px rgba(0,0,0,.55); opacity:0; pointer-events:none; transition:.2s; }
     .modal.show { opacity:1; pointer-events:auto; transform:translate(-50%,-50%) scale(1); }
     .modal-head { padding:18px 20px; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; }
@@ -283,6 +300,9 @@
       .page-head { flex-direction:column; }
       .filters { justify-content:flex-start; }
       .span-4,.span-5,.span-6,.span-7,.span-8,.span-12 { grid-column: span 12; }
+      .method-grid { grid-template-columns:1fr; }
+      .method-flow { grid-template-columns:1fr; }
+      .method-step:not(:last-child):after { content:'↓'; right:50%; top:auto; bottom:-14px; }
       .search input { width:160px; }
     }
     @media (max-width: 640px) {
@@ -393,8 +413,39 @@
       </section>
 
       <section id="topics">
+        <div class="method-grid">
+          <div class="card panel">
+            <div class="panel-head"><div><h3 class="panel-title">周度主题识别口径</h3><p class="panel-desc">主题来自全周跨视频语料聚类；视频热度只参与聚类后的影响力评分，不决定主题归属。</p></div></div>
+            <div class="method-flow" aria-label="周度主题识别流程">
+              <div class="method-step"><b>全周语料</b><span>标题、简介、字幕片段与评论，保留 video_id 和 creator_id</span></div>
+              <div class="method-step"><b>语义聚类</b><span>BERTopic 对所有文本统一聚类，不按单视频先排名</span></div>
+              <div class="method-step"><b>共识校验</b><span>检查覆盖视频数、作者数，识别跨视频共同讨论</span></div>
+              <div class="method-step"><b>综合评分</b><span>覆盖度、讨论量、影响力、互动与增长分别计分</span></div>
+              <div class="method-step"><b>周度 Top 10</b><span>按综合热议度选出主题，并保留风险优先排序</span></div>
+            </div>
+            <div class="guardrails"><span class="guardrail">单视频语料占比建议 ≤ 5%</span><span class="guardrail">单视频影响贡献建议 ≤ 20%</span><span class="guardrail">爆发事件需单独标记</span></div>
+          </div>
+          <div class="card panel">
+            <div class="panel-head"><div><h3 class="panel-title">计算主题热议度公式</h3><p class="panel-desc">所有分项统一归一化为 0—100，避免播放量直接支配结果。</p></div></div>
+            <div class="formula">
+              <div class="formula-line" aria-label="主题热议度权重">
+                <span class="formula-segment" style="width:35%;background:rgba(156,124,255,.72)">覆盖 35%</span>
+                <span class="formula-segment" style="width:25%;background:rgba(76,201,240,.60)">讨论 25%</span>
+                <span class="formula-segment" style="width:20%;background:rgba(255,159,67,.58)">影响 20%</span>
+                <span class="formula-segment" style="width:10%;background:rgba(55,214,122,.52)">互动 10%</span>
+                <span class="formula-segment" style="width:10%;background:rgba(255,94,116,.52)">增长 10%</span>
+              </div>
+              <div class="formula-text"><strong>热议度</strong> = 35% × 讨论覆盖度 + 25% × 文本讨论量 + 20% × 视频影响力 + 10% × 互动强度 + 10% × 增长速度</div>
+              <div class="formula-line" aria-label="跨视频共识度权重">
+                <span class="formula-segment" style="width:60%;background:rgba(156,124,255,.72)">视频覆盖 60%</span>
+                <span class="formula-segment" style="width:40%;background:rgba(76,201,240,.60)">作者覆盖 40%</span>
+              </div>
+              <div class="formula-text"><strong>跨视频共识度</strong> = 60% × 覆盖视频得分 + 40% × 覆盖作者得分</div>
+            </div>
+          </div>
+        </div>
         <div class="grid-12">
-          <div class="card panel span-8">
+          <div class="card panel span-12">
             <div class="panel-head">
               <div>
                 <h3 class="panel-title">本周核心主题</h3>
@@ -409,11 +460,11 @@
               </div>
             </div>
             <div style="overflow:auto"><table class="topic-table">
-              <thead><tr><th>主题</th><th>状态</th><th>声量</th><th>周环比</th><th>负面率</th><th>主题占比</th><th>7日趋势</th></tr></thead>
+              <thead><tr><th>主题</th><th>主题类型</th><th>状态</th><th>覆盖视频/作者</th><th>跨视频共识度</th><th>热议度</th><th>负面率</th><th>7日趋势</th></tr></thead>
               <tbody id="topicTableBody"></tbody>
             </table></div>
           </div>
-          <div class="card panel span-4">
+          <div class="card panel span-12">
             <div class="panel-head">
               <div><h3 class="panel-title">平台声量分布</h3><p class="panel-desc">用于判断话题是圈层扩散还是全平台外溢。</p></div>
             </div>
@@ -490,7 +541,7 @@
 <div class="modal" id="schemaModal">
   <div class="modal-head"><strong>BERTopic 模型接入字段</strong><button class="drawer-close" id="modalClose">×</button></div>
   <div class="modal-body">
-    <p style="font-size:12px;color:var(--muted);line-height:1.7">建议模型每周输出一个JSON对象。页面会按 <b style="color:#fff">week_id</b> 建立周报，并通过 <b style="color:#fff">topic_chain_id</b> 持续追踪超过7天的舆情。</p>
+    <p style="font-size:12px;color:var(--muted);line-height:1.7">模型每周输出一个 JSON 对象。页面按 <b style="color:#fff">week_id</b> 建立周报，通过 <b style="color:#fff">topic_chain_id</b> 追踪跨周主题，并校验覆盖视频、覆盖作者及热议度五项分值，避免将单个热门视频误判为全周共同热点。</p>
     <pre id="schemaPre"></pre>
     <button class="btn primary" id="downloadSchema">下载示例 JSON</button>
   </div>
@@ -557,10 +608,29 @@ const dashboardData = {
   ]
 };
 
-dashboardData.weeks.forEach(w=>w.topics.forEach(t=>{
-  t.quotes=t.quotes||[];
-  while(t.quotes.length<3) t.quotes.push(`关于“${t.name}”的讨论仍在持续，玩家期待后续说明与改进。`);
-}));
+const clampScore=n=>Math.max(0,Math.min(100,Math.round(Number(n)||0)));
+function enrichWeekTopics(w){
+  const maxCount=Math.max(1,...w.topics.map(t=>t.count||0));
+  w.topics.forEach((t,i)=>{
+    t.quotes=t.quotes||[];
+    while(t.quotes.length<3) t.quotes.push(`关于“${t.name}”的讨论仍在持续，玩家期待后续说明与改进。`);
+    t.video_count=Number.isFinite(t.video_count)?t.video_count:Math.max(3,Math.round((t.share||8)*1.35));
+    t.creator_count=Number.isFinite(t.creator_count)?t.creator_count:Math.max(2,Math.round(t.video_count*.68));
+    t.video_coverage_score=clampScore(t.video_coverage_score ?? t.video_count/36*100);
+    t.creator_coverage_score=clampScore(t.creator_coverage_score ?? t.creator_count/24*100);
+    t.discussion_coverage=clampScore(t.discussion_coverage ?? (t.video_coverage_score*.6+t.creator_coverage_score*.4));
+    t.discussion_volume_score=clampScore(t.discussion_volume_score ?? (t.count/maxCount*100));
+    t.influence_score=clampScore(t.influence_score ?? Math.min(100,35+(t.share||0)*2.2));
+    t.engagement_score=clampScore(t.engagement_score ?? Math.min(100,45+Math.abs(t.sentiment-.5)*70));
+    t.growth_score=clampScore(t.growth_score ?? Math.min(100,50+(t.wow||0)*.45));
+    t.consensus_score=clampScore(t.consensus_score ?? (t.video_coverage_score*.6+t.creator_coverage_score*.4));
+    t.heat_score=clampScore(t.heat_score ?? (t.discussion_coverage*.35+t.discussion_volume_score*.25+t.influence_score*.20+t.engagement_score*.10+t.growth_score*.10));
+    t.risk_score=clampScore(t.risk_score ?? (t.negative*.65+t.growth_score*.20+t.discussion_coverage*.15));
+    t.topic_type=t.topic_type||(t.consensus_score>=65?'广泛热议':t.influence_score>=75&&t.video_count<=5?'爆发事件':t.video_count>=3?'圈层议题':'单点观察');
+    t.metrics_source=t.metrics_source||'demo_estimate';
+  });
+}
+dashboardData.weeks.forEach(enrichWeekTopics);
 let state = { weekIndex: dashboardData.weeks.length - 1, platform: "全部", search: "", sort: "risk", lang: "zh" };
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
@@ -574,6 +644,8 @@ const staticTranslations = new Map([
   ['游戏舆情监测中心','Game Sentiment Monitor'],['周度主题识别 · 跨周主题链 · 情感与风险融合','Weekly topic discovery · Cross-week topic chains · Sentiment and risk'],
   ['BERTopic 模型待接入','BERTopic integration pending'],['数据接入说明','Data schema'],['导入 JSON','Import JSON'],['舆情总览','Overview'],['主题监测','Topics'],['主题演化','Evolution'],['情感分析','Sentiment'],['风险与机会','Risk & Opportunity'],['下载数据模板','Download template'],
   ['本周核心主题','Core Topics This Week'],['点击主题可查看跨周主题链、代表文本和情绪变化。','Select a topic to view its cross-week chain, representative posts, and sentiment changes.'],
+  ['周度主题识别口径','Weekly Topic Methodology'],['计算主题热议度公式','Topic Heat Formula'],['全周语料','Full-week corpus'],['语义聚类','Semantic clustering'],['共识校验','Consensus validation'],['综合评分','Composite scoring'],['周度 Top 10','Weekly Top 10'],
+  ['主题类型','Topic type'],['覆盖视频/作者','Videos / creators'],['跨视频共识度','Cross-video consensus'],['热议度','Heat score'],
   ['本周总声量','Total volume this week'],['负面情绪占比','Negative sentiment share'],['高风险主题','High-risk topics'],['本周新增主题','New topics this week'],['跨周持续主题','Persistent topics'],['平均情感分','Average sentiment'],
   ['主题','Topic'],['状态','Status'],['声量','Volume'],['周环比','WoW'],['负面率','Negative rate'],['主题占比','Topic share'],['7日趋势','7-day trend'],
   ['本周情感结构','Sentiment This Week'],['平均情感分','Average sentiment'],['平台声量分布','Platform Volume'],['本周关键事件','Key Events'],
@@ -658,14 +730,17 @@ function sparkline(vals, color="#9c7cff"){
 }
 
 function renderTopicTable(){
-  const topics=filteredTopics().sort(state.sort==='heat' ? ((a,b)=>b.count-a.count) : ((a,b)=>(b.negative*b.share)-(a.negative*a.share)));
+  const topics=filteredTopics().sort(state.sort==='heat' ? ((a,b)=>b.heat_score-a.heat_score) : ((a,b)=>b.risk_score-a.risk_score)).slice(0,10);
   $("#topicTableBody").innerHTML=topics.map(t=>`<tr data-topic="${t.id}">
     <td><span class="topic-name">${t.name}</span><span class="topic-sub">${t.keywords.join(' · ')}</span></td>
+    <td><span class="status ${t.topic_type==='爆发事件'?'s-revive':'s-high'}">${t.topic_type}</span></td>
     <td><span class="status ${statusClass(t.status)}">${displayStatus(t.status)}</span></td>
-    <td>${fmt(t.count)}</td><td class="${t.wow>=0?'up':'down'}">${t.wow>=0?'+':''}${t.wow}%</td>
+    <td>${t.video_count} / ${t.creator_count}<span class="topic-sub">视频 / 作者</span></td>
+    <td><span class="score">${t.consensus_score}</span><div class="score-bar"><i style="width:${t.consensus_score}%"></i></div></td>
+    <td><span class="score">${t.heat_score}</span><div class="score-bar"><i style="width:${t.heat_score}%"></i></div></td>
     <td style="color:${t.negative>=60?'var(--negative)':t.negative<=25?'var(--positive)':'var(--neutral)'}">${t.negative}%</td>
-    <td>${t.share}%</td><td>${sparkline(t.trend,t.negative>=60?'#ff5e74':'#9c7cff')}</td>
-  </tr>`).join('') || `<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:28px">${tr('empty')}</td></tr>`;
+    <td>${sparkline(t.trend,t.negative>=60?'#ff5e74':'#9c7cff')}</td>
+  </tr>`).join('') || `<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:28px">${tr('empty')}</td></tr>`;
   $$("#topicTableBody tr[data-topic]").forEach(tr=>tr.addEventListener('click',()=>openTopic(tr.dataset.topic)));
 }
 
@@ -816,9 +891,14 @@ function openTopic(id){
   $("#drawerBody").innerHTML=`
     <div class="detail-kpis">
       <div class="detail-kpi"><span>本周声量</span><strong>${fmt(t.count)}</strong></div>
+      <div class="detail-kpi"><span>热议度</span><strong>${t.heat_score}</strong></div>
+      <div class="detail-kpi"><span>跨视频共识度</span><strong>${t.consensus_score}</strong></div>
+      <div class="detail-kpi"><span>覆盖视频</span><strong>${t.video_count}</strong></div>
+      <div class="detail-kpi"><span>覆盖作者</span><strong>${t.creator_count}</strong></div>
       <div class="detail-kpi"><span>负面率</span><strong style="color:${t.negative>=60?'var(--negative)':'#fff'}">${t.negative}%</strong></div>
-      <div class="detail-kpi"><span>情感均值</span><strong>${t.sentiment.toFixed(2)}</strong></div>
     </div>
+    <div class="section-title">热议度构成</div>
+    <div class="formula-text">覆盖 ${t.discussion_coverage} × 35% ＋ 讨论量 ${t.discussion_volume_score} × 25% ＋ 影响力 ${t.influence_score} × 20% ＋ 互动 ${t.engagement_score} × 10% ＋ 增长 ${t.growth_score} × 10% = <strong>${t.heat_score}</strong></div>
     <div class="section-title">关键词</div><div>${t.keywords.map(k=>`<span class="status s-high" style="margin:0 5px 5px 0">${k}</span>`).join('')}</div>
     <div class="section-title">跨周演化</div>
     <div class="timeline">${history.map(h=>`<div class="timeline-row"><time>${h.w.label}</time><div class="timeline-box"><strong>${h.t.name} · ${h.t.status}</strong><p>声量 ${fmt(h.t.count)}，负面率 ${h.t.negative}%，周环比 ${h.t.wow>=0?'+':''}${h.t.wow}%</p></div></div>`).join('')}</div>
@@ -850,6 +930,13 @@ const schemaExample = {
       trend:[59,71,78,74,70,67,63], platform:"Steam", risk:"风险",
       first_seen:"6.27", weeks:4, cumulative:19190,
       topic_embedding:[0.012,-0.084,0.126],
+      video_count:27, creator_count:18, comment_count:1260,
+      video_coverage_score:78, creator_coverage_score:70,
+      discussion_coverage:75, discussion_volume_score:82,
+      influence_score:76, engagement_score:68, growth_score:74,
+      consensus_score:75, heat_score:77, risk_score:66,
+      topic_type:"广泛热议", metrics_source:"model_output",
+      representative_video_ids:["BV示例1","BV示例2","BV示例3"],
       quotes:["代表性文本1","代表性文本2","代表性文本3"]
     }]
   }]
@@ -871,7 +958,7 @@ $("#downloadBtn").onclick=()=>downloadJSON(schemaExample,'game_sentiment_data_te
 $("#importBtn").onclick=()=>$("#fileInput").click();
 $("#fileInput").addEventListener('change',e=>{
   const file=e.target.files[0]; if(!file) return; const reader=new FileReader();
-  reader.onload=()=>{ try { const obj=JSON.parse(reader.result); if(!obj.weeks||!Array.isArray(obj.weeks)) throw new Error('缺少 weeks 数组'); dashboardData.meta=obj.meta||dashboardData.meta; dashboardData.weeks=obj.weeks; state.weekIndex=obj.weeks.length-1; state.platform='全部'; state.search=''; $("#topicSearch").value=''; $$("#platformChips .chip").forEach((c,i)=>c.classList.toggle('active',i===0)); renderAll(); alert('数据导入成功'); } catch(err){ alert('导入失败：'+err.message); } };
+  reader.onload=()=>{ try { const obj=JSON.parse(reader.result); if(!obj.weeks||!Array.isArray(obj.weeks)) throw new Error('缺少 weeks 数组'); const required=['video_count','creator_count','discussion_coverage','discussion_volume_score','influence_score','engagement_score','growth_score']; obj.weeks.forEach((w,wi)=>{ if(!Array.isArray(w.topics)) throw new Error(`第 ${wi+1} 周缺少 topics 数组`); w.topics.forEach((t,ti)=>{ const missing=required.filter(k=>!Number.isFinite(t[k])); if(missing.length) throw new Error(`主题 ${t.id||ti+1} 缺少跨视频评分字段：${missing.join(', ')}`); }); enrichWeekTopics(w); }); dashboardData.meta=obj.meta||dashboardData.meta; dashboardData.weeks=obj.weeks; state.weekIndex=obj.weeks.length-1; state.platform='全部'; state.search=''; $("#topicSearch").value=''; $$("#platformChips .chip").forEach((c,i)=>c.classList.toggle('active',i===0)); renderAll(); alert('数据导入成功：已通过跨视频主题指标校验'); } catch(err){ alert('导入失败：'+err.message); } };
   reader.readAsText(file,'utf-8');
 });
 $$('.nav-item[data-anchor]').forEach(n=>n.onclick=()=>{ const el=document.getElementById(n.dataset.anchor); el?.scrollIntoView({behavior:'smooth',block:'start'}); $$('.nav-item').forEach(x=>x.classList.remove('active')); n.classList.add('active'); });
