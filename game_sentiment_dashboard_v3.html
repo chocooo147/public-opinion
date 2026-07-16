@@ -54,13 +54,18 @@
     }
     .brand { display: flex; align-items: center; gap: 12px; }
     .brand-mark {
-      width: 36px; height: 36px; border-radius: 11px;
+      width: 38px; height: 42px; flex: 0 0 38px;
       display: grid; place-items: center;
-      background: linear-gradient(145deg, var(--accent), #a80d18);
-      box-shadow: 0 10px 30px rgba(242,31,43,.28);
-      font-weight: 800; letter-spacing: .02em;
+      color: var(--accent);
     }
-    .brand h1 { margin: 0; font-size: 18px; letter-spacing: .01em; }
+    .brand-mark svg { display:block; width:100%; height:100%; fill:currentColor; overflow:visible; }
+    .brand h1 { display:flex; align-items:baseline; gap:7px; margin:0; font-size:18px; letter-spacing:.01em; }
+    .brand-title { color:var(--text); }
+    .brand-divider { color:var(--accent); font-weight:400; }
+    .apex-wordmark {
+      color:var(--accent); font-family:"Arial Narrow","Roboto Condensed",Impact,sans-serif;
+      font-size:.72em; font-weight:900; letter-spacing:.1em; line-height:1;
+    }
     .brand p { margin: 3px 0 0; font-size: 12px; color: var(--muted); }
     .top-actions { display:flex; align-items:center; justify-content:flex-end; gap:0; margin-left:22px; min-width:0; }
     .top-menu-group { position:relative; display:flex; align-items:center; gap:7px; padding:0 14px; }
@@ -114,9 +119,10 @@
     .page-head h2 { margin: 0; font-size: 24px; letter-spacing: -.02em; }
     .page-head p { margin: 7px 0 0; color: var(--muted); font-size: 13px; }
     .filters { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px; }
-    .select-wrap select { padding: 0 34px 0 12px; min-width: 148px; outline: none; }
+    .select-wrap select { padding: 0 34px 0 12px; min-width: 148px; outline: none; font-size:12px; font-weight:500; letter-spacing:0; }
     .search { position: relative; }
-    .search input { width: 190px; padding: 0 12px 0 36px; outline: none; }
+    .search input { width: 190px; padding: 0 12px 0 36px; outline: none; font-size:12px; font-weight:500; letter-spacing:0; }
+    .search input::placeholder { color:var(--muted); font-size:12px; opacity:1; }
     .search:before { content: "⌕"; position: absolute; left: 12px; top: 8px; color: var(--muted); }
     .chip-group { display: flex; gap: 6px; padding: 4px; border: 1px solid var(--line); border-radius: 11px; background: rgba(255,255,255,.025); }
     .chip { border: 0; color: var(--muted); background: transparent; padding: 6px 10px; border-radius: 8px; cursor: pointer; font-size: 12px; }
@@ -320,7 +326,8 @@
     .login-screen:before { content:""; position:absolute; inset:0; background:linear-gradient(120deg,transparent 45%,rgba(242,31,43,.06) 45%,rgba(242,31,43,.06) 57%,transparent 57%); pointer-events:none; }
     .login-card { position:relative; width:min(430px,100%); padding:34px; background:rgba(15,15,15,.97); border:1px solid rgba(255,255,255,.18); border-top:3px solid var(--accent); box-shadow:0 32px 90px rgba(0,0,0,.58); clip-path:polygon(0 0,calc(100% - 22px) 0,100% 22px,100% 100%,22px 100%,0 calc(100% - 22px)); }
     .login-brand { display:flex; align-items:center; gap:14px; margin-bottom:26px; }
-    .login-mark { width:42px; height:42px; display:grid; place-items:center; color:#fff; background:var(--accent); font-weight:900; clip-path:polygon(50% 0,100% 100%,76% 100%,50% 45%,24% 100%,0 100%); padding-top:15px; }
+    .login-mark { width:42px; height:46px; flex:0 0 42px; display:grid; place-items:center; color:var(--accent); }
+    .login-mark svg { display:block; width:100%; height:100%; fill:currentColor; }
     .login-brand h1 { margin:0; font-size:18px; text-transform:uppercase; letter-spacing:.08em; }
     .login-brand p { margin:5px 0 0; color:var(--muted); font-size:11px; }
     .auth-field { display:grid; gap:7px; margin-top:15px; }
@@ -353,10 +360,10 @@
     /* APEX-inspired red/black/white visual system */
     .topbar{background:rgba(9,9,9,.94);border-bottom:2px solid var(--accent)}
     .topbar:before{content:"";position:absolute;left:0;bottom:-2px;width:34%;height:4px;background:var(--accent);clip-path:polygon(0 0,96% 0,100% 100%,0 100%)}
-    .brand-mark{border-radius:0;background:var(--accent);box-shadow:none;clip-path:polygon(50% 0,100% 100%,78% 100%,50% 42%,22% 100%,0 100%);font-size:0}
-    .brand-mark:after{content:"A";font-size:18px;font-weight:900;transform:translateY(7px)}
+    .brand-mark{border-radius:0;background:none;box-shadow:none;clip-path:none;font-size:0;color:var(--accent)}
+    .brand-mark:after{content:none}
     .brand h1,.page-head h2,.panel-title{text-transform:uppercase;letter-spacing:.055em;font-weight:800}
-    .brand h1:after{content:" / APEX";color:var(--accent);font-size:.72em}
+    .brand h1:after{content:none}
     .sidebar{background:rgba(10,10,10,.92)}
     .nav-item{border-radius:0;border-left:3px solid transparent;clip-path:polygon(0 0,calc(100% - 9px) 0,100% 9px,100% 100%,0 100%)}
     .nav-item:hover,.nav-item.active{background:rgba(242,31,43,.16);border-left-color:var(--accent)}
@@ -424,7 +431,7 @@
         display:grid; grid-template-columns:minmax(0,1fr) auto auto; gap:8px 0;
       }
       .brand { min-width:0; gap:8px; grid-column:1; grid-row:1; }
-      .brand-mark { width:30px; height:34px; flex:0 0 30px; }
+      .brand-mark { width:32px; height:36px; flex:0 0 32px; }
       .brand h1 { font-size:14px; white-space:nowrap; }
       .brand p { display:none; }
       .top-actions { display:contents; margin:0; }
@@ -489,8 +496,8 @@
       .topic-table td:nth-child(8) .mobile-label { margin-bottom:16px; }
     }
     @media (max-width: 420px) {
-      .brand h1 { font-size:12px; }
-      .brand h1:after { display:none; }
+      .brand h1 { gap:5px; font-size:12px; }
+      .apex-wordmark { font-size:.7em; }
       .account-group { padding-right:7px; }
       .user-pill { max-width:72px; }
       #logoutBtn, #langBtn { min-width:43px; padding:0 8px; }
@@ -510,7 +517,7 @@
 <body class="auth-locked">
 <section class="login-screen" id="loginScreen" aria-label="登录验证">
   <form class="login-card" id="loginForm" autocomplete="on">
-    <div class="login-brand"><div class="login-mark">A</div><div><h1>APEX 舆情控制台</h1><p>AUTHORIZED ACCESS ONLY / 授权账号访问</p></div></div>
+    <div class="login-brand"><div class="login-mark" aria-hidden="true"><svg viewBox="0 0 512 512" focusable="false"><path d="M256.605 12.198 500 432.918 435.465 499.802 294.31 397.565h83.146L256.604 196.913 142.519 397.565h80.247L80.644 499.802 12 432.918Z"/></svg></div><div><h1>APEX 舆情控制台</h1><p>AUTHORIZED ACCESS ONLY / 授权账号访问</p></div></div>
     <div class="auth-field"><label for="loginUsername">账号</label><input id="loginUsername" name="username" autocomplete="username" required /></div>
     <div class="auth-field"><label for="loginPassword">密码</label><input id="loginPassword" name="password" type="password" autocomplete="current-password" required /></div>
     <button class="btn primary auth-submit" type="submit">登录并进入看板</button>
@@ -522,9 +529,13 @@
 <div class="app auth-hidden" id="dashboardApp">
   <header class="topbar">
     <div class="brand">
-      <div class="brand-mark">A</div>
+      <div class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 512 512" focusable="false">
+          <path d="M256.605 12.198 500 432.918 435.465 499.802 294.31 397.565h83.146L256.604 196.913 142.519 397.565h80.247L80.644 499.802 12 432.918Z"/>
+        </svg>
+      </div>
       <div>
-        <h1>游戏舆情监测中心</h1>
+        <h1><span class="brand-title">游戏舆情监测中心</span><span class="brand-divider">/</span><span class="apex-wordmark">APEX</span></h1>
         <p>周度主题识别 · 跨周主题链 · 情感与风险融合</p>
       </div>
     </div>
