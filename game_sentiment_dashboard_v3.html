@@ -118,7 +118,9 @@
     .page-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 18px; margin-bottom: 22px; }
     .page-head h2 { margin: 0; font-size: 24px; letter-spacing: -.02em; }
     .page-head p { margin: 7px 0 0; color: var(--muted); font-size: 13px; }
-    .filters { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px; }
+    .filters { display: flex; flex-wrap: wrap; align-items:center; justify-content: flex-end; gap: 10px; }
+    .history-filter { display:flex; align-items:center; gap:8px; }
+    .history-label { color:var(--muted); font-size:11px; font-weight:600; letter-spacing:.03em; white-space:nowrap; }
     .select-wrap select { padding: 0 34px 0 12px; min-width: 148px; outline: none; font-size:12px; font-weight:500; letter-spacing:0; }
     .search { position: relative; }
     .search input { width: 190px; padding: 0 12px 0 36px; outline: none; font-size:12px; font-weight:500; letter-spacing:0; }
@@ -418,6 +420,7 @@
       .top-menu-group { padding:0 8px; gap:5px; }
       .page-head h2 { font-size:21px; }
       .filters { width:100%; }
+      .history-filter { width:100%; display:grid; gap:6px; }
       .select-wrap, .select-wrap select, .search, .search input { width:100%; }
       .chip-group { width:100%; overflow:auto; }
       .notice { align-items:flex-start; flex-direction:column; }
@@ -595,8 +598,11 @@
             <p>本周数据窗口：周一 00:00 至周日 23:59；主题链不因周报切换而中断。</p>
           </div>
           <div class="filters">
-            <div class="select-wrap">
-              <select id="weekSelect"></select>
+            <div class="history-filter">
+              <span class="history-label" id="historyLabel">历史记录 · 最近 4 周</span>
+              <div class="select-wrap">
+                <select id="weekSelect" aria-label="最近五周历史记录"></select>
+              </div>
             </div>
             <div class="chip-group" id="platformChips">
               <button class="chip active" data-platform="综合">综合</button>
@@ -923,6 +929,55 @@ function enrichWeekTopics(w){
     }
   });
 }
+const DASHBOARD_HISTORY_KEY='apex_dashboard_week_history_v1';
+const DASHBOARD_HISTORY_LIMIT=5;
+
+function dashboardWeekKey(week,index=0){
+  if(week?.week_id) return `id:${week.week_id}`;
+  if(week?.start||week?.end) return `range:${week.start||''}|${week.end||''}`;
+  if(week?.label) return `label:${week.label}`;
+  return `week:${index}`;
+}
+
+function dashboardWeekOrder(week,index=0){
+  const date=Date.parse(week?.start||week?.end||'');
+  if(Number.isFinite(date)) return date;
+  const match=String(week?.week_id||'').match(/^(\d{4})-W(\d{1,2})$/i);
+  if(match) return Date.UTC(Number(match[1]),0,1)+(Number(match[2])-1)*7*86400000;
+  return index;
+}
+
+function mergeDashboardWeeks(existing=[],incoming=[]){
+  const merged=new Map();
+  [...existing,...incoming].forEach((week,index)=>{
+    if(!week||typeof week!=='object') return;
+    merged.set(dashboardWeekKey(week,index),{week,index});
+  });
+  return [...merged.values()]
+    .sort((a,b)=>dashboardWeekOrder(a.week,a.index)-dashboardWeekOrder(b.week,b.index)||a.index-b.index)
+    .map(item=>item.week)
+    .slice(-DASHBOARD_HISTORY_LIMIT);
+}
+
+function readDashboardHistory(){
+  try{
+    const parsed=JSON.parse(localStorage.getItem(DASHBOARD_HISTORY_KEY)||'null');
+    return parsed&&Array.isArray(parsed.weeks)?parsed:null;
+  }catch(err){ return null; }
+}
+
+function writeDashboardHistory(meta,weeks){
+  try{
+    localStorage.setItem(DASHBOARD_HISTORY_KEY,JSON.stringify({version:1,saved_at:new Date().toISOString(),meta,weeks}));
+    return true;
+  }catch(err){ return false; }
+}
+
+const storedDashboardHistory=readDashboardHistory();
+if(storedDashboardHistory?.weeks?.length){
+  dashboardData.meta={...dashboardData.meta,...(storedDashboardHistory.meta||{})};
+  dashboardData.weeks=mergeDashboardWeeks([],storedDashboardHistory.weeks);
+}
 dashboardData.weeks.forEach(enrichWeekTopics);
 let state = { weekIndex: dashboardData.weeks.length - 1, platform: "综合", search: "", sort: "risk", lang: "zh" };
 const $ = s => document.querySelector(s);
@@ -1102,7 +1157,18 @@ const statusClass = s => ({"新生":"s-new","上升":"s-up","高位持续":"s-hi
 
 function populateWeekSelect(){
   const sel = $("#weekSelect");
-  sel.innerHTML = dashboardData.weeks.map((w,i)=>`<option value="${i}" ${i===state.weekIndex?"selected":""}>${w.label}</option>`).join("");
+  const count=dashboardData.weeks.length;
+  const historyLabel=$("#historyLabel");
+  if(historyLabel) historyLabel.textContent=loc(`历史记录 · 最近 ${count} 周`,`History · Last ${count} weeks`);
+  sel.setAttribute('aria-label',loc('最近五周历史记录','Recent five-week history'));
+  sel.replaceChildren();
+  dashboardData.weeks.forEach((w,i)=>{
+    const option=document.createElement('option');
+    option.value=String(i);
+    option.textContent=i===count-1?`${w.label} · ${loc('最新','Latest')}`:w.label;
+    option.selected=i===state.weekIndex;
+    sel.appendChild(option);
+  });
 }
 
 function currentWeek(){ return dashboardData.weeks[state.weekIndex]; }
@@ -1486,7 +1552,7 @@ $("#fileInput").addEventListener('change',e=>{
   const file=e.target.files[0]; if(!file) return; const reader=new FileReader();
   reader.onload=()=>{ try {
     const obj=JSON.parse(reader.result);
-    if(!obj.weeks||!Array.isArray(obj.weeks)) throw new Error(loc('缺少 weeks 数组','Missing weeks array'));
+    if(!obj.weeks||!Array.isArray(obj.weeks)||!obj.weeks.length) throw new Error(loc('缺少有效的 weeks 数组','Missing a valid weeks array'));
     const required=['count','video_count','creator_count','negative','discussion_coverage','discussion_volume_score','influence_score','engagement_score','growth_score','consensus_score','heat_score','risk_score'];
     obj.weeks.forEach((w,wi)=>{
       if(!Array.isArray(w.topics)) throw new Error(loc(`第 ${wi+1} 周缺少 topics 数组`,`Week ${wi+1} is missing a topics array`));
@@ -1496,8 +1562,16 @@ $("#fileInput").addEventListener('change',e=>{
         const combinedMissing=required.filter(k=>!Number.isFinite(t.combined_metrics[k]));if(combinedMissing.length)throw new Error(loc(`主题 ${t.id||ti+1} 的综合指标缺少：${combinedMissing.join(', ')}`,`Topic ${t.id||ti+1} is missing combined metrics: ${combinedMissing.join(', ')}`));
       }); enrichWeekTopics(w);
     });
-    dashboardData.meta=obj.meta||dashboardData.meta; dashboardData.weeks=obj.weeks; state.weekIndex=obj.weeks.length-1; state.platform='综合'; state.search=''; $("#topicSearch").value=''; $$("#platformChips .chip").forEach((c,i)=>c.classList.toggle('active',i===0)); renderAll(); alert(loc('数据导入成功：已通过 B站、小黑盒和综合指标校验','Import successful: Bilibili, Heybox, and combined metrics validated'));
-  } catch(err){ alert(loc('导入失败：','Import failed: ')+err.message); } };
+    const existingHistory=readDashboardHistory();
+    dashboardData.meta={...dashboardData.meta,...(existingHistory?.meta||{}),...(obj.meta||{})};
+    dashboardData.weeks=mergeDashboardWeeks(existingHistory?.weeks||[],obj.weeks);
+    const historySaved=writeDashboardHistory(dashboardData.meta,dashboardData.weeks);
+    state.weekIndex=dashboardData.weeks.length-1; state.platform='综合'; state.search=''; $("#topicSearch").value=''; $$("#platformChips .chip").forEach((c,i)=>c.classList.toggle('active',i===0)); renderAll();
+    alert(historySaved
+      ? loc(`数据导入成功：已保存最近 ${dashboardData.weeks.length} 周历史记录。`,`Import successful: the latest ${dashboardData.weeks.length} weeks are saved in history.`)
+      : loc('数据导入成功，但浏览器未能保存历史记录；刷新后记录可能丢失。','Import successful, but the browser could not save history; records may be lost after refresh.'));
+  } catch(err){ alert(loc('导入失败：','Import failed: ')+err.message); }
+  finally{ e.target.value=''; } };
   reader.readAsText(file,'utf-8');
 });
 $$('.nav-item[data-anchor]').forEach(n=>n.onclick=()=>{ const el=document.getElementById(n.dataset.anchor); el?.scrollIntoView({behavior:'smooth',block:'start'}); $$('.nav-item').forEach(x=>x.classList.remove('active')); n.classList.add('active'); });
