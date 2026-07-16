@@ -195,6 +195,19 @@
     .topic-table tbody tr:hover { background: rgba(242,31,43,.055); }
     .topic-name { color: #fff; font-weight: 620; }
     .topic-sub { display: block; color: var(--muted); font-size: 10px; margin-top: 3px; }
+    .topic-platform-insights { display:grid; gap:7px; margin-top:9px; max-width:360px; }
+    .platform-rank-tags { display:flex; flex-wrap:wrap; gap:5px; }
+    .rank-tag { display:inline-flex; align-items:center; min-height:22px; padding:3px 6px; border:1px solid rgba(255,255,255,.18); background:rgba(255,255,255,.035); color:#f5f5f2; font-size:9px; font-weight:700; letter-spacing:.02em; white-space:nowrap; }
+    .rank-combined { border-color:rgba(242,31,43,.65); background:rgba(242,31,43,.14); }
+    .rank-bilibili { border-color:rgba(70,205,238,.55); background:rgba(70,205,238,.10); color:#a9ecff; }
+    .rank-heybox { border-color:rgba(231,185,79,.58); background:rgba(231,185,79,.10); color:#ffe49a; }
+    .rank-tag.not-ranked { border-color:rgba(255,255,255,.13); background:rgba(255,255,255,.025); color:#a0a09b; font-weight:600; }
+    .source-share-caption { color:var(--muted); font-size:9px; }
+    .source-share-row { display:grid; grid-template-columns:auto minmax(68px,1fr) auto; align-items:center; gap:7px; color:#c9c9c4; font-size:9px; }
+    .source-share-bar { display:flex; height:5px; overflow:hidden; background:rgba(255,255,255,.06); }
+    .source-share-bar i { display:block; height:100%; }
+    .source-share-bar .share-bilibili { background:#46cdee; }
+    .source-share-bar .share-heybox { background:#e7b94f; }
     .status { display: inline-flex; align-items: center; gap: 5px; border-radius: 99px; padding: 5px 8px; font-size: 10px; border: 1px solid transparent; white-space: nowrap; }
     .s-new { color: #9fd7ff; background: rgba(76,201,240,.10); border-color: rgba(76,201,240,.18); }
     .s-up { color: #ffb0bc; background: rgba(255,94,116,.10); border-color: rgba(255,94,116,.18); }
@@ -285,6 +298,15 @@
     .detail-kpi { padding:12px; background:rgba(255,255,255,.025); border:1px solid var(--line); border-radius:12px; }
     .detail-kpi span { color:var(--muted); font-size:10px; }
     .detail-kpi strong { display:block; margin-top:7px; font-size:19px; }
+    .platform-compare-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+    .platform-compare-card { padding:13px; border:1px solid var(--line); background:rgba(255,255,255,.022); }
+    .platform-compare-card.bilibili { border-top:2px solid #46cdee; }
+    .platform-compare-card.heybox { border-top:2px solid #e7b94f; }
+    .platform-compare-head { display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:12px; }
+    .platform-compare-head strong { font-size:12px; color:#fff; }
+    .platform-compare-metrics { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; }
+    .platform-compare-metric span { display:block; color:var(--muted); font-size:9px; line-height:1.35; }
+    .platform-compare-metric b { display:block; margin-top:6px; color:#fff; font-size:15px; font-variant-numeric:tabular-nums; }
     .section-title { margin:22px 0 12px; font-size:13px; }
     .timeline { display:grid; gap:12px; }
     .timeline-row { display:grid; grid-template-columns:70px 1fr; gap:12px; }
@@ -464,23 +486,23 @@
       .topic-table tbody { display:grid; gap:12px; }
       .topic-table tbody tr {
         position:relative; display:grid; grid-template-columns:repeat(12,minmax(0,1fr));
-        grid-template-rows:auto auto auto minmax(96px,1fr); column-gap:18px; row-gap:20px;
+        grid-template-rows:auto auto auto auto minmax(96px,1fr); column-gap:18px; row-gap:20px;
         min-height:min(560px,calc(100vw - 24px)); padding:20px;
         border:1px solid rgba(255,255,255,.15); border-left:4px solid var(--accent);
         background:linear-gradient(145deg,rgba(255,255,255,.025),rgba(242,31,43,.025));
       }
       .topic-table td { display:block !important; min-width:0; padding:0; border:0; align-self:start; }
-      .topic-table td:first-child { grid-column:1 / 7; grid-row:1; }
-      .topic-table td:nth-child(2) { grid-column:7 / 10; grid-row:1; }
-      .topic-table td:nth-child(3) { grid-column:10 / 13; grid-row:1; }
+      .topic-table td:first-child { grid-column:1 / 13; grid-row:1; }
+      .topic-table td:nth-child(2) { grid-column:1 / 7; grid-row:2; }
+      .topic-table td:nth-child(3) { grid-column:7 / 13; grid-row:2; }
       .topic-table td:nth-child(4) {
-        grid-column:1 / 13; grid-row:2; display:grid !important; grid-template-columns:1fr auto;
+        grid-column:1 / 13; grid-row:3; display:grid !important; grid-template-columns:1fr auto;
         align-items:center; padding-top:18px; border-top:1px solid rgba(255,255,255,.10); font-size:17px;
       }
-      .topic-table td:nth-child(5) { grid-column:7 / 13; grid-row:3; }
-      .topic-table td:nth-child(6) { grid-column:1 / 7; grid-row:3; }
-      .topic-table td:nth-child(7) { grid-column:1 / 7; grid-row:4; align-self:start; }
-      .topic-table td:nth-child(8) { grid-column:7 / 13; grid-row:4; align-self:start; }
+      .topic-table td:nth-child(5) { grid-column:7 / 13; grid-row:4; }
+      .topic-table td:nth-child(6) { grid-column:1 / 7; grid-row:4; }
+      .topic-table td:nth-child(7) { grid-column:1 / 7; grid-row:5; align-self:start; }
+      .topic-table td:nth-child(8) { grid-column:7 / 13; grid-row:5; align-self:start; }
       .topic-table .topic-name { display:block; font-size:18px; line-height:1.4; word-break:normal; overflow-wrap:anywhere; }
       .topic-table .topic-sub { margin-top:8px; font-size:11px; line-height:1.55; word-break:normal; overflow-wrap:anywhere; }
       .topic-table .mobile-label { display:block; margin-bottom:9px; color:var(--muted) !important; font-size:10px; font-weight:500; letter-spacing:.04em; }
@@ -506,6 +528,7 @@
       .topic-table td:nth-child(7) { font-size:28px; font-weight:500; line-height:54px; }
       .topic-table td:nth-child(7) .mobile-label { line-height:1.2; }
       .topic-table .spark { display:block; width:92%; max-width:180px; height:54px; }
+      .topic-table .topic-platform-insights { max-width:none; margin-top:12px; }
     }
     @media (max-width: 420px) {
       .brand h1 { gap:5px; font-size:12px; }
@@ -514,15 +537,18 @@
       .user-pill { max-width:72px; }
       #logoutBtn, #langBtn { min-width:43px; padding:0 8px; }
       .topic-table tbody tr { column-gap:10px; row-gap:16px; padding:16px; }
-      .topic-table td:first-child { grid-column:1 / 7; }
-      .topic-table td:nth-child(2) { grid-column:7 / 10; }
-      .topic-table td:nth-child(3) { grid-column:10 / 13; }
+      .topic-table td:first-child { grid-column:1 / 13; }
+      .topic-table td:nth-child(2) { grid-column:1 / 7; }
+      .topic-table td:nth-child(3) { grid-column:7 / 13; }
       .topic-table .topic-name { font-size:15px; }
       .topic-table td:nth-child(2) .status, .topic-table td:nth-child(3) .status { font-size:10px; padding:7px 4px; }
     }
     @media (max-width: 360px) {
       .brand > div:last-child { display:none; }
       .brand { min-width:30px; }
+    }
+    @media (max-width: 480px) {
+      .platform-compare-grid { grid-template-columns:1fr; }
     }
   </style>
 </head>
@@ -984,8 +1010,8 @@ const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
 const fmt = n => state.lang==='zh' ? (n >= 10000 ? (n/10000).toFixed(2)+"万" : n.toLocaleString("zh-CN")) : n.toLocaleString("en-US");
 const copy = {
-  zh:{riskSort:'按风险优先级排序',heatSort:'按热议度排序',riskOption:'风险优先级',heatOption:'热议度',empty:'没有符合筛选条件的主题',positive:'积极',neutral:'中性',negative:'消极',volume:'声量',negativeRate:'负面率',week:'周',representative:'代表文本',sample:'演示样本',thisWeekVolume:'本周总声量',negativeShare:'负面情绪占比',highRisk:'高风险主题',newTopics:'本周新增主题',persistentTopics:'跨周持续主题',avgSentiment:'平均情感分',vsLastWeek:'较上周',highRiskBand:'风险偏高',normalBand:'正常区间',priorityNeeded:'需优先处置的主题',modelDetected:'由模型识别的新话题',over7Days:'持续超过7天',moreNegative:'偏负面',morePositive:'偏正面',videosCreators:'视频 / 作者',current:'当前',currentWeek:'本周',historyWeek:'历史周',topicChain:'主题链',noTopic:'本周暂无有效主题',oneWindow:'当前仅有一个周度窗口，后续周报接入后将自动形成跨周主题链。',share:'声量占比',opportunity:'机会',heatAsset:'建议放大内容资产',responseAdvice:'建议确认回应与处置节奏',view:'视图',firstSeen:'首次出现',lasting:'已持续',heatBreakdown:'热议度构成',keywords:'关键词',evolution:'跨周演化',initialAdvice:'初步建议',riskAdvice:'优先核查声量增长来源、核心负面诉求与官方回应效果；建议加入人工情感复核。',opAdvice:'可提炼高共鸣关键词，转化为角色内容、社媒传播或社区运营素材。',topicType:'主题类型',statusLabel:'状态',coverageLabel:'覆盖视频 / 作者',consensusLabel:'跨视频共识度',trendLabel:'7日趋势'},
-  en:{riskSort:'Sorted by risk priority',heatSort:'Sorted by heat score',riskOption:'Risk priority',heatOption:'Heat score',empty:'No topics match the filters',positive:'Positive',neutral:'Neutral',negative:'Negative',volume:'Volume',negativeRate:'Negative rate',week:'weeks',representative:'Representative posts',sample:'Demo sample',thisWeekVolume:'Total volume this week',negativeShare:'Negative sentiment share',highRisk:'High-risk topics',newTopics:'New topics this week',persistentTopics:'Persistent topics',avgSentiment:'Average sentiment',vsLastWeek:'vs last week',highRiskBand:'Elevated risk',normalBand:'Normal range',priorityNeeded:'Topics requiring priority action',modelDetected:'New topics detected by the model',over7Days:'Active for more than 7 days',moreNegative:'More negative',morePositive:'More positive',videosCreators:'Videos / creators',current:'Current',currentWeek:'This week',historyWeek:'Previous week',topicChain:'Topic chain',noTopic:'No valid topics this week',oneWindow:'Only one weekly window is available. Cross-week topic chains will appear after more reports are added.',share:'Volume share',opportunity:'Opportunity',heatAsset:'Consider amplifying this content asset',responseAdvice:'Review response and resolution timing',view:'view',firstSeen:'First seen',lasting:'Active for',heatBreakdown:'Heat-score breakdown',keywords:'Keywords',evolution:'Cross-week evolution',initialAdvice:'Initial recommendation',riskAdvice:'Verify the source of volume growth, core negative concerns, and the impact of official responses; add a manual sentiment review.',opAdvice:'Extract high-resonance keywords for character content, social distribution, or community operations.',topicType:'Topic type',statusLabel:'Status',coverageLabel:'Videos / creators',consensusLabel:'Cross-video consensus',trendLabel:'7-day trend'}
+  zh:{riskSort:'按风险优先级排序',heatSort:'按热议度排序',riskOption:'风险优先级',heatOption:'热议度',empty:'没有符合筛选条件的主题',positive:'积极',neutral:'中性',negative:'消极',volume:'声量',negativeRate:'负面率',week:'周',representative:'代表文本',sample:'演示样本',thisWeekVolume:'本周总声量',negativeShare:'负面情绪占比',highRisk:'高风险主题',newTopics:'本周新增主题',persistentTopics:'跨周持续主题',avgSentiment:'平均情感分',vsLastWeek:'较上周',highRiskBand:'风险偏高',normalBand:'正常区间',priorityNeeded:'需优先处置的主题',modelDetected:'由模型识别的新话题',over7Days:'持续超过7天',moreNegative:'偏负面',morePositive:'偏正面',videosCreators:'视频 / 作者',current:'当前',currentWeek:'本周',historyWeek:'历史周',topicChain:'主题链',noTopic:'本周暂无有效主题',oneWindow:'当前仅有一个周度窗口，后续周报接入后将自动形成跨周主题链。',share:'声量占比',opportunity:'机会',heatAsset:'建议放大内容资产',responseAdvice:'建议确认回应与处置节奏',view:'视图',firstSeen:'首次出现',lasting:'已持续',heatBreakdown:'热议度构成',keywords:'关键词',evolution:'跨周演化',initialAdvice:'初步建议',riskAdvice:'优先核查声量增长来源、核心负面诉求与官方回应效果；建议加入人工情感复核。',opAdvice:'可提炼高共鸣关键词，转化为角色内容、社媒传播或社区运营素材。',topicType:'主题类型',statusLabel:'状态',coverageLabel:'覆盖视频 / 作者',consensusLabel:'跨视频共识度',trendLabel:'7日趋势',notRanked:'未进入榜单',volumeSource:'声量来源',platformComparison:'平台指标对比'},
+  en:{riskSort:'Sorted by risk priority',heatSort:'Sorted by heat score',riskOption:'Risk priority',heatOption:'Heat score',empty:'No topics match the filters',positive:'Positive',neutral:'Neutral',negative:'Negative',volume:'Volume',negativeRate:'Negative rate',week:'weeks',representative:'Representative posts',sample:'Demo sample',thisWeekVolume:'Total volume this week',negativeShare:'Negative sentiment share',highRisk:'High-risk topics',newTopics:'New topics this week',persistentTopics:'Persistent topics',avgSentiment:'Average sentiment',vsLastWeek:'vs last week',highRiskBand:'Elevated risk',normalBand:'Normal range',priorityNeeded:'Topics requiring priority action',modelDetected:'New topics detected by the model',over7Days:'Active for more than 7 days',moreNegative:'More negative',morePositive:'More positive',videosCreators:'Videos / creators',current:'Current',currentWeek:'This week',historyWeek:'Previous week',topicChain:'Topic chain',noTopic:'No valid topics this week',oneWindow:'Only one weekly window is available. Cross-week topic chains will appear after more reports are added.',share:'Volume share',opportunity:'Opportunity',heatAsset:'Consider amplifying this content asset',responseAdvice:'Review response and resolution timing',view:'view',firstSeen:'First seen',lasting:'Active for',heatBreakdown:'Heat-score breakdown',keywords:'Keywords',evolution:'Cross-week evolution',initialAdvice:'Initial recommendation',riskAdvice:'Verify the source of volume growth, core negative concerns, and the impact of official responses; add a manual sentiment review.',opAdvice:'Extract high-resonance keywords for character content, social distribution, or community operations.',topicType:'Topic type',statusLabel:'Status',coverageLabel:'Videos / creators',consensusLabel:'Cross-video consensus',trendLabel:'7-day trend',notRanked:'Not ranked',volumeSource:'Volume source',platformComparison:'Platform comparison'}
 };
 const tr = key => copy[state.lang][key];
 const loc=(zh,en)=>state.lang==='zh'?zh:en;
@@ -1242,6 +1268,59 @@ function filteredTopics(){
   return topicsForWeek();
 }
 
+const topicIdentity=t=>t.id||t.chain||t.name;
+function buildTopicRankMaps(w=currentWeek()){
+  const scoreKey=state.sort==='heat'?'heat_score':'risk_score';
+  const platforms=['综合','B站','小黑盒'];
+  return Object.fromEntries(platforms.map(platform=>{
+    const ranked=w.topics
+      .map(t=>({t,m:metricFor(t,platform)}))
+      .filter(({m})=>m&&Number(m.count)>0)
+      .sort((a,b)=>(Number(b.m[scoreKey])||0)-(Number(a.m[scoreKey])||0))
+      .slice(0,10);
+    return [platform,new Map(ranked.map(({t},index)=>[topicIdentity(t),index+1]))];
+  }));
+}
+
+function rankTagHtml(platform,t,rankMaps){
+  const rank=rankMaps[platform]?.get(topicIdentity(t));
+  const className=platform==='综合'?'rank-combined':platform==='B站'?'rank-bilibili':'rank-heybox';
+  return `<span class="rank-tag ${className} ${rank?'':'not-ranked'}">${displayPlatform(platform)} ${rank?'#'+rank:'· '+tr('notRanked')}</span>`;
+}
+
+function platformInsightsHtml(t,rankMaps){
+  const bCount=Math.max(0,Number(t.platform_metrics?.['B站']?.count)||0);
+  const hCount=Math.max(0,Number(t.platform_metrics?.['小黑盒']?.count)||0);
+  const total=bCount+hCount;
+  const bShare=total?Math.round(bCount/total*100):0;
+  const hShare=total?100-bShare:0;
+  return `<div class="topic-platform-insights">
+    <div class="platform-rank-tags">${rankTagHtml('综合',t,rankMaps)}${rankTagHtml('B站',t,rankMaps)}${rankTagHtml('小黑盒',t,rankMaps)}</div>
+    <div class="source-share-caption">${tr('volumeSource')}</div>
+    <div class="source-share-row">
+      <span>${displayPlatform('B站')} ${bShare}%</span>
+      <div class="source-share-bar" aria-label="${tr('volumeSource')}"><i class="share-bilibili" style="width:${bShare}%"></i><i class="share-heybox" style="width:${hShare}%"></i></div>
+      <span>${displayPlatform('小黑盒')} ${hShare}%</span>
+    </div>
+  </div>`;
+}
+
+function platformComparisonHtml(t,rankMaps){
+  return `<div class="section-title">${tr('platformComparison')}</div><div class="platform-compare-grid">${['B站','小黑盒'].map(platform=>{
+    const m=t.platform_metrics?.[platform];
+    const hasData=m&&Number(m.count)>0;
+    const cardClass=platform==='B站'?'bilibili':'heybox';
+    return `<div class="platform-compare-card ${cardClass}">
+      <div class="platform-compare-head"><strong>${displayPlatform(platform)}</strong>${rankTagHtml(platform,t,rankMaps)}</div>
+      <div class="platform-compare-metrics">
+        <div class="platform-compare-metric"><span>${tr('heatOption')}</span><b>${hasData?m.heat_score:'—'}</b></div>
+        <div class="platform-compare-metric"><span>${tr('negativeRate')}</span><b>${hasData?m.negative+'%':'—'}</b></div>
+        <div class="platform-compare-metric"><span>${tr('coverageLabel')}</span><b>${hasData?m.video_count+' / '+m.creator_count:'—'}</b></div>
+      </div>
+    </div>`;
+  }).join('')}</div>`;
+}
+
 function sparkline(vals, color="#f21f2b"){
   const W=64,H=24,min=Math.min(...vals),max=Math.max(...vals), range=max-min||1;
   const pts=vals.map((v,i)=>`${i*(W/(vals.length-1))},${H-2-((v-min)/range)*(H-5)}`).join(' ');
@@ -1251,8 +1330,9 @@ function sparkline(vals, color="#f21f2b"){
 function renderTopicTable(){
   const topics=filteredTopics().sort((a,b)=>state.sort==='heat' ? metricFor(b).heat_score-metricFor(a).heat_score : metricFor(b).risk_score-metricFor(a).risk_score).slice(0,10);
   const total=topicsForWeek().reduce((s,t)=>s+metricFor(t).count,0)||1;
+  const rankMaps=buildTopicRankMaps();
   $("#topicTableBody").innerHTML=topics.map(t=>{const m=metricFor(t);return `<tr data-topic="${t.id}">
-    <td><span class="topic-name">${displayTopicName(t)}</span><span class="topic-sub">${displayKeywords(t).join(' · ')}</span></td>
+    <td><span class="topic-name">${displayTopicName(t)}</span><span class="topic-sub">${displayKeywords(t).join(' · ')}</span>${state.platform==='综合'?platformInsightsHtml(t,rankMaps):''}</td>
     <td><span class="mobile-label">${tr('topicType')}</span><span class="status ${topicTypeClass(t.topic_type)}">${displayTopicType(t.topic_type)}</span></td>
     <td><span class="mobile-label">${tr('statusLabel')}</span><span class="status ${statusClass(t.status)}">${displayStatus(t.status)}</span></td>
     <td class="coverage-cell"><span class="mobile-label">${tr('coverageLabel')}</span>${m.video_count} / ${m.creator_count}<span class="topic-sub">${tr('videosCreators')}</span></td>
@@ -1409,6 +1489,7 @@ function openTopic(id){
   dashboardData.weeks.forEach(w=>{const found=w.topics.find(x=>x.id===id); if(found){t=found;wFound=w;}});
   if(!t) return;
   const tm=metricFor(t); if(!tm) return;
+  const rankMaps=buildTopicRankMaps(currentWeek());
   const history=dashboardData.weeks.map(w=>({w,t:w.topics.find(x=>x.chain===t.chain)})).filter(x=>x.t);
   $("#drawerTitle").textContent=displayTopicName(t);
   $("#drawerSub").textContent=`${displayPlatform(state.platform)} ${tr('view')} · ${tr('topicChain')} ${t.chain} · ${tr('firstSeen')} ${t.first_seen} · ${tr('lasting')} ${t.weeks} ${tr('week')}`;
@@ -1421,6 +1502,7 @@ function openTopic(id){
       <div class="detail-kpi"><span>${state.lang==='zh'?'覆盖作者':'Creators covered'}</span><strong>${tm.creator_count}</strong></div>
       <div class="detail-kpi"><span>${tr('negativeRate')}</span><strong style="color:${tm.negative>=60?'var(--negative)':'#fff'}">${tm.negative}%</strong></div>
     </div>
+    ${platformComparisonHtml(t,rankMaps)}
     <div class="section-title">${tr('heatBreakdown')}</div>
     <div class="formula-text">${state.lang==='zh'?'覆盖':'Coverage'} ${tm.discussion_coverage} × 35% + ${state.lang==='zh'?'讨论量':'Discussion'} ${tm.discussion_volume_score} × 25% + ${state.lang==='zh'?'影响力':'Influence'} ${tm.influence_score} × 20% + ${state.lang==='zh'?'互动':'Engagement'} ${tm.engagement_score} × 10% + ${state.lang==='zh'?'增长':'Growth'} ${tm.growth_score} × 10% = <strong>${tm.heat_score}</strong></div>
     <div class="section-title">${tr('keywords')}</div><div>${displayKeywords(t).map(k=>`<span class="status s-high" style="margin:0 5px 5px 0">${k}</span>`).join('')}</div>
