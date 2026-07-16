@@ -373,6 +373,8 @@
     .panel-title:before,.section-title:before{content:"// ";color:var(--accent)}
     .topic-table th{color:#888;text-transform:uppercase;letter-spacing:.08em;border-bottom:2px solid var(--accent)}
     .topic-table tbody tr:hover{background:rgba(242,31,43,.075)}
+    .topic-table-wrap{overflow:auto}
+    .mobile-label{display:none}
     .status,.guardrail,.risk-level,.method-step,.formula-line,.risk-item,.detail-kpi,.timeline-box,.quote,.modal,pre{border-radius:0}
     .s-new{color:#8de7ff;background:rgba(46,183,219,.11);border-color:rgba(70,205,238,.42)}
     .s-up{color:#ffbd83;background:rgba(255,135,38,.10);border-color:rgba(255,135,38,.38)}
@@ -393,7 +395,7 @@
       .layout { grid-template-columns: 1fr; }
       .sidebar { display:none; }
       .topbar { padding:0 16px; }
-      .status-pill { display:none; }
+      .model-status { display:none; }
       main { padding:20px 16px 44px; }
       .page-head { flex-direction:column; }
       .filters { justify-content:flex-start; }
@@ -415,6 +417,67 @@
       .topic-table th:nth-child(4), .topic-table td:nth-child(4), .topic-table th:nth-child(6), .topic-table td:nth-child(6) { display:none; }
       .admin-form { grid-template-columns:1fr; }
       .user-pill small { display:none; }
+    }
+    @media (max-width: 900px) {
+      .topbar {
+        height:auto; min-height:72px; padding:9px 12px 10px;
+        display:grid; grid-template-columns:minmax(0,1fr) auto auto; gap:8px 0;
+      }
+      .brand { min-width:0; gap:8px; grid-column:1; grid-row:1; }
+      .brand-mark { width:30px; height:34px; flex:0 0 30px; }
+      .brand h1 { font-size:14px; white-space:nowrap; }
+      .brand p { display:none; }
+      .top-actions { display:contents; margin:0; }
+      .account-group { grid-column:2; grid-row:1; padding:0 10px 0 4px; gap:5px; }
+      .language-group { grid-column:3; grid-row:1; padding:0; }
+      .integration-group {
+        grid-column:1 / -1; grid-row:2; width:100%; padding:8px 0 0;
+        border-top:1px solid rgba(255,255,255,.10); gap:8px;
+      }
+      .integration-group:after { display:none; }
+      .integration-group .model-status { display:none; }
+      .integration-group #schemaBtn, .integration-group #importBtn {
+        display:flex !important; flex:1 1 0; justify-content:center; min-width:0; height:36px; white-space:nowrap;
+      }
+      .user-pill { max-width:92px; min-width:0; padding:0 9px; white-space:nowrap; overflow:hidden; }
+      #currentUsername { overflow:hidden; text-overflow:ellipsis; }
+      #logoutBtn, #langBtn { min-width:48px; padding:0 10px; white-space:nowrap; }
+      main { padding:14px 10px 40px; }
+      .panel { padding:14px; }
+      #topics .panel-head { flex-direction:column; align-items:stretch; }
+      #topics .topic-tools { width:100%; justify-content:space-between; }
+      #topics .topic-tools .legend { min-width:0; }
+      #topicSort { min-width:132px; max-width:52%; }
+      .topic-table-wrap { overflow:visible !important; }
+      .topic-table, .topic-table tbody { display:block; width:100%; }
+      .topic-table thead { display:none; }
+      .topic-table tbody { display:grid; gap:12px; }
+      .topic-table tbody tr {
+        display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:0 14px;
+        padding:14px; border:1px solid rgba(255,255,255,.12); border-left:3px solid var(--accent);
+        background:linear-gradient(145deg,rgba(255,255,255,.025),rgba(242,31,43,.025));
+      }
+      .topic-table td { display:block !important; min-width:0; padding:10px 0; border:0; }
+      .topic-table td:first-child { grid-column:1 / -1; padding-top:0; padding-bottom:13px; border-bottom:1px solid rgba(255,255,255,.08); }
+      .topic-table td:nth-child(8) { grid-column:1 / -1; padding-bottom:0; }
+      .topic-table .topic-name { display:block; font-size:14px; line-height:1.45; word-break:normal; overflow-wrap:anywhere; }
+      .topic-table .topic-sub { margin-top:5px; line-height:1.55; word-break:normal; overflow-wrap:anywhere; }
+      .topic-table .mobile-label { display:block; margin-bottom:7px; color:var(--muted) !important; font-size:9px; font-weight:500; letter-spacing:.06em; }
+      .topic-table .coverage-cell .topic-sub { display:none; }
+      .topic-table .score-bar { width:100%; max-width:150px; }
+      .topic-table .spark { width:100%; max-width:220px; height:34px; }
+    }
+    @media (max-width: 420px) {
+      .brand h1 { font-size:12px; }
+      .brand h1:after { display:none; }
+      .account-group { padding-right:7px; }
+      .user-pill { max-width:72px; }
+      #logoutBtn, #langBtn { min-width:43px; padding:0 8px; }
+      .topic-table tbody tr { padding:12px; gap:0 10px; }
+    }
+    @media (max-width: 360px) {
+      .brand > div:last-child { display:none; }
+      .brand { min-width:30px; }
     }
   </style>
 </head>
@@ -579,7 +642,7 @@
                 </select>
               </div>
             </div>
-            <div style="overflow:auto"><table class="topic-table">
+            <div class="topic-table-wrap"><table class="topic-table">
               <thead><tr><th>主题</th><th>主题类型</th><th>状态</th><th>覆盖视频/作者</th><th>跨视频共识度</th><th>热议度</th><th>负面率</th><th>7日趋势</th></tr></thead>
               <tbody id="topicTableBody"></tbody>
             </table></div>
@@ -820,8 +883,8 @@ const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
 const fmt = n => state.lang==='zh' ? (n >= 10000 ? (n/10000).toFixed(2)+"万" : n.toLocaleString("zh-CN")) : n.toLocaleString("en-US");
 const copy = {
-  zh:{riskSort:'按风险优先级排序',heatSort:'按热议度排序',riskOption:'风险优先级',heatOption:'热议度',empty:'没有符合筛选条件的主题',positive:'积极',neutral:'中性',negative:'消极',volume:'声量',negativeRate:'负面率',week:'周',representative:'代表文本',sample:'演示样本',thisWeekVolume:'本周总声量',negativeShare:'负面情绪占比',highRisk:'高风险主题',newTopics:'本周新增主题',persistentTopics:'跨周持续主题',avgSentiment:'平均情感分',vsLastWeek:'较上周',highRiskBand:'风险偏高',normalBand:'正常区间',priorityNeeded:'需优先处置的主题',modelDetected:'由模型识别的新话题',over7Days:'持续超过7天',moreNegative:'偏负面',morePositive:'偏正面',videosCreators:'视频 / 作者',current:'当前',currentWeek:'本周',historyWeek:'历史周',topicChain:'主题链',noTopic:'本周暂无有效主题',oneWindow:'当前仅有一个周度窗口，后续周报接入后将自动形成跨周主题链。',share:'声量占比',opportunity:'机会',heatAsset:'建议放大内容资产',responseAdvice:'建议确认回应与处置节奏',view:'视图',firstSeen:'首次出现',lasting:'已持续',heatBreakdown:'热议度构成',keywords:'关键词',evolution:'跨周演化',initialAdvice:'初步建议',riskAdvice:'优先核查声量增长来源、核心负面诉求与官方回应效果；建议加入人工情感复核。',opAdvice:'可提炼高共鸣关键词，转化为角色内容、社媒传播或社区运营素材。'},
-  en:{riskSort:'Sorted by risk priority',heatSort:'Sorted by heat score',riskOption:'Risk priority',heatOption:'Heat score',empty:'No topics match the filters',positive:'Positive',neutral:'Neutral',negative:'Negative',volume:'Volume',negativeRate:'Negative rate',week:'weeks',representative:'Representative posts',sample:'Demo sample',thisWeekVolume:'Total volume this week',negativeShare:'Negative sentiment share',highRisk:'High-risk topics',newTopics:'New topics this week',persistentTopics:'Persistent topics',avgSentiment:'Average sentiment',vsLastWeek:'vs last week',highRiskBand:'Elevated risk',normalBand:'Normal range',priorityNeeded:'Topics requiring priority action',modelDetected:'New topics detected by the model',over7Days:'Active for more than 7 days',moreNegative:'More negative',morePositive:'More positive',videosCreators:'Videos / creators',current:'Current',currentWeek:'This week',historyWeek:'Previous week',topicChain:'Topic chain',noTopic:'No valid topics this week',oneWindow:'Only one weekly window is available. Cross-week topic chains will appear after more reports are added.',share:'Volume share',opportunity:'Opportunity',heatAsset:'Consider amplifying this content asset',responseAdvice:'Review response and resolution timing',view:'view',firstSeen:'First seen',lasting:'Active for',heatBreakdown:'Heat-score breakdown',keywords:'Keywords',evolution:'Cross-week evolution',initialAdvice:'Initial recommendation',riskAdvice:'Verify the source of volume growth, core negative concerns, and the impact of official responses; add a manual sentiment review.',opAdvice:'Extract high-resonance keywords for character content, social distribution, or community operations.'}
+  zh:{riskSort:'按风险优先级排序',heatSort:'按热议度排序',riskOption:'风险优先级',heatOption:'热议度',empty:'没有符合筛选条件的主题',positive:'积极',neutral:'中性',negative:'消极',volume:'声量',negativeRate:'负面率',week:'周',representative:'代表文本',sample:'演示样本',thisWeekVolume:'本周总声量',negativeShare:'负面情绪占比',highRisk:'高风险主题',newTopics:'本周新增主题',persistentTopics:'跨周持续主题',avgSentiment:'平均情感分',vsLastWeek:'较上周',highRiskBand:'风险偏高',normalBand:'正常区间',priorityNeeded:'需优先处置的主题',modelDetected:'由模型识别的新话题',over7Days:'持续超过7天',moreNegative:'偏负面',morePositive:'偏正面',videosCreators:'视频 / 作者',current:'当前',currentWeek:'本周',historyWeek:'历史周',topicChain:'主题链',noTopic:'本周暂无有效主题',oneWindow:'当前仅有一个周度窗口，后续周报接入后将自动形成跨周主题链。',share:'声量占比',opportunity:'机会',heatAsset:'建议放大内容资产',responseAdvice:'建议确认回应与处置节奏',view:'视图',firstSeen:'首次出现',lasting:'已持续',heatBreakdown:'热议度构成',keywords:'关键词',evolution:'跨周演化',initialAdvice:'初步建议',riskAdvice:'优先核查声量增长来源、核心负面诉求与官方回应效果；建议加入人工情感复核。',opAdvice:'可提炼高共鸣关键词，转化为角色内容、社媒传播或社区运营素材。',topicType:'主题类型',statusLabel:'状态',coverageLabel:'覆盖视频 / 作者',consensusLabel:'跨视频共识度',trendLabel:'7日趋势'},
+  en:{riskSort:'Sorted by risk priority',heatSort:'Sorted by heat score',riskOption:'Risk priority',heatOption:'Heat score',empty:'No topics match the filters',positive:'Positive',neutral:'Neutral',negative:'Negative',volume:'Volume',negativeRate:'Negative rate',week:'weeks',representative:'Representative posts',sample:'Demo sample',thisWeekVolume:'Total volume this week',negativeShare:'Negative sentiment share',highRisk:'High-risk topics',newTopics:'New topics this week',persistentTopics:'Persistent topics',avgSentiment:'Average sentiment',vsLastWeek:'vs last week',highRiskBand:'Elevated risk',normalBand:'Normal range',priorityNeeded:'Topics requiring priority action',modelDetected:'New topics detected by the model',over7Days:'Active for more than 7 days',moreNegative:'More negative',morePositive:'More positive',videosCreators:'Videos / creators',current:'Current',currentWeek:'This week',historyWeek:'Previous week',topicChain:'Topic chain',noTopic:'No valid topics this week',oneWindow:'Only one weekly window is available. Cross-week topic chains will appear after more reports are added.',share:'Volume share',opportunity:'Opportunity',heatAsset:'Consider amplifying this content asset',responseAdvice:'Review response and resolution timing',view:'view',firstSeen:'First seen',lasting:'Active for',heatBreakdown:'Heat-score breakdown',keywords:'Keywords',evolution:'Cross-week evolution',initialAdvice:'Initial recommendation',riskAdvice:'Verify the source of volume growth, core negative concerns, and the impact of official responses; add a manual sentiment review.',opAdvice:'Extract high-resonance keywords for character content, social distribution, or community operations.',topicType:'Topic type',statusLabel:'Status',coverageLabel:'Videos / creators',consensusLabel:'Cross-video consensus',trendLabel:'7-day trend'}
 };
 const tr = key => copy[state.lang][key];
 const loc=(zh,en)=>state.lang==='zh'?zh:en;
@@ -1078,13 +1141,13 @@ function renderTopicTable(){
   const total=topicsForWeek().reduce((s,t)=>s+metricFor(t).count,0)||1;
   $("#topicTableBody").innerHTML=topics.map(t=>{const m=metricFor(t);return `<tr data-topic="${t.id}">
     <td><span class="topic-name">${displayTopicName(t)}</span><span class="topic-sub">${displayKeywords(t).join(' · ')}</span></td>
-    <td><span class="status ${topicTypeClass(t.topic_type)}">${displayTopicType(t.topic_type)}</span></td>
-    <td><span class="status ${statusClass(t.status)}">${displayStatus(t.status)}</span></td>
-    <td>${m.video_count} / ${m.creator_count}<span class="topic-sub">${tr('videosCreators')}</span></td>
-    <td><span class="score">${m.consensus_score}</span><div class="score-bar"><i style="width:${m.consensus_score}%"></i></div></td>
-    <td><span class="score">${m.heat_score}</span><div class="score-bar"><i style="width:${m.heat_score}%"></i></div><span class="topic-sub">${tr('volume')} ${fmt(m.count)} · ${(m.count/total*100).toFixed(1)}%</span></td>
-    <td style="color:${m.negative>=60?'var(--negative)':m.negative<=25?'var(--positive)':'var(--neutral)'}">${m.negative}%</td>
-    <td>${sparkline(m.trend,m.negative>=60?'#ff3340':'#d92530')}</td>
+    <td><span class="mobile-label">${tr('topicType')}</span><span class="status ${topicTypeClass(t.topic_type)}">${displayTopicType(t.topic_type)}</span></td>
+    <td><span class="mobile-label">${tr('statusLabel')}</span><span class="status ${statusClass(t.status)}">${displayStatus(t.status)}</span></td>
+    <td class="coverage-cell"><span class="mobile-label">${tr('coverageLabel')}</span>${m.video_count} / ${m.creator_count}<span class="topic-sub">${tr('videosCreators')}</span></td>
+    <td><span class="mobile-label">${tr('consensusLabel')}</span><span class="score">${m.consensus_score}</span><div class="score-bar"><i style="width:${m.consensus_score}%"></i></div></td>
+    <td><span class="mobile-label">${tr('heatOption')}</span><span class="score">${m.heat_score}</span><div class="score-bar"><i style="width:${m.heat_score}%"></i></div><span class="topic-sub">${tr('volume')} ${fmt(m.count)} · ${(m.count/total*100).toFixed(1)}%</span></td>
+    <td style="color:${m.negative>=60?'var(--negative)':m.negative<=25?'var(--positive)':'var(--neutral)'}"><span class="mobile-label">${tr('negativeRate')}</span>${m.negative}%</td>
+    <td><span class="mobile-label">${tr('trendLabel')}</span>${sparkline(m.trend,m.negative>=60?'#ff3340':'#d92530')}</td>
   </tr>`}).join('') || `<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:28px">${tr('empty')}</td></tr>`;
   $$("#topicTableBody tr[data-topic]").forEach(tr=>tr.addEventListener('click',()=>openTopic(tr.dataset.topic)));
 }
