@@ -62,12 +62,20 @@
     }
     .brand h1 { margin: 0; font-size: 18px; letter-spacing: .01em; }
     .brand p { margin: 3px 0 0; font-size: 12px; color: var(--muted); }
-    .top-actions { display: flex; align-items: center; gap: 10px; }
+    .top-actions { display:flex; align-items:center; justify-content:flex-end; gap:0; margin-left:22px; min-width:0; }
+    .top-menu-group { position:relative; display:flex; align-items:center; gap:7px; padding:0 14px; }
+    .top-menu-group:first-child { padding-left:0; }
+    .top-menu-group:last-child { padding-right:0; }
+    .top-menu-group:not(:last-child):after { content:""; position:absolute; right:0; top:7px; width:1px; height:24px; background:rgba(255,255,255,.20); }
     .status-pill, .btn, .select-wrap select, .search input {
       height: 38px; border-radius: 10px; border: 1px solid var(--line);
       background: rgba(255,255,255,.035); color: var(--text);
     }
     .status-pill { display: flex; align-items: center; gap: 8px; padding: 0 12px; color: var(--soft); font-size: 12px; }
+    button.status-pill { cursor:pointer; transition:.18s ease; }
+    button.status-pill:hover { color:#fff; border-color:rgba(242,31,43,.58); background:rgba(242,31,43,.10); }
+    #importBtn { background:var(--accent); border-color:var(--accent); color:#fff; font-weight:700; }
+    #importBtn:hover { background:#ff3440; border-color:#ff3440; }
     .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--warning); box-shadow: 0 0 0 4px rgba(255,159,67,.10); }
     .btn { padding: 0 14px; cursor: pointer; transition: .2s ease; }
     .btn:hover { border-color: rgba(242,31,43,.52); background: rgba(242,31,43,.10); transform: translateY(-1px); }
@@ -96,7 +104,8 @@
     .sidebar-signature {
       position:absolute; left:28px; bottom:24px;
       color:rgba(255,255,255,.58); font-size:10px; font-weight:700;
-      letter-spacing:.28em; text-transform:lowercase;
+      letter-spacing:.12em; text-transform:lowercase;
+      font-stretch:normal; font-kerning:normal;
       user-select:none; pointer-events:none; white-space:nowrap;
     }
     .sidebar-signature:before { content:"// "; color:var(--accent); letter-spacing:.08em; }
@@ -233,6 +242,9 @@
     .bubble { position:absolute; width: 14px; height: 14px; border-radius:50%; transform:translate(-50%,50%); cursor:pointer; border:2px solid rgba(255,255,255,.7); box-shadow:0 0 0 5px rgba(242,31,43,.08); }
     .bubble:hover { transform: translate(-50%,50%) scale(1.28); z-index:3; }
     .bubble-label { position:absolute; transform:translate(-50%, 24px); white-space:nowrap; font-size:10px; color:#e4e4df; }
+    .matrix .quad, .matrix .axis-y, .matrix .axis-x, .matrix .bubble-label {
+      font-stretch:normal; font-kerning:normal; letter-spacing:0; scale:none;
+    }
     .platform-bars { display: grid; gap: 13px; padding-top: 4px; }
     .platform-row { display: grid; grid-template-columns: 70px 1fr 46px; gap: 10px; align-items: center; font-size: 11px; color: var(--muted); }
     .platform-bar { height: 9px; background: rgba(255,255,255,.055); border-radius:99px; overflow:hidden; }
@@ -298,6 +310,45 @@
     .modal-head { padding:18px 20px; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; }
     .modal-body { padding:20px; }
     pre { white-space:pre-wrap; background:#090909; color:#e0e0dc; border:1px solid var(--line); border-radius:12px; padding:14px; font-size:11px; line-height:1.65; overflow:auto; }
+    .auth-hidden { display:none !important; }
+    body.auth-locked { overflow:hidden; }
+    .login-screen {
+      position:fixed; inset:0; z-index:1000; display:grid; place-items:center; padding:24px;
+      background:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px),radial-gradient(circle at 75% 15%,rgba(242,31,43,.22),transparent 34%),#080808;
+      background-size:32px 32px,32px 32px,auto,auto;
+    }
+    .login-screen:before { content:""; position:absolute; inset:0; background:linear-gradient(120deg,transparent 45%,rgba(242,31,43,.06) 45%,rgba(242,31,43,.06) 57%,transparent 57%); pointer-events:none; }
+    .login-card { position:relative; width:min(430px,100%); padding:34px; background:rgba(15,15,15,.97); border:1px solid rgba(255,255,255,.18); border-top:3px solid var(--accent); box-shadow:0 32px 90px rgba(0,0,0,.58); clip-path:polygon(0 0,calc(100% - 22px) 0,100% 22px,100% 100%,22px 100%,0 calc(100% - 22px)); }
+    .login-brand { display:flex; align-items:center; gap:14px; margin-bottom:26px; }
+    .login-mark { width:42px; height:42px; display:grid; place-items:center; color:#fff; background:var(--accent); font-weight:900; clip-path:polygon(50% 0,100% 100%,76% 100%,50% 45%,24% 100%,0 100%); padding-top:15px; }
+    .login-brand h1 { margin:0; font-size:18px; text-transform:uppercase; letter-spacing:.08em; }
+    .login-brand p { margin:5px 0 0; color:var(--muted); font-size:11px; }
+    .auth-field { display:grid; gap:7px; margin-top:15px; }
+    .auth-field label { color:#c7c7c2; font-size:11px; }
+    .auth-field input { width:100%; height:44px; padding:0 13px; color:#fff; background:#090909; border:1px solid var(--line); outline:none; border-radius:0; }
+    .auth-field input:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(242,31,43,.11); }
+    .auth-submit { width:100%; height:44px; margin-top:20px; }
+    .auth-error { min-height:18px; margin:12px 0 0; color:#ff7a83; font-size:11px; line-height:1.5; }
+    .auth-note { margin-top:18px; padding-top:15px; border-top:1px solid var(--line); color:var(--muted); font-size:10px; line-height:1.6; }
+    .user-pill { height:38px; display:flex; align-items:center; gap:8px; padding:0 11px; border:1px solid var(--line); border-left:2px solid var(--accent); background:rgba(242,31,43,.08); color:#fff; font-size:11px; }
+    button.user-pill { cursor:default; }
+    button.user-pill.is-admin { cursor:pointer; }
+    button.user-pill.is-admin:hover { background:rgba(242,31,43,.16); border-color:rgba(242,31,43,.48); }
+    .user-pill small { color:var(--muted); }
+    .account-group #logoutBtn, .language-group #langBtn { font-size:12px; font-weight:500; letter-spacing:0; color:var(--soft); }
+    .language-group .btn { min-width:48px; padding:0 11px; }
+    .admin-modal { width:min(780px,94vw); z-index:71; }
+    .admin-form { display:grid; grid-template-columns:1fr 1fr auto; gap:10px; align-items:end; margin-bottom:20px; }
+    .admin-form .auth-field { margin:0; }
+    .admin-form .btn { height:44px; }
+    .admin-message { min-height:18px; margin:-8px 0 12px; color:var(--muted); font-size:11px; }
+    .account-table { width:100%; border-collapse:collapse; font-size:11px; }
+    .account-table th { padding:9px 10px; color:var(--muted); text-align:left; border-bottom:2px solid var(--accent); }
+    .account-table td { padding:11px 10px; border-bottom:1px solid var(--line); color:#e8e8e3; }
+    .account-actions { display:flex; gap:6px; flex-wrap:wrap; }
+    .account-actions button { height:30px; padding:0 9px; font-size:10px; }
+    .account-role { color:#ffd28f; }
+    .account-disabled { color:#ff7a83; }
     .hidden { display:none !important; }
     /* APEX-inspired red/black/white visual system */
     .topbar{background:rgba(9,9,9,.94);border-bottom:2px solid var(--accent)}
@@ -354,18 +405,32 @@
     }
     @media (max-width: 640px) {
       .kpi-grid { grid-template-columns: repeat(2,1fr); }
-      .brand p, .top-actions .btn:not(.primary) { display:none; }
+      .brand p, .integration-group .model-status, #schemaBtn, .user-pill small { display:none; }
+      .top-menu-group { padding:0 8px; gap:5px; }
       .page-head h2 { font-size:21px; }
       .filters { width:100%; }
       .select-wrap, .select-wrap select, .search, .search input { width:100%; }
       .chip-group { width:100%; overflow:auto; }
       .notice { align-items:flex-start; flex-direction:column; }
       .topic-table th:nth-child(4), .topic-table td:nth-child(4), .topic-table th:nth-child(6), .topic-table td:nth-child(6) { display:none; }
+      .admin-form { grid-template-columns:1fr; }
+      .user-pill small { display:none; }
     }
   </style>
 </head>
-<body>
-<div class="app">
+<body class="auth-locked">
+<section class="login-screen" id="loginScreen" aria-label="登录验证">
+  <form class="login-card" id="loginForm" autocomplete="on">
+    <div class="login-brand"><div class="login-mark">A</div><div><h1>APEX 舆情控制台</h1><p>AUTHORIZED ACCESS ONLY / 授权账号访问</p></div></div>
+    <div class="auth-field"><label for="loginUsername">账号</label><input id="loginUsername" name="username" autocomplete="username" required /></div>
+    <div class="auth-field"><label for="loginPassword">密码</label><input id="loginPassword" name="password" type="password" autocomplete="current-password" required /></div>
+    <button class="btn primary auth-submit" type="submit">登录并进入看板</button>
+    <p class="auth-error" id="loginError" role="alert"></p>
+    <div class="auth-note">账号由管理员统一配置。未授权用户无法查看看板或导入 JSON 数据。</div>
+  </form>
+</section>
+
+<div class="app auth-hidden" id="dashboardApp">
   <header class="topbar">
     <div class="brand">
       <div class="brand-mark">A</div>
@@ -375,10 +440,18 @@
       </div>
     </div>
     <div class="top-actions">
-      <div class="status-pill"><span class="dot"></span> BERTopic 模型待接入</div>
-      <button class="btn" id="langBtn" aria-label="Switch language">EN</button>
-      <button class="btn" id="schemaBtn">数据接入说明</button>
-      <button class="btn primary" id="importBtn">导入 JSON</button>
+      <div class="top-menu-group integration-group">
+        <div class="status-pill model-status"><span class="dot"></span> BERTopic 模型待接入</div>
+        <button class="status-pill" id="schemaBtn">数据接入说明</button>
+        <button class="status-pill" id="importBtn">导入 JSON</button>
+      </div>
+      <div class="top-menu-group account-group">
+        <button class="user-pill" id="userPill" type="button"><span id="currentUsername">—</span><small id="currentRole"></small></button>
+        <button class="btn" id="logoutBtn">退出</button>
+      </div>
+      <div class="top-menu-group language-group">
+        <button class="btn" id="langBtn" aria-label="Switch language">CN</button>
+      </div>
       <input class="hidden" type="file" id="fileInput" accept="application/json" />
     </div>
   </header>
@@ -441,7 +514,7 @@
               </div>
               <div class="legend"><span><i class="l1"></i>总声量</span><span><i class="l2"></i>负面率</span></div>
             </div>
-            <div class="chart-box"><svg id="trendChart" viewBox="0 0 720 260" preserveAspectRatio="none"></svg></div>
+            <div class="chart-box"><svg id="trendChart" viewBox="0 0 720 260" preserveAspectRatio="xMidYMid meet"></svg></div>
           </div>
           <div class="card panel span-4" id="sentiment">
             <div class="panel-head">
@@ -594,6 +667,21 @@
   </div>
 </div>
 
+<div class="drawer-mask" id="adminMask" style="z-index:70"></div>
+<div class="modal admin-modal" id="adminModal">
+  <div class="modal-head"><strong>账号管理</strong><button class="drawer-close" id="adminClose">×</button></div>
+  <div class="modal-body">
+    <p style="font-size:12px;color:var(--muted);line-height:1.7;margin-top:0">管理员可以创建账号、重置密码、停用或删除普通账号。管理员账号 choco 为系统保留账号。</p>
+    <form class="admin-form" id="accountForm" autocomplete="off">
+      <div class="auth-field"><label for="accountUsername">账号名称</label><input id="accountUsername" maxlength="32" autocomplete="off" required /></div>
+      <div class="auth-field"><label for="accountPassword">派发密码</label><input id="accountPassword" type="password" minlength="6" autocomplete="new-password" required /></div>
+      <button class="btn primary" type="submit" id="saveAccountBtn">创建账号</button>
+    </form>
+    <div class="admin-message" id="adminMessage">账号名称至少 3 个字符，密码至少 6 个字符。</div>
+    <div style="overflow:auto"><table class="account-table"><thead><tr><th>账号</th><th>角色</th><th>状态</th><th>操作</th></tr></thead><tbody id="accountTableBody"></tbody></table></div>
+  </div>
+</div>
+
 <script>
 const dashboardData = {
   meta: { game_name: "PROJECT A", generated_at: "2026-07-20 09:30", model_status: "demo" },
@@ -655,13 +743,39 @@ const dashboardData = {
   ]
 };
 
+const demoTopicTranslations = {
+  T101:{name:'Worldbuilding and Story Expectations',keywords:['Worldbuilding','Story','Lore'],quotes:['The world feels expansive; I hope the full release can deliver on it.','The art direction has a very distinctive identity.']},
+  T102:{name:'Stress Test Performance',keywords:['Frame drops','GPU','Optimization'],quotes:['My hardware is not weak, but frame rates suddenly drop during combat.','I hope the team publishes an optimization plan soon.']},
+  T103:{name:'Character Art Feedback',keywords:['Characters','Key art','3D models'],quotes:['The character models look better in-game than in the trailer.','The outfit details feel very complete.']},
+  T201:{name:'Test Performance and Optimization',keywords:['Frame drops','Crashes','Patch'],quotes:['The game still stutters after the patch.','VRAM usage appears abnormal.']},
+  T202:{name:'Test Access Allocation',keywords:['Access','Selection','Test'],quotes:['I registered early but still did not receive access.','Could more test slots be added?']},
+  T203:{name:'Character Art Feedback',keywords:['Characters','3D models','Animation'],quotes:['The animation details are better than expected.','The characters are highly recognizable.']},
+  T204:{name:'Story and Lore Discussion',keywords:['Story','Factions','Foreshadowing'],quotes:['The test content already contains plenty of foreshadowing.']},
+  T301:{name:'New Character Trailer Feedback',keywords:['New character','Trailer','Voice acting','Design'],quotes:['The trailer looks polished, and the voice suits the character.','The design differs quite a bit from the earlier concept.']},
+  T302:{name:'Server Queues and Disconnects',keywords:['Queue','Disconnects','Servers'],quotes:['I queued for half an hour and disconnected right after entering.','The test is nearly unplayable during peak hours.']},
+  T303:{name:'Performance Optimization and Crashes',keywords:['Optimization','Crashes','Frame rate'],quotes:['The new patch reduced stuttering, but crashes remain.','Performance issues are starting to affect my willingness to play.']},
+  T304:{name:'Fairness of Test Access',keywords:['Access','Fairness','Slots'],quotes:['Interest has declined, but some players still question the allocation process.']},
+  T305:{name:'Character Art and Animation',keywords:['Characters','Animation','3D models'],quotes:['The in-game animations look more natural than in the trailer.']},
+  T401:{name:'Version 1.2 Performance Optimization',keywords:['Version 1.2 patch','Frame rate','Crashes','VRAM'],quotes:['Frame rates are more stable, but they still drop in city areas.','Crashes happen less often, but VRAM usage is still high.']},
+  T402:{name:'Probability Event Rules Controversy',keywords:['Probability','Pity system','Event pool','Announcement'],quotes:['The probability explanation in the announcement is not clear enough.','The pity rules differ from what players understood.']},
+  T403:{name:'Server Incident Follow-up',keywords:['Queue','Compensation','Disconnects','Announcement'],quotes:['Queues are shorter, but peak-hour disconnects are not fully resolved.','The compensation plan remains controversial.']},
+  T404:{name:'Collaboration Merchandise Feedback',keywords:['Collaboration','Merchandise','Design','Limited edition'],quotes:['The merchandise design is more restrained than expected and feels collectible.','I hope it does not sell out instantly as a limited release.']},
+  T405:{name:'New Character Lore Discussion',keywords:['Character lore','Background','Voice acting','Power level'],quotes:['Discussion has shifted from appearance to the character’s background and abilities.']},
+  T406:{name:'Long-term Character Art Reputation',keywords:['Characters','3D models','Animation','Aesthetics'],quotes:['Character art has developed a stable positive reputation.']}
+};
+
 const clampScore=n=>Math.max(0,Math.min(100,Math.round(Number(n)||0)));
 function enrichWeekTopics(w){
   const maxCount=Math.max(1,...w.topics.map(t=>t.count||0));
   w.topics.forEach((t,i)=>{
+    const translated=demoTopicTranslations[t.id];
+    t.name_en=t.name_en||translated?.name;
+    t.keywords_en=t.keywords_en||translated?.keywords;
+    t.quotes_en=t.quotes_en||translated?.quotes||[];
     if(t.combined_metrics) Object.entries(t.combined_metrics).forEach(([k,v])=>{if(t[k]===undefined)t[k]=v;});
     t.quotes=t.quotes||[];
     while(t.quotes.length<3) t.quotes.push(`关于“${t.name}”的讨论仍在持续，玩家期待后续说明与改进。`);
+    while(t.quotes_en.length<3) t.quotes_en.push(`Discussion of “${t.name_en||t.name}” remains active, and players expect further clarification and improvements.`);
     t.video_count=Number.isFinite(t.video_count)?t.video_count:Math.max(3,Math.round((t.share||8)*1.35));
     t.creator_count=Number.isFinite(t.creator_count)?t.creator_count:Math.max(2,Math.round(t.video_count*.68));
     t.video_coverage_score=clampScore(t.video_coverage_score ?? t.video_count/36*100);
@@ -706,10 +820,11 @@ const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
 const fmt = n => state.lang==='zh' ? (n >= 10000 ? (n/10000).toFixed(2)+"万" : n.toLocaleString("zh-CN")) : n.toLocaleString("en-US");
 const copy = {
-  zh:{riskSort:'按风险优先级排序',heatSort:'按热议度排序',riskOption:'风险优先级',heatOption:'热议度',empty:'没有符合筛选条件的主题',positive:'积极',neutral:'中性',negative:'消极',volume:'声量',negativeRate:'负面率',week:'周',representative:'代表文本',sample:'演示样本'},
-  en:{riskSort:'Sorted by risk priority',heatSort:'Sorted by discussion volume',riskOption:'Risk priority',heatOption:'Discussion volume',empty:'No topics match the filters',positive:'Positive',neutral:'Neutral',negative:'Negative',volume:'Volume',negativeRate:'Negative rate',week:'weeks',representative:'Representative posts',sample:'Demo sample'}
+  zh:{riskSort:'按风险优先级排序',heatSort:'按热议度排序',riskOption:'风险优先级',heatOption:'热议度',empty:'没有符合筛选条件的主题',positive:'积极',neutral:'中性',negative:'消极',volume:'声量',negativeRate:'负面率',week:'周',representative:'代表文本',sample:'演示样本',thisWeekVolume:'本周总声量',negativeShare:'负面情绪占比',highRisk:'高风险主题',newTopics:'本周新增主题',persistentTopics:'跨周持续主题',avgSentiment:'平均情感分',vsLastWeek:'较上周',highRiskBand:'风险偏高',normalBand:'正常区间',priorityNeeded:'需优先处置的主题',modelDetected:'由模型识别的新话题',over7Days:'持续超过7天',moreNegative:'偏负面',morePositive:'偏正面',videosCreators:'视频 / 作者',current:'当前',currentWeek:'本周',historyWeek:'历史周',topicChain:'主题链',noTopic:'本周暂无有效主题',oneWindow:'当前仅有一个周度窗口，后续周报接入后将自动形成跨周主题链。',share:'声量占比',opportunity:'机会',heatAsset:'建议放大内容资产',responseAdvice:'建议确认回应与处置节奏',view:'视图',firstSeen:'首次出现',lasting:'已持续',heatBreakdown:'热议度构成',keywords:'关键词',evolution:'跨周演化',initialAdvice:'初步建议',riskAdvice:'优先核查声量增长来源、核心负面诉求与官方回应效果；建议加入人工情感复核。',opAdvice:'可提炼高共鸣关键词，转化为角色内容、社媒传播或社区运营素材。'},
+  en:{riskSort:'Sorted by risk priority',heatSort:'Sorted by heat score',riskOption:'Risk priority',heatOption:'Heat score',empty:'No topics match the filters',positive:'Positive',neutral:'Neutral',negative:'Negative',volume:'Volume',negativeRate:'Negative rate',week:'weeks',representative:'Representative posts',sample:'Demo sample',thisWeekVolume:'Total volume this week',negativeShare:'Negative sentiment share',highRisk:'High-risk topics',newTopics:'New topics this week',persistentTopics:'Persistent topics',avgSentiment:'Average sentiment',vsLastWeek:'vs last week',highRiskBand:'Elevated risk',normalBand:'Normal range',priorityNeeded:'Topics requiring priority action',modelDetected:'New topics detected by the model',over7Days:'Active for more than 7 days',moreNegative:'More negative',morePositive:'More positive',videosCreators:'Videos / creators',current:'Current',currentWeek:'This week',historyWeek:'Previous week',topicChain:'Topic chain',noTopic:'No valid topics this week',oneWindow:'Only one weekly window is available. Cross-week topic chains will appear after more reports are added.',share:'Volume share',opportunity:'Opportunity',heatAsset:'Consider amplifying this content asset',responseAdvice:'Review response and resolution timing',view:'view',firstSeen:'First seen',lasting:'Active for',heatBreakdown:'Heat-score breakdown',keywords:'Keywords',evolution:'Cross-week evolution',initialAdvice:'Initial recommendation',riskAdvice:'Verify the source of volume growth, core negative concerns, and the impact of official responses; add a manual sentiment review.',opAdvice:'Extract high-resonance keywords for character content, social distribution, or community operations.'}
 };
 const tr = key => copy[state.lang][key];
+const loc=(zh,en)=>state.lang==='zh'?zh:en;
 const staticTranslations = new Map([
   ['游戏舆情监测中心','Game Sentiment Monitor'],['周度主题识别 · 跨周主题链 · 情感与风险融合','Weekly topic discovery · Cross-week topic chains · Sentiment and risk'],
   ['BERTopic 模型待接入','BERTopic integration pending'],['数据接入说明','Data schema'],['导入 JSON','Import JSON'],['舆情总览','Overview'],['主题监测','Topics'],['主题演化','Evolution'],['情感分析','Sentiment'],['风险与机会','Risk & Opportunity'],['下载数据模板','Download template'],
@@ -717,23 +832,161 @@ const staticTranslations = new Map([
   ['周度主题识别口径','Weekly Topic Methodology'],['计算主题热议度公式','Topic Heat Formula'],['全周语料','Full-week corpus'],['语义聚类','Semantic clustering'],['共识校验','Consensus validation'],['综合评分','Composite scoring'],['周度 Top 10','Weekly Top 10'],
   ['主题类型','Topic type'],['覆盖视频/作者','Videos / creators'],['跨视频共识度','Cross-video consensus'],['热议度','Heat score'],
   ['本周总声量','Total volume this week'],['负面情绪占比','Negative sentiment share'],['高风险主题','High-risk topics'],['本周新增主题','New topics this week'],['跨周持续主题','Persistent topics'],['平均情感分','Average sentiment'],
-  ['主题','Topic'],['状态','Status'],['声量','Volume'],['周环比','WoW'],['负面率','Negative rate'],['主题占比','Topic share'],['7日趋势','7-day trend'],
+  ['主题','Topic'],['状态','Status'],['声量','Volume'],['周环比','WoW'],['负面率','Negative rate'],['主题占比','Topic share'],['主题声量占比','Topic volume share'],['7日趋势','7-day trend'],
   ['本周情感结构','Sentiment This Week'],['平均情感分','Average sentiment'],['平台声量分布','Platform Volume'],['本周关键事件','Key Events'],
   ['跨周主题演化关系','Cross-week Topic Evolution'],['主题风险—机会矩阵','Topic Risk–Opportunity Matrix'],['行动优先级','Action Priorities'],['高频关键词','Top Keywords'],['持续主题链概览','Persistent Topic Chains'],
-  ['综合','Combined'],['搜索主题或关键词','Search topics or keywords'],['主题详情','Topic Details'],['关键词','Keywords'],['跨周演化','Cross-week evolution'],['初步建议','Initial recommendation']
+  ['综合','Combined'],['B站','Bilibili'],['小黑盒','Heybox'],['搜索主题或关键词','Search topics or keywords'],['主题详情','Topic Details'],['关键词','Keywords'],['跨周演化','Cross-week evolution'],['初步建议','Initial recommendation']
+  ,['当前为演示面板','Demo dashboard'],['页面已按周一至周日的7天区间设计。接入模型输出后，可自动更新周报、主题链和情感结果。','The dashboard uses a Monday-to-Sunday window. Once model output is connected, weekly reports, topic chains, and sentiment results update automatically.'],
+  ['舆情周报 ·','Sentiment Weekly ·'],['本周数据窗口：周一 00:00 至周日 23:59；主题链不因周报切换而中断。','Weekly window: Monday 00:00 to Sunday 23:59. Topic chains continue across weekly reports.'],
+  ['模型接入提示：','Model integration:'],['当前页面使用演示数据。后续 BERTopic 需输出本周 topic_id、topic_name、topic_embedding、关键词、代表文本及跨周匹配结果。','This page uses demo data. BERTopic should output topic_id, topic_name, topic_embedding, keywords, representative posts, and cross-week matches.'],['查看字段结构','View schema'],
+  ['近5周舆情趋势','Five-Week Sentiment Trend'],['总声量与负面率同步观察，识别持续升温或风险加速。','Track total volume and negative sentiment together to identify sustained growth or accelerating risk.'],['总声量','Total volume'],
+  ['SnowNLP输出，建议对高风险主题进行人工校正。','SnowNLP output; manually review high-risk topics.'],
+  ['主题来自全周跨视频语料聚类；视频热度只参与聚类后的影响力评分，不决定主题归属。','Topics are clustered from the full week of cross-video text. Video popularity affects post-clustering influence scores, not topic assignment.'],
+  ['标题、简介、字幕片段与评论，保留 video_id 和 creator_id','Titles, descriptions, transcript segments, and comments with video_id and creator_id retained'],['BERTopic 对所有文本统一聚类，不按单视频先排名','BERTopic clusters the complete corpus instead of ranking individual videos first'],['检查覆盖视频数、作者数，识别跨视频共同讨论','Validate video and creator coverage to identify cross-video discussion'],['覆盖度、讨论量、影响力、互动与增长分别计分','Score coverage, discussion volume, influence, engagement, and growth separately'],['按综合热议度选出主题，并保留风险优先排序','Select topics by composite heat score while retaining risk-priority sorting'],
+  ['单视频语料占比建议 ≤ 5%','Recommended single-video corpus share ≤ 5%'],['单视频影响贡献建议 ≤ 20%','Recommended single-video influence contribution ≤ 20%'],['爆发事件需单独标记','Flag breakout events separately'],['所有分项统一归一化为 0—100，避免播放量直接支配结果。','Normalize every component to 0–100 so views do not dominate the result.'],
+  ['覆盖 35%','Coverage 35%'],['讨论 25%','Discussion 25%'],['影响 20%','Influence 20%'],['互动 10%','Engagement 10%'],['增长 10%','Growth 10%'],['热议度','Heat score'],['= 35% × 讨论覆盖度 + 25% × 文本讨论量 + 20% × 视频影响力 + 10% × 互动强度 + 10% × 增长速度','= 35% × discussion coverage + 25% × text volume + 20% × video influence + 10% × engagement + 10% × growth'],['视频覆盖 60%','Video coverage 60%'],['作者覆盖 40%','Creator coverage 40%'],['跨视频共识度','Cross-video consensus'],['= 60% × 覆盖视频得分 + 40% × 覆盖作者得分','= 60% × video coverage score + 40% × creator coverage score'],
+  ['平台声量分布','Platform Volume Distribution'],['用于判断话题是圈层扩散还是全平台外溢。','Shows whether a topic is limited to one community or spreading across platforms.'],['本周关键事件','Key Events This Week'],
+  ['展示截至本周的最近3个自然周；同一 topic_chain_id 以连线持续追踪，避免周报切断长期话题。','Shows the latest three calendar weeks. The same topic_chain_id remains connected so weekly reports do not break long-running topics.'],['延续','Continuation'],['风险分支','Risk branch'],['机会分支','Opportunity branch'],['提示：可左右滑动查看完整主题链；当前卡片已修正为全宽显示。','Tip: swipe horizontally to view the complete topic chain.'],
+  ['横轴为主题声量占比，纵轴为负面率；右上角为优先处理区。','The x-axis is topic volume share and the y-axis is negative rate; the upper-right quadrant requires priority action.'],['高声量 / 高负面','High volume / high negative'],['低声量 / 高负面','Low volume / high negative'],['低声量 / 低负面','Low volume / low negative'],['高声量 / 低负面','High volume / low negative'],['将分析结果转化为产品、社区和传播动作。','Translate analysis into product, community, and communications actions.'],
+  ['用于辅助人工命名主题与识别新词。','Supports manual topic naming and emerging-term discovery.'],['监控超过7天的舆情，保留首次出现、持续周数和当前状态。','Monitor topics lasting more than seven days, including first appearance, duration, and current status.'],['主题链','Topic chain'],['首次出现','First seen'],['持续','Duration'],['累计声量','Cumulative volume'],['当前状态','Current status'],
+  ['BERTopic 模型接入字段','BERTopic Integration Schema'],['模型每周输出一个 JSON 对象。页面按','The model outputs one JSON object per week. The dashboard uses'],['建立周报，通过','to build weekly reports and'],['追踪跨周主题，并校验覆盖视频、覆盖作者及热议度五项分值，避免将单个热门视频误判为全周共同热点。','to track cross-week topics. It validates video coverage, creator coverage, and the five heat-score components so one popular video is not mistaken for a weekly consensus topic.'],['下载示例 JSON','Download sample JSON'],
+  ['主题排序方式','Topic sort order'],['覆盖视频/作者','Videos / creators'],['本周核心主题','Core Topics This Week'],
+  ['APEX 舆情控制台','APEX Sentiment Console'],['授权账号访问','Authorized accounts only'],['账号','Username'],['密码','Password'],['登录并进入看板','Sign in to dashboard'],['账号由管理员统一配置。未授权用户无法查看看板或导入 JSON 数据。','Accounts are issued by an administrator. Unauthorized users cannot view the dashboard or import JSON data.'],
+  ['账号管理','Account management'],['退出','Sign out'],['管理员可以创建账号、重置密码、停用或删除普通账号。管理员账号 choco 为系统保留账号。','Administrators can create accounts, reset passwords, disable accounts, or delete users. The choco administrator account is protected.'],['账号名称','Username'],['派发密码','Issued password'],['创建账号','Create account'],['账号名称至少 3 个字符，密码至少 6 个字符。','Usernames require at least 3 characters and passwords at least 6.'],['角色','Role'],['操作','Actions']
 ]);
 const statusTranslations={'新生':'New','上升':'Rising','高位持续':'Sustained high','稳定延续':'Stable','回落':'Declining','复燃':'Resurgent'};
 const displayStatus=s=>state.lang==='zh'?s:(statusTranslations[s]||s);
+const topicTypeTranslations={'广泛热议':'Broad discussion','圈层议题':'Community topic','爆发事件':'Breakout event','单点观察':'Single-source watch'};
+const displayTopicType=s=>state.lang==='zh'?s:(topicTypeTranslations[s]||s);
+const displayPlatform=s=>state.lang==='zh'?s:({'综合':'Combined','B站':'Bilibili','小黑盒':'Heybox'}[s]||s);
+const displayTopicName=t=>state.lang==='zh'?t.name:(t.name_en||t.name);
+const displayKeywords=t=>state.lang==='zh'?t.keywords:(t.keywords_en?.length?t.keywords_en:t.keywords);
+const displayQuotes=t=>state.lang==='zh'?t.quotes:(t.quotes_en?.length?t.quotes_en:t.quotes);
+const eventTranslations={
+  '开发者访谈发布':'Developer interview released','角色与世界观讨论提升。':'Discussion of characters and worldbuilding increased.',
+  '首次压力测试':'First stress test','性能与服务器话题开始出现。':'Performance and server topics emerged.',
+  '测试资格扩容':'Test access expanded','服务器承载和资格分配引发讨论。':'Server capacity and access allocation prompted discussion.',
+  '测试补丁上线':'Test patch released','部分性能问题缓解。':'Some performance issues were mitigated.',
+  '新角色PV发布':'New character trailer released','角色形象迅速成为本周最大新增话题。':'The character quickly became the week’s largest emerging topic.',
+  '服务器异常':'Server incident','晚间大面积排队与掉线。':'Widespread evening queues and disconnects.',
+  '官方致歉':'Official apology','负面声量短暂回落。':'Negative discussion briefly declined.',
+  '1.2版本补丁':'Version 1.2 patch','性能评价分化，部分玩家称改善明显。':'Performance feedback was mixed; some players reported clear improvements.',
+  '概率活动开启':'Probability-based event launched','抽取规则引发集中质疑。':'Draw rules triggered concentrated criticism.',
+  '联名周边公布':'Collaboration merchandise announced','正面互动快速增长。':'Positive engagement grew rapidly.'
+};
+const displayEventText=s=>state.lang==='zh'?s:(eventTranslations[s]||s);
 const topicTypeClass=s=>({'广泛热议':'type-wide','圈层议题':'type-niche','爆发事件':'type-burst','单点观察':'type-single'}[s]||'type-single');
+
+const AUTH_ACCOUNTS_KEY='apex_sentiment_accounts_v1';
+const AUTH_SESSION_KEY='apex_sentiment_session_v1';
+const ADMIN_USERNAME='choco';
+const ADMIN_PASSWORD_HASH='327a7380d2cc7cf09ed5820e1ecdb8abe585d696b5b5526986dfebe70acec59e';
+let authCurrentUser=null;
+let authMemoryAccounts=[];
+
+async function hashPassword(value){
+  if(!window.crypto?.subtle) throw new Error(loc('当前浏览器不支持安全密码摘要，请使用最新版浏览器。','This browser does not support secure password hashing. Please use a current browser.'));
+  const bytes=new TextEncoder().encode(value);
+  const digest=await crypto.subtle.digest('SHA-256',bytes);
+  return [...new Uint8Array(digest)].map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+function readAccounts(){
+  try { const parsed=JSON.parse(localStorage.getItem(AUTH_ACCOUNTS_KEY)||'[]'); return Array.isArray(parsed)?parsed:[]; }
+  catch(err){ return authMemoryAccounts; }
+}
+function writeAccounts(accounts){
+  authMemoryAccounts=accounts;
+  try { localStorage.setItem(AUTH_ACCOUNTS_KEY,JSON.stringify(accounts)); }
+  catch(err){ /* Browsers that isolate file:// storage keep accounts for this page session only. */ }
+}
+function seedAdminAccount(){
+  const accounts=readAccounts();
+  let admin=accounts.find(a=>a.username.toLowerCase()===ADMIN_USERNAME);
+  if(!admin){ admin={username:ADMIN_USERNAME,passwordHash:ADMIN_PASSWORD_HASH,role:'admin',active:true,createdAt:new Date().toISOString()}; accounts.unshift(admin); }
+  admin.username=ADMIN_USERNAME; admin.passwordHash=ADMIN_PASSWORD_HASH; admin.role='admin'; admin.active=true;
+  writeAccounts(accounts);
+  return accounts;
+}
+function readSessionUsername(){ try{return sessionStorage.getItem(AUTH_SESSION_KEY)||'';}catch(err){return '';} }
+function writeSessionUsername(username){ try{username?sessionStorage.setItem(AUTH_SESSION_KEY,username):sessionStorage.removeItem(AUTH_SESSION_KEY);}catch(err){} }
+function accountFor(username){ return readAccounts().find(a=>a.username.toLowerCase()===String(username||'').toLowerCase()); }
+function authenticatedAccount(){
+  const account=accountFor(authCurrentUser?.username||readSessionUsername());
+  return account?.active?account:null;
+}
+function unlockDashboard(account){
+  authCurrentUser=account; writeSessionUsername(account.username);
+  document.body.classList.remove('auth-locked');
+  $('#loginScreen').classList.add('hidden'); $('#dashboardApp').classList.remove('auth-hidden');
+  $('#currentUsername').textContent=account.username;
+  $('#currentRole').textContent=account.role==='admin'?loc('管理员','Admin'):loc('已授权','Authorized');
+  $('#userPill').classList.toggle('is-admin',account.role==='admin');
+  $('#userPill').setAttribute('aria-label',account.role==='admin'?loc('打开账号管理','Open account management'):loc('当前账号','Current account'));
+  $('#loginError').textContent='';
+  renderAll();
+}
+function lockDashboard(message=''){
+  authCurrentUser=null; writeSessionUsername(''); closeAdmin(); closeDrawer(); closeSchema();
+  document.body.classList.add('auth-locked');
+  $('#dashboardApp').classList.add('auth-hidden'); $('#loginScreen').classList.remove('hidden');
+  $('#loginPassword').value=''; $('#loginError').textContent=message;
+  setTimeout(()=>$('#loginUsername').focus(),0);
+}
+function requireAuthenticated(){
+  const account=authenticatedAccount();
+  if(account) return account;
+  lockDashboard(loc('登录已失效，请重新登录。','Your session has expired. Please sign in again.'));
+  return null;
+}
+function openAdmin(){
+  const account=requireAuthenticated(); if(!account||account.role!=='admin') return;
+  renderAccounts(); $('#adminMask').classList.add('show'); $('#adminModal').classList.add('show');
+}
+function closeAdmin(){ $('#adminMask')?.classList.remove('show'); $('#adminModal')?.classList.remove('show'); }
+function renderAccounts(){
+  const body=$('#accountTableBody'); if(!body) return;
+  body.innerHTML=readAccounts().map(a=>{
+    const protectedAdmin=a.username.toLowerCase()===ADMIN_USERNAME;
+    const role=a.role==='admin'?loc('管理员','Admin'):loc('普通账号','User');
+    const status=a.active?loc('启用','Active'):loc('停用','Disabled');
+    const actions=protectedAdmin?`<span class="account-role">${loc('系统保留','Protected')}</span>`:`<div class="account-actions"><button class="btn" data-account-action="edit" data-username="${a.username}">${loc('重置密码','Reset password')}</button><button class="btn" data-account-action="toggle" data-username="${a.username}">${a.active?loc('停用','Disable'):loc('启用','Enable')}</button><button class="btn" data-account-action="delete" data-username="${a.username}">${loc('删除','Delete')}</button></div>`;
+    return `<tr><td>${a.username}</td><td class="${a.role==='admin'?'account-role':''}">${role}</td><td class="${a.active?'':'account-disabled'}">${status}</td><td>${actions}</td></tr>`;
+  }).join('');
+}
+function resetAccountForm(){
+  $('#accountForm')?.reset();
+  $('#accountUsername').readOnly=false;
+  $('#accountForm').dataset.mode='create';
+  $('#saveAccountBtn').textContent=loc('创建账号','Create account');
+}
+async function initializeAuth(){
+  seedAdminAccount();
+  const account=accountFor(readSessionUsername());
+  if(account?.active) unlockDashboard(account); else lockDashboard();
+}
+const sourceText=new WeakMap();
 function applyLanguage(){
   document.documentElement.lang=state.lang==='zh'?'zh-CN':'en';
   document.title=state.lang==='zh'?'游戏舆情周度监测面板':'Weekly Game Sentiment Dashboard';
-  document.querySelectorAll('body *').forEach(el=>{
-    if(el.children.length===0){ const raw=(el.dataset.zhText||el.textContent).trim(); if(!el.dataset.zhText && staticTranslations.has(raw)) el.dataset.zhText=raw; if(el.dataset.zhText) el.textContent=state.lang==='zh'?el.dataset.zhText:staticTranslations.get(el.dataset.zhText); }
-  });
+  const walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);
+  let node; while(node=walker.nextNode()){
+    if(['SCRIPT','STYLE'].includes(node.parentElement?.tagName)) continue;
+    const original=sourceText.get(node)||node.nodeValue.trim();
+    if(!staticTranslations.has(original)) continue;
+    sourceText.set(node,original);
+    const lead=node.nodeValue.match(/^\s*/)?.[0]||'', tail=node.nodeValue.match(/\s*$/)?.[0]||'';
+    node.nodeValue=lead+(state.lang==='zh'?original:staticTranslations.get(original))+tail;
+  }
   $('#topicSearch').placeholder=state.lang==='zh'?'搜索主题或关键词':'Search topics or keywords';
-  $('#langBtn').textContent=state.lang==='zh'?'EN':'中文';
-  $('#sortHint').textContent=`${state.platform} · ${state.sort==='risk'?tr('riskSort'):tr('heatSort')}`;
+  $('#langBtn').textContent=state.lang==='zh'?'CN':'EN';
+  const signedIn=authenticatedAccount();
+  if(signedIn) $('#currentRole').textContent=signedIn.role==='admin'?loc('管理员','Admin'):loc('已授权','Authorized');
+  if($('#adminModal')?.classList.contains('show')) renderAccounts();
+  document.querySelector('.method-flow')?.setAttribute('aria-label',loc('周度主题识别流程','Weekly topic discovery process'));
+  document.querySelector('.formula-line[aria-label="主题热议度权重"], .formula-line[aria-label="Topic heat-score weights"]')?.setAttribute('aria-label',loc('主题热议度权重','Topic heat-score weights'));
+  document.querySelector('.formula-line[aria-label="跨视频共识度权重"], .formula-line[aria-label="Cross-video consensus weights"]')?.setAttribute('aria-label',loc('跨视频共识度权重','Cross-video consensus weights'));
+  $('#topicSort')?.setAttribute('aria-label',loc('主题排序方式','Topic sort order'));
+  $('#sortHint').textContent=`${displayPlatform(state.platform)} · ${state.sort==='risk'?tr('riskSort'):tr('heatSort')}`;
   $('#topicSort').options[0].textContent=tr('riskOption'); $('#topicSort').options[1].textContent=tr('heatOption');
 }
 const statusClass = s => ({"新生":"s-new","上升":"s-up","高位持续":"s-high","稳定延续":"s-high","回落":"s-down","复燃":"s-revive"}[s] || "s-high");
@@ -747,7 +1000,8 @@ function currentWeek(){ return dashboardData.weeks[state.weekIndex]; }
 function metricFor(t,platform=state.platform){ return platform==='综合' ? t.combined_metrics : t.platform_metrics?.[platform]; }
 function topicsForWeek(w=currentWeek()){
   return w.topics.filter(t=>{
-    const m=metricFor(t); return m&&m.count>0&&(!state.search||(t.name+t.keywords.join('')).includes(state.search));
+    const searchText=[t.name,t.name_en,...(t.keywords||[]),...(t.keywords_en||[])].filter(Boolean).join(' ').toLowerCase();
+    const m=metricFor(t); return m&&m.count>0&&(!state.search||searchText.includes(state.search.toLowerCase()));
   });
 }
 function aggregateWeek(w,platform=state.platform){
@@ -762,12 +1016,12 @@ function aggregateWeek(w,platform=state.platform){
 function renderKpis(){
   const w = currentWeek(), k = aggregateWeek(w);
   const items = [
-    ["本周总声量", fmt(k.volume), `<span class="${k.wow>=0?'up':'down'}">${k.wow>=0?'↑':'↓'} ${Math.abs(k.wow)}%</span> 较上周`],
-    ["负面情绪占比", k.negative_rate+"%", `<span class="${k.negative_rate>40?'up':'neutral'}">${k.negative_rate>40?'风险偏高':'正常区间'}</span>`],
-    ["高风险主题", k.risk_topics, `需优先处置的主题`],
-    ["本周新增主题", k.new_topics, `由模型识别的新话题`],
-    ["跨周持续主题", k.persistent_topics, `持续超过7天`],
-    ["平均情感分", k.sentiment_score.toFixed(2), `<span class="${k.sentiment_score<.5?'up':'down'}">${k.sentiment_score<.5?'偏负面':'偏正面'}</span>`]
+    [tr('thisWeekVolume'), fmt(k.volume), `<span class="${k.wow>=0?'up':'down'}">${k.wow>=0?'↑':'↓'} ${Math.abs(k.wow)}%</span> ${tr('vsLastWeek')}`],
+    [tr('negativeShare'), k.negative_rate+"%", `<span class="${k.negative_rate>40?'up':'neutral'}">${k.negative_rate>40?tr('highRiskBand'):tr('normalBand')}</span>`],
+    [tr('highRisk'), k.risk_topics, tr('priorityNeeded')],
+    [tr('newTopics'), k.new_topics, tr('modelDetected')],
+    [tr('persistentTopics'), k.persistent_topics, tr('over7Days')],
+    [tr('avgSentiment'), k.sentiment_score.toFixed(2), `<span class="${k.sentiment_score<.5?'up':'down'}">${k.sentiment_score<.5?tr('moreNegative'):tr('morePositive')}</span>`]
   ];
   $("#kpiGrid").innerHTML = items.map(x=>`<div class="card kpi"><div class="kpi-label">${x[0]}</div><div class="kpi-value">${x[1]}</div><div class="kpi-foot">${x[2]}</div></div>`).join("");
 }
@@ -775,7 +1029,11 @@ function renderKpis(){
 function renderTrend(){
   const data = dashboardData.weeks.slice(-5);
   const svg = $("#trendChart");
-  const W=720,H=260,p={l:52,r:44,t:18,b:34};
+  const W=Math.max(640,Math.round(svg.clientWidth||720));
+  const H=Math.max(240,Math.round(svg.clientHeight||260));
+  const p={l:68,r:54,t:22,b:38};
+  svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+  svg.setAttribute('preserveAspectRatio','xMidYMid meet');
   const summaries=data.map(d=>aggregateWeek(d));
   const vols = summaries.map(d=>d.volume), negs=summaries.map(d=>d.negative_rate);
   const maxV=Math.ceil(Math.max(...vols)/5000)*5000, maxN=60;
@@ -787,11 +1045,11 @@ function renderTrend(){
   let html=`<defs><linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#f21f2b" stop-opacity=".28"/><stop offset="72%" stop-color="#f21f2b" stop-opacity=".08"/><stop offset="100%" stop-color="#f21f2b" stop-opacity=".015"/></linearGradient></defs>`;
   for(let i=0;i<5;i++){
     const yy=p.t+i*((H-p.t-p.b)/4); const value=Math.round(maxV-(i*maxV/4));
-    html+=`<line class="grid-line" x1="${p.l}" x2="${W-p.r}" y1="${yy}" y2="${yy}"/><text class="axis-text" x="6" y="${yy+4}">${fmt(value)}</text>`;
+    html+=`<line class="grid-line" x1="${p.l}" x2="${W-p.r}" y1="${yy}" y2="${yy}"/><text class="axis-text" text-anchor="end" x="${p.l-14}" y="${yy+4}">${fmt(value)}</text>`;
   }
-  data.forEach((d,i)=>{ html+=`<text class="axis-text" x="${x(i)-22}" y="${H-8}">${d.label}</text>`; });
+  data.forEach((d,i)=>{ html+=`<text class="axis-text" text-anchor="middle" x="${x(i)}" y="${H-9}">${d.label}</text>`; });
   html+=`<path class="area" d="${area}"/><path class="volume-line" d="${line(vols,yV)}"/><path class="negative-line" d="${line(negs,yN)}"/>`;
-  vols.forEach((v,i)=> html+=`<circle class="point" cx="${x(i)}" cy="${yV(v)}" r="4"/><text class="axis-text" x="${x(i)-12}" y="${yV(v)-12}">${fmt(v)}</text>`);
+  vols.forEach((v,i)=> html+=`<circle class="point" cx="${x(i)}" cy="${yV(v)}" r="4"/><text class="axis-text" text-anchor="middle" x="${x(i)}" y="${yV(v)-12}">${fmt(v)}</text>`);
   negs.forEach((v,i)=> html+=`<circle class="point-neg" cx="${x(i)}" cy="${yN(v)}" r="3"/><text class="axis-text" x="${x(i)+6}" y="${yN(v)-4}">${v}%</text>`);
   svg.innerHTML=html;
 }
@@ -819,12 +1077,12 @@ function renderTopicTable(){
   const topics=filteredTopics().sort((a,b)=>state.sort==='heat' ? metricFor(b).heat_score-metricFor(a).heat_score : metricFor(b).risk_score-metricFor(a).risk_score).slice(0,10);
   const total=topicsForWeek().reduce((s,t)=>s+metricFor(t).count,0)||1;
   $("#topicTableBody").innerHTML=topics.map(t=>{const m=metricFor(t);return `<tr data-topic="${t.id}">
-    <td><span class="topic-name">${t.name}</span><span class="topic-sub">${t.keywords.join(' · ')}</span></td>
-    <td><span class="status ${topicTypeClass(t.topic_type)}">${t.topic_type}</span></td>
+    <td><span class="topic-name">${displayTopicName(t)}</span><span class="topic-sub">${displayKeywords(t).join(' · ')}</span></td>
+    <td><span class="status ${topicTypeClass(t.topic_type)}">${displayTopicType(t.topic_type)}</span></td>
     <td><span class="status ${statusClass(t.status)}">${displayStatus(t.status)}</span></td>
-    <td>${m.video_count} / ${m.creator_count}<span class="topic-sub">视频 / 作者</span></td>
+    <td>${m.video_count} / ${m.creator_count}<span class="topic-sub">${tr('videosCreators')}</span></td>
     <td><span class="score">${m.consensus_score}</span><div class="score-bar"><i style="width:${m.consensus_score}%"></i></div></td>
-    <td><span class="score">${m.heat_score}</span><div class="score-bar"><i style="width:${m.heat_score}%"></i></div><span class="topic-sub">声量 ${fmt(m.count)} · ${(m.count/total*100).toFixed(1)}%</span></td>
+    <td><span class="score">${m.heat_score}</span><div class="score-bar"><i style="width:${m.heat_score}%"></i></div><span class="topic-sub">${tr('volume')} ${fmt(m.count)} · ${(m.count/total*100).toFixed(1)}%</span></td>
     <td style="color:${m.negative>=60?'var(--negative)':m.negative<=25?'var(--positive)':'var(--neutral)'}">${m.negative}%</td>
     <td>${sparkline(m.trend,m.negative>=60?'#ff3340':'#d92530')}</td>
   </tr>`}).join('') || `<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:28px">${tr('empty')}</td></tr>`;
@@ -834,11 +1092,11 @@ function renderTopicTable(){
 function renderPlatforms(){
   const totals={'B站':0,'小黑盒':0}; currentWeek().topics.forEach(t=>Object.keys(totals).forEach(p=>totals[p]+=t.platform_metrics?.[p]?.count||0));
   const all=totals['B站']+totals['小黑盒']||1;
-  $("#platformBars").innerHTML=Object.entries(totals).map(([k,v])=>`<div class="platform-row"><span>${k}${state.platform===k?' · 当前':''}</span><div class="platform-bar"><i style="width:${v/all*100}%"></i></div><b style="color:#dbe3f4">${(v/all*100).toFixed(1)}%</b></div>`).join('');
+  $("#platformBars").innerHTML=Object.entries(totals).map(([k,v])=>`<div class="platform-row"><span>${displayPlatform(k)}${state.platform===k?' · '+tr('current'):''}</span><div class="platform-bar"><i style="width:${v/all*100}%"></i></div><b style="color:#dbe3f4">${(v/all*100).toFixed(1)}%</b></div>`).join('');
 }
 
 function renderEvents(){
-  $("#eventList").innerHTML=currentWeek().events.map(e=>`<div class="event"><div class="event-time">${e.date}</div><div class="event-body"><strong>${e.title}</strong><p>${e.desc}</p></div></div>`).join('');
+  $("#eventList").innerHTML=currentWeek().events.map(e=>`<div class="event"><div class="event-time">${e.date}</div><div class="event-body"><strong>${displayEventText(e.title)}</strong><p>${displayEventText(e.desc)}</p></div></div>`).join('');
 }
 
 function renderFlow(){
@@ -878,7 +1136,7 @@ function renderFlow(){
   shownWeeks.forEach((w,ci)=>{
     const x=xPositions[ci];
     lanes+=`<rect x="${x-12}" y="28" width="${nodeW+24}" height="${H-42}" class="flow-lane ${ci===currentLocalIndex?'current':''}"/>`;
-    lanes+=`<text x="${x}" y="20" class="flow-week">${ci===currentLocalIndex?'本周':'历史周'} · ${w.label}</text>`;
+    lanes+=`<text x="${x}" y="20" class="flow-week">${ci===currentLocalIndex?tr('currentWeek'):tr('historyWeek')} · ${w.label}</text>`;
   });
 
   // 先绘制连线，确保连线始终位于节点下方。
@@ -892,7 +1150,7 @@ function renderFlow(){
       const strength=Math.max(4,Math.min(14,4+Math.sqrt(Math.min(metricFor(p1.t).count,metricFor(p2.t).count))/11));
       const cls=p2.t.risk==='风险'?'flow-link risk':p2.t.risk==='机会'?'flow-link alt':'flow-link';
       const x1=p1.x+nodeW, x2=p2.x, bend=(x2-x1)*.46;
-      links+=`<path class="${cls}" style="stroke-width:${strength.toFixed(1)}" d="M ${x1} ${p1.y} C ${x1+bend} ${p1.y}, ${x2-bend} ${p2.y}, ${x2} ${p2.y}"><title>${p1.t.name} → ${p2.t.name}｜主题链 ${t.chain}</title></path>`;
+      links+=`<path class="${cls}" style="stroke-width:${strength.toFixed(1)}" d="M ${x1} ${p1.y} C ${x1+bend} ${p1.y}, ${x2-bend} ${p2.y}, ${x2} ${p2.y}"><title>${displayTopicName(p1.t)} → ${displayTopicName(p2.t)} | ${tr('topicChain')} ${t.chain}</title></path>`;
     });
   }
 
@@ -900,7 +1158,7 @@ function renderFlow(){
   shownWeeks.forEach((w,ci)=>{
     const x=xPositions[ci], topics=orderedTopics[ci];
     if(!topics.length){
-      nodes+=`<text x="${x+nodeW/2}" y="${topY+30}" text-anchor="middle" class="flow-empty">本周暂无有效主题</text>`;
+      nodes+=`<text x="${x+nodeW/2}" y="${topY+30}" text-anchor="middle" class="flow-empty">${tr('noTopic')}</text>`;
       return;
     }
     topics.forEach((t,i)=>{
@@ -908,16 +1166,16 @@ function renderFlow(){
       const tm=metricFor(t), negColor=tm.negative>=60?'#ff8799':tm.negative<=25?'#70e49f':'#e7b94f';
       nodes+=`<g class="flow-topic" data-topic="${t.id}" style="cursor:pointer">
         <rect x="${x}" y="${y}" width="${nodeW}" height="${nodeH}" class="flow-node ${ci===currentLocalIndex?'flow-node-current':''}"/>
-        <text x="${x+12}" y="${y+18}" class="flow-text">${t.name}</text>
-        <text x="${x+12}" y="${y+35}" class="flow-small">${t.chain} · 声量 ${fmt(tm.count)}</text>
-        <text x="${x+nodeW-12}" y="${y+35}" text-anchor="end" class="flow-small" style="fill:${negColor}">负面 ${tm.negative}%</text>
-        <title>${w.label}｜${t.name}｜${t.status}</title>
+        <text x="${x+12}" y="${y+18}" class="flow-text">${displayTopicName(t)}</text>
+        <text x="${x+12}" y="${y+35}" class="flow-small">${t.chain} · ${tr('volume')} ${fmt(tm.count)}</text>
+        <text x="${x+nodeW-12}" y="${y+35}" text-anchor="end" class="flow-small" style="fill:${negColor}">${tr('negative')} ${tm.negative}%</text>
+        <title>${w.label} | ${displayTopicName(t)} | ${displayStatus(t.status)}</title>
       </g>`;
     });
   });
 
   if(colCount===1){
-    links+=`<text x="${W/2}" y="${H-10}" text-anchor="middle" class="flow-empty">当前仅有一个周度窗口，后续周报接入后将自动形成跨周主题链。</text>`;
+    links+=`<text x="${W/2}" y="${H-10}" text-anchor="middle" class="flow-empty">${tr('oneWindow')}</text>`;
   }
 
   svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
@@ -938,9 +1196,9 @@ function renderMatrix(){
     b.style.left=x+'%'; b.style.bottom=y+'%';
     b.style.width=b.style.height=(12+Math.sqrt(tm.count)/18)+'px';
     b.style.background=tm.negative>=60?'var(--negative)':tm.negative<=25?'var(--positive)':'var(--accent)';
-    b.title=`${t.name}｜声量占比 ${share.toFixed(1)}%｜负面率 ${tm.negative}%`;
+    b.title=`${displayTopicName(t)} | ${tr('share')} ${share.toFixed(1)}% | ${tr('negativeRate')} ${tm.negative}%`;
     b.onclick=()=>openTopic(t.id);
-    const label=document.createElement('span'); label.className='bubble-label'; label.style.left=x+'%'; label.style.bottom=y+'%'; label.textContent=t.name;
+    const label=document.createElement('span'); label.className='bubble-label'; label.style.left=x+'%'; label.style.bottom=y+'%'; label.textContent=displayTopicName(t);
     m.appendChild(b); m.appendChild(label);
   });
 }
@@ -950,12 +1208,12 @@ function renderRiskList(){
   const risks=topics.filter(t=>t.risk==='风险').sort((a,b)=>metricFor(b).risk_score-metricFor(a).risk_score).slice(0,3);
   const ops=topics.filter(t=>t.risk==='机会').sort((a,b)=>metricFor(b).heat_score-metricFor(a).heat_score).slice(0,2);
   const items=[...risks.map(t=>({t,kind:'risk'})),...ops.map(t=>({t,kind:'op'}))];
-  $("#riskList").innerHTML=items.map(({t,kind},i)=>{const tm=metricFor(t);return `<div class="risk-item" data-topic="${t.id}"><div class="risk-line ${kind==='op'?'op':''}"></div><div><strong>${t.name}</strong><span>${kind==='op'?'热议度 '+tm.heat_score+'，建议放大内容资产':'负面率 '+tm.negative+'%，建议确认回应与处置节奏'}</span></div><div class="risk-level">${kind==='op'?'机会':'P'+Math.min(3,i+1)}</div></div>`}).join('');
+  $("#riskList").innerHTML=items.map(({t,kind},i)=>{const tm=metricFor(t);return `<div class="risk-item" data-topic="${t.id}"><div class="risk-line ${kind==='op'?'op':''}"></div><div><strong>${displayTopicName(t)}</strong><span>${kind==='op'?tr('heatOption')+' '+tm.heat_score+' · '+tr('heatAsset'):tr('negativeRate')+' '+tm.negative+'% · '+tr('responseAdvice')}</span></div><div class="risk-level">${kind==='op'?tr('opportunity'):'P'+Math.min(3,i+1)}</div></div>`}).join('');
   $$("#riskList .risk-item").forEach(el=>el.onclick=()=>openTopic(el.dataset.topic));
 }
 
 function renderKeywords(){
-  const freq={}; filteredTopics().forEach(t=>t.keywords.forEach(k=>freq[k]=(freq[k]||0)+metricFor(t).count));
+  const freq={}; filteredTopics().forEach(t=>displayKeywords(t).forEach(k=>freq[k]=(freq[k]||0)+metricFor(t).count));
   const max=Math.max(...Object.values(freq));
   $("#keywordCloud").innerHTML=Object.entries(freq).sort((a,b)=>b[1]-a[1]).map(([k,v],i)=>`<span class="keyword" style="font-size:${12+v/max*17}px;color:${i<3?'#f2c94c':'#e3e3df'}">${k}</span>`).join('');
 }
@@ -967,7 +1225,7 @@ function chainRows(){
 }
 
 function renderChains(){
-  $("#chainTableBody").innerHTML=chainRows().map(t=>`<tr data-topic="${t.id}"><td><span class="topic-name">${t.name}</span><span class="topic-sub">${t.chain}</span></td><td>${t.first_seen}</td><td>${t.weeks}${state.lang==='zh'?'周':' '+tr('week')}</td><td>${fmt(t.cumulative)}</td><td><span class="status ${statusClass(t.status)}">${displayStatus(t.status)}</span></td></tr>`).join('');
+  $("#chainTableBody").innerHTML=chainRows().map(t=>`<tr data-topic="${t.id}"><td><span class="topic-name">${displayTopicName(t)}</span><span class="topic-sub">${t.chain}</span></td><td>${t.first_seen}</td><td>${t.weeks}${state.lang==='zh'?'周':' '+tr('week')}</td><td>${fmt(t.cumulative)}</td><td><span class="status ${statusClass(t.status)}">${displayStatus(t.status)}</span></td></tr>`).join('');
   $$("#chainTableBody tr").forEach(el=>el.onclick=()=>openTopic(el.dataset.topic));
 }
 
@@ -977,25 +1235,25 @@ function openTopic(id){
   if(!t) return;
   const tm=metricFor(t); if(!tm) return;
   const history=dashboardData.weeks.map(w=>({w,t:w.topics.find(x=>x.chain===t.chain)})).filter(x=>x.t);
-  $("#drawerTitle").textContent=t.name;
-  $("#drawerSub").textContent=`${state.platform}视图 · 主题链 ${t.chain} · 首次出现 ${t.first_seen} · 已持续 ${t.weeks} 周`;
+  $("#drawerTitle").textContent=displayTopicName(t);
+  $("#drawerSub").textContent=`${displayPlatform(state.platform)} ${tr('view')} · ${tr('topicChain')} ${t.chain} · ${tr('firstSeen')} ${t.first_seen} · ${tr('lasting')} ${t.weeks} ${tr('week')}`;
   $("#drawerBody").innerHTML=`
     <div class="detail-kpis">
-      <div class="detail-kpi"><span>本周声量</span><strong>${fmt(tm.count)}</strong></div>
-      <div class="detail-kpi"><span>热议度</span><strong>${tm.heat_score}</strong></div>
-      <div class="detail-kpi"><span>跨视频共识度</span><strong>${tm.consensus_score}</strong></div>
-      <div class="detail-kpi"><span>覆盖视频</span><strong>${tm.video_count}</strong></div>
-      <div class="detail-kpi"><span>覆盖作者</span><strong>${tm.creator_count}</strong></div>
-      <div class="detail-kpi"><span>负面率</span><strong style="color:${tm.negative>=60?'var(--negative)':'#fff'}">${tm.negative}%</strong></div>
+      <div class="detail-kpi"><span>${tr('thisWeekVolume')}</span><strong>${fmt(tm.count)}</strong></div>
+      <div class="detail-kpi"><span>${tr('heatOption')}</span><strong>${tm.heat_score}</strong></div>
+      <div class="detail-kpi"><span>${state.lang==='zh'?'跨视频共识度':'Cross-video consensus'}</span><strong>${tm.consensus_score}</strong></div>
+      <div class="detail-kpi"><span>${state.lang==='zh'?'覆盖视频':'Videos covered'}</span><strong>${tm.video_count}</strong></div>
+      <div class="detail-kpi"><span>${state.lang==='zh'?'覆盖作者':'Creators covered'}</span><strong>${tm.creator_count}</strong></div>
+      <div class="detail-kpi"><span>${tr('negativeRate')}</span><strong style="color:${tm.negative>=60?'var(--negative)':'#fff'}">${tm.negative}%</strong></div>
     </div>
-    <div class="section-title">热议度构成</div>
-    <div class="formula-text">覆盖 ${tm.discussion_coverage} × 35% ＋ 讨论量 ${tm.discussion_volume_score} × 25% ＋ 影响力 ${tm.influence_score} × 20% ＋ 互动 ${tm.engagement_score} × 10% ＋ 增长 ${tm.growth_score} × 10% = <strong>${tm.heat_score}</strong></div>
-    <div class="section-title">关键词</div><div>${t.keywords.map(k=>`<span class="status s-high" style="margin:0 5px 5px 0">${k}</span>`).join('')}</div>
-    <div class="section-title">跨周演化</div>
-    <div class="timeline">${history.map(h=>{const hm=metricFor(h.t);return hm?`<div class="timeline-row"><time>${h.w.label}</time><div class="timeline-box"><strong>${h.t.name} · ${h.t.status}</strong><p>声量 ${fmt(hm.count)}，负面率 ${hm.negative}%，周环比 ${hm.wow>=0?'+':''}${hm.wow}%</p></div></div>`:''}).join('')}</div>
-    <div class="section-title">${tr('representative')}</div>${t.quotes.slice(0,3).map(q=>`<div class="quote">“${q}”<small>${state.platform} · ${tr('sample')}</small></div>`).join('')}
-    <div class="section-title">初步建议</div>
-    <div class="quote">${t.risk==='风险'?'优先核查声量增长来源、核心负面诉求与官方回应效果；建议加入人工情感复核。':'可提炼高共鸣关键词，转化为角色内容、社媒传播或社区运营素材。'}</div>`;
+    <div class="section-title">${tr('heatBreakdown')}</div>
+    <div class="formula-text">${state.lang==='zh'?'覆盖':'Coverage'} ${tm.discussion_coverage} × 35% + ${state.lang==='zh'?'讨论量':'Discussion'} ${tm.discussion_volume_score} × 25% + ${state.lang==='zh'?'影响力':'Influence'} ${tm.influence_score} × 20% + ${state.lang==='zh'?'互动':'Engagement'} ${tm.engagement_score} × 10% + ${state.lang==='zh'?'增长':'Growth'} ${tm.growth_score} × 10% = <strong>${tm.heat_score}</strong></div>
+    <div class="section-title">${tr('keywords')}</div><div>${displayKeywords(t).map(k=>`<span class="status s-high" style="margin:0 5px 5px 0">${k}</span>`).join('')}</div>
+    <div class="section-title">${tr('evolution')}</div>
+    <div class="timeline">${history.map(h=>{const hm=metricFor(h.t);return hm?`<div class="timeline-row"><time>${h.w.label}</time><div class="timeline-box"><strong>${displayTopicName(h.t)} · ${displayStatus(h.t.status)}</strong><p>${tr('volume')} ${fmt(hm.count)} · ${tr('negativeRate')} ${hm.negative}% · WoW ${hm.wow>=0?'+':''}${hm.wow}%</p></div></div>`:''}).join('')}</div>
+    <div class="section-title">${tr('representative')}</div>${displayQuotes(t).slice(0,3).map(q=>`<div class="quote">“${q}”<small>${displayPlatform(state.platform)} · ${tr('sample')}</small></div>`).join('')}
+    <div class="section-title">${tr('initialAdvice')}</div>
+    <div class="quote">${t.risk==='风险'?tr('riskAdvice'):tr('opAdvice')}</div>`;
   $("#drawerMask").classList.add('show'); $("#drawer").classList.add('show');
 }
 
@@ -1016,7 +1274,9 @@ const schemaExample = {
     events:[{date:"7.16",title:"事件名称",desc:"事件说明"}],
     topics:[{
       id:"T401", chain:"C002", name:"1.2版本性能优化",
+      name_en:"Version 1.2 Performance Optimization",
       keywords:["1.2补丁","帧率","闪退"], status:"高位持续",
+      keywords_en:["Version 1.2 patch","Frame rate","Crashes"],
       count:6480, wow:33, negative:59, share:22.0, sentiment:0.39,
       trend:[59,71,78,74,70,67,63], risk:"风险",
       first_seen:"6.27", weeks:4, cumulative:19190,
@@ -1033,7 +1293,8 @@ const schemaExample = {
       },
       combined_metrics:{count:6480,video_count:27,creator_count:18,comment_count:1260,negative:59,wow:33,trend:[59,71,78,74,70,67,63],video_coverage_score:78,creator_coverage_score:70,discussion_coverage:75,discussion_volume_score:82,influence_score:76,engagement_score:68,growth_score:74,consensus_score:75,heat_score:77,risk_score:66},
       representative_video_ids:["BV示例1","BV示例2","BV示例3"],
-      quotes:["代表性文本1","代表性文本2","代表性文本3"]
+      quotes:["代表性文本1","代表性文本2","代表性文本3"],
+      quotes_en:["Representative post 1","Representative post 2","Representative post 3"]
     }]
   }]
 };
@@ -1042,8 +1303,67 @@ function openSchema(){ $("#schemaPre").textContent=JSON.stringify(schemaExample,
 function closeSchema(){ $("#modalMask").classList.remove('show'); $("#schemaModal").classList.remove('show'); }
 function downloadJSON(obj,name){ const blob=new Blob([JSON.stringify(obj,null,2)],{type:'application/json'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=name; a.click(); URL.revokeObjectURL(url); }
 
+$('#loginForm').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const username=$('#loginUsername').value.trim();
+  const password=$('#loginPassword').value;
+  const submit=e.submitter||$('#loginForm button[type="submit"]');
+  submit.disabled=true; $('#loginError').textContent=loc('正在验证账号…','Verifying account…');
+  try{
+    seedAdminAccount();
+    const account=accountFor(username);
+    const passwordHash=await hashPassword(password);
+    if(!account||!account.active||account.passwordHash!==passwordHash) throw new Error(loc('账号或密码错误，或该账号已被停用。','Incorrect username or password, or the account is disabled.'));
+    $('#loginPassword').value=''; unlockDashboard(account);
+  }catch(err){ $('#loginError').textContent=err.message; }
+  finally{ submit.disabled=false; }
+});
+
+$('#logoutBtn').onclick=()=>lockDashboard(loc('已安全退出。','You have signed out.'));
+$('#userPill').onclick=()=>{if(authenticatedAccount()?.role==='admin')openAdmin();};
+$('#adminClose').onclick=()=>{closeAdmin();resetAccountForm();};
+$('#adminMask').onclick=()=>{closeAdmin();resetAccountForm();};
+$('#accountForm').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const admin=requireAuthenticated(); if(!admin||admin.role!=='admin') return;
+  const username=$('#accountUsername').value.trim().toLowerCase();
+  const password=$('#accountPassword').value;
+  if(!/^[a-z0-9_.-]{3,32}$/i.test(username)){ $('#adminMessage').textContent=loc('账号仅支持 3—32 位字母、数字、下划线、点或短横线。','Use 3–32 letters, numbers, underscores, periods, or hyphens.'); return; }
+  if(password.length<6){ $('#adminMessage').textContent=loc('密码至少需要 6 个字符。','Passwords require at least 6 characters.'); return; }
+  if(username===ADMIN_USERNAME){ $('#adminMessage').textContent=loc('系统管理员账号不可修改。','The protected administrator account cannot be modified.'); return; }
+  const submit=$('#saveAccountBtn'); submit.disabled=true;
+  try{
+    const accounts=readAccounts();
+    const existing=accounts.find(a=>a.username.toLowerCase()===username);
+    const passwordHash=await hashPassword(password);
+    if(existing){ existing.passwordHash=passwordHash; existing.active=true; }
+    else accounts.push({username,passwordHash,role:'user',active:true,createdAt:new Date().toISOString()});
+    writeAccounts(accounts); renderAccounts(); resetAccountForm();
+    $('#adminMessage').textContent=existing?loc(`账号 ${username} 的密码已重置并启用。`,`Password reset and account enabled for ${username}.`):loc(`账号 ${username} 已创建。`,`Account ${username} created.`);
+  }catch(err){ $('#adminMessage').textContent=err.message; }
+  finally{ submit.disabled=false; }
+});
+
+$('#accountTableBody').addEventListener('click',e=>{
+  const button=e.target.closest('button[data-account-action]'); if(!button) return;
+  const admin=requireAuthenticated(); if(!admin||admin.role!=='admin') return;
+  const username=button.dataset.username, action=button.dataset.accountAction;
+  if(username.toLowerCase()===ADMIN_USERNAME) return;
+  const accounts=readAccounts(), account=accounts.find(a=>a.username===username); if(!account) return;
+  if(action==='edit'){
+    $('#accountUsername').value=account.username; $('#accountUsername').readOnly=true; $('#accountPassword').value='';
+    $('#accountForm').dataset.mode='edit'; $('#saveAccountBtn').textContent=loc('重置密码','Reset password');
+    $('#adminMessage').textContent=loc(`为账号 ${username} 输入新密码。`,`Enter a new password for ${username}.`); $('#accountPassword').focus(); return;
+  }
+  if(action==='toggle') account.active=!account.active;
+  if(action==='delete'&&!confirm(loc(`确认删除账号 ${username}？`,`Delete account ${username}?`))) return;
+  if(action==='delete') accounts.splice(accounts.indexOf(account),1);
+  writeAccounts(accounts); renderAccounts(); resetAccountForm();
+  $('#adminMessage').textContent=action==='delete'?loc(`账号 ${username} 已删除。`,`Account ${username} deleted.`):loc(`账号 ${username} 已${account.active?'启用':'停用'}。`,`Account ${username} ${account.active?'enabled':'disabled'}.`);
+});
+
 $("#weekSelect").addEventListener('change',e=>{state.weekIndex=+e.target.value; renderAll();});
-$("#topicSort").addEventListener('change',e=>{state.sort=e.target.value; $("#sortHint").textContent=`${state.platform} · ${state.sort==='risk'?tr('riskSort'):tr('heatSort')}`; renderTopicTable();});
+$("#topicSort").addEventListener('change',e=>{state.sort=e.target.value; $("#sortHint").textContent=`${displayPlatform(state.platform)} · ${state.sort==='risk'?tr('riskSort'):tr('heatSort')}`; renderTopicTable();});
 $("#langBtn").addEventListener('click',()=>{state.lang=state.lang==='zh'?'en':'zh'; renderAll();});
 $("#platformChips").addEventListener('click',e=>{ if(!e.target.matches('.chip')) return; $$("#platformChips .chip").forEach(c=>c.classList.remove('active')); e.target.classList.add('active'); state.platform=e.target.dataset.platform; renderAll(); });
 $("#topicSearch").addEventListener('input',e=>{state.search=e.target.value.trim(); renderTopicTable(); renderMatrix();});
@@ -1051,10 +1371,24 @@ $("#drawerClose").onclick=closeDrawer; $("#drawerMask").onclick=closeDrawer;
 $("#schemaBtn").onclick=openSchema; $("#jumpSchema").onclick=openSchema; $("#modalClose").onclick=closeSchema; $("#modalMask").onclick=closeSchema;
 $("#downloadSchema").onclick=()=>downloadJSON(schemaExample,'game_sentiment_data_example.json');
 $("#downloadBtn").onclick=()=>downloadJSON(schemaExample,'game_sentiment_data_template.json');
-$("#importBtn").onclick=()=>$("#fileInput").click();
+$("#importBtn").onclick=()=>{if(requireAuthenticated())$("#fileInput").click();};
 $("#fileInput").addEventListener('change',e=>{
+  if(!requireAuthenticated()) return;
   const file=e.target.files[0]; if(!file) return; const reader=new FileReader();
-  reader.onload=()=>{ try { const obj=JSON.parse(reader.result); if(!obj.weeks||!Array.isArray(obj.weeks)) throw new Error('缺少 weeks 数组'); const required=['count','video_count','creator_count','negative','discussion_coverage','discussion_volume_score','influence_score','engagement_score','growth_score','consensus_score','heat_score','risk_score']; obj.weeks.forEach((w,wi)=>{ if(!Array.isArray(w.topics)) throw new Error(`第 ${wi+1} 周缺少 topics 数组`); w.topics.forEach((t,ti)=>{ if(!t.platform_metrics?.['B站']||!t.platform_metrics?.['小黑盒']||!t.combined_metrics) throw new Error(`主题 ${t.id||ti+1} 必须包含 B站、小黑盒和综合指标`); ['B站','小黑盒'].forEach(p=>{const missing=required.filter(k=>!Number.isFinite(t.platform_metrics[p][k]));if(missing.length)throw new Error(`主题 ${t.id||ti+1} 的 ${p} 指标缺少：${missing.join(', ')}`);}); const combinedMissing=required.filter(k=>!Number.isFinite(t.combined_metrics[k]));if(combinedMissing.length)throw new Error(`主题 ${t.id||ti+1} 的综合指标缺少：${combinedMissing.join(', ')}`); }); enrichWeekTopics(w); }); dashboardData.meta=obj.meta||dashboardData.meta; dashboardData.weeks=obj.weeks; state.weekIndex=obj.weeks.length-1; state.platform='综合'; state.search=''; $("#topicSearch").value=''; $$("#platformChips .chip").forEach((c,i)=>c.classList.toggle('active',i===0)); renderAll(); alert('数据导入成功：已通过 B站、小黑盒和综合指标校验'); } catch(err){ alert('导入失败：'+err.message); } };
+  reader.onload=()=>{ try {
+    const obj=JSON.parse(reader.result);
+    if(!obj.weeks||!Array.isArray(obj.weeks)) throw new Error(loc('缺少 weeks 数组','Missing weeks array'));
+    const required=['count','video_count','creator_count','negative','discussion_coverage','discussion_volume_score','influence_score','engagement_score','growth_score','consensus_score','heat_score','risk_score'];
+    obj.weeks.forEach((w,wi)=>{
+      if(!Array.isArray(w.topics)) throw new Error(loc(`第 ${wi+1} 周缺少 topics 数组`,`Week ${wi+1} is missing a topics array`));
+      w.topics.forEach((t,ti)=>{
+        if(!t.platform_metrics?.['B站']||!t.platform_metrics?.['小黑盒']||!t.combined_metrics) throw new Error(loc(`主题 ${t.id||ti+1} 必须包含 B站、小黑盒和综合指标`,`Topic ${t.id||ti+1} must include Bilibili, Heybox, and combined metrics`));
+        ['B站','小黑盒'].forEach(p=>{const missing=required.filter(k=>!Number.isFinite(t.platform_metrics[p][k]));if(missing.length)throw new Error(loc(`主题 ${t.id||ti+1} 的 ${p} 指标缺少：${missing.join(', ')}`,`Topic ${t.id||ti+1} is missing ${displayPlatform(p)} metrics: ${missing.join(', ')}`));});
+        const combinedMissing=required.filter(k=>!Number.isFinite(t.combined_metrics[k]));if(combinedMissing.length)throw new Error(loc(`主题 ${t.id||ti+1} 的综合指标缺少：${combinedMissing.join(', ')}`,`Topic ${t.id||ti+1} is missing combined metrics: ${combinedMissing.join(', ')}`));
+      }); enrichWeekTopics(w);
+    });
+    dashboardData.meta=obj.meta||dashboardData.meta; dashboardData.weeks=obj.weeks; state.weekIndex=obj.weeks.length-1; state.platform='综合'; state.search=''; $("#topicSearch").value=''; $$("#platformChips .chip").forEach((c,i)=>c.classList.toggle('active',i===0)); renderAll(); alert(loc('数据导入成功：已通过 B站、小黑盒和综合指标校验','Import successful: Bilibili, Heybox, and combined metrics validated'));
+  } catch(err){ alert(loc('导入失败：','Import failed: ')+err.message); } };
   reader.readAsText(file,'utf-8');
 });
 $$('.nav-item[data-anchor]').forEach(n=>n.onclick=()=>{ const el=document.getElementById(n.dataset.anchor); el?.scrollIntoView({behavior:'smooth',block:'start'}); $$('.nav-item').forEach(x=>x.classList.remove('active')); n.classList.add('active'); });
@@ -1077,6 +1411,21 @@ $$('.nav-item[data-anchor]').forEach(n=>n.onclick=()=>{ const el=document.getEle
   wrap.addEventListener('mouseleave', () => { isDown = false; });
 })();
 
+(function enableResponsiveTrendChart(){
+  const box=document.querySelector('#trendChart')?.parentElement;
+  if(!box) return;
+  let frame=0,lastWidth=0,lastHeight=0;
+  const redraw=()=>{
+    if(!authenticatedAccount()||$('#dashboardApp').classList.contains('auth-hidden')) return;
+    const width=Math.round(box.clientWidth),height=Math.round(box.clientHeight);
+    if(width===lastWidth&&height===lastHeight) return;
+    lastWidth=width; lastHeight=height;
+    cancelAnimationFrame(frame); frame=requestAnimationFrame(renderTrend);
+  };
+  if('ResizeObserver' in window) new ResizeObserver(redraw).observe(box);
+  else window.addEventListener('resize',redraw,{passive:true});
+})();
+
 (function protectAuthorSignature(){
   const AUTHOR='chocoooo';
   Object.defineProperty(window,'DASHBOARD_AUTHOR',{value:AUTHOR,writable:false,configurable:false});
@@ -1087,7 +1436,7 @@ $$('.nav-item[data-anchor]').forEach(n=>n.onclick=()=>{ const el=document.getEle
   new MutationObserver(restore).observe(signature,{childList:true,characterData:true,subtree:true});
 })();
 
-renderAll();
+initializeAuth();
 </script>
 </body>
 </html>
