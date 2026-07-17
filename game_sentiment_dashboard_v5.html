@@ -148,6 +148,11 @@
     .kpi-label { color: var(--muted); font-size: 12px; }
     .kpi-value { font-size: 27px; font-weight: 750; letter-spacing: -.03em; margin-top: 12px; }
     .kpi-foot { margin-top: 8px; font-size: 11px; color: var(--muted); display: flex; align-items: center; gap: 5px; }
+    .kpi-action { width:100%; color:inherit; font:inherit; text-align:left; cursor:pointer; appearance:none; }
+    .kpi-action .kpi-foot:after { content:'\2192'; margin-left:auto; color:var(--accent); font-size:16px; line-height:1; transition:transform .18s ease; }
+    .kpi-action:hover { border-color:rgba(242,31,43,.72); background:linear-gradient(145deg,rgba(45,19,21,.98),rgba(15,15,15,.98)); }
+    .kpi-action:hover .kpi-foot:after { transform:translateX(3px); }
+    .kpi-action:focus-visible { outline:2px solid var(--accent); outline-offset:3px; }
     .up { color: var(--negative); }
     .down { color: var(--positive); }
     .neutral { color: var(--neutral); }
@@ -304,9 +309,24 @@
     .platform-compare-card.heybox { border-top:2px solid #e7b94f; }
     .platform-compare-head { display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:12px; }
     .platform-compare-head strong { font-size:12px; color:#fff; }
-    .platform-compare-metrics { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; }
-    .platform-compare-metric span { display:block; color:var(--muted); font-size:9px; line-height:1.35; }
+    .platform-compare-metrics { display:grid; grid-template-columns:minmax(0,.78fr) minmax(0,.78fr) minmax(78px,1.44fr); gap:6px; }
+    .platform-compare-metric { min-width:0; }
+    .platform-compare-metric span { display:block; color:var(--muted); font-size:9px; line-height:1.35; white-space:nowrap; }
     .platform-compare-metric b { display:block; margin-top:6px; color:#fff; font-size:15px; font-variant-numeric:tabular-nums; }
+    .risk-drawer-intro { margin:0 0 14px; color:var(--muted); font-size:11px; line-height:1.7; }
+    .risk-drawer-list { display:grid; gap:12px; }
+    .risk-topic-card { position:relative; padding:16px; border:1px solid var(--line); border-left:3px solid var(--negative); background:linear-gradient(135deg,rgba(242,31,43,.09),rgba(255,255,255,.018)); }
+    .risk-topic-head { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
+    .risk-topic-head strong { color:#fff; font-size:14px; line-height:1.4; }
+    .risk-topic-rank { flex:0 0 auto; padding:5px 7px; border:1px solid rgba(242,31,43,.46); color:#ff9da3; background:rgba(242,31,43,.10); font-size:10px; }
+    .risk-topic-metrics { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin:13px 0; }
+    .risk-topic-metric { padding:9px; border:1px solid rgba(255,255,255,.07); background:rgba(0,0,0,.16); }
+    .risk-topic-metric span { display:block; color:var(--muted); font-size:9px; white-space:nowrap; }
+    .risk-topic-metric b { display:block; margin-top:5px; color:#fff; font-size:15px; }
+    .risk-topic-quotes { display:grid; gap:7px; }
+    .risk-topic-quote { margin:0; padding:9px 10px; color:#deded9; background:rgba(255,255,255,.025); border-left:2px solid rgba(242,31,43,.4); font-size:10px; line-height:1.65; }
+    .risk-topic-open { margin-top:12px; padding:0; border:0; background:none; color:#ff737b; font:inherit; font-size:10px; cursor:pointer; }
+    .risk-topic-open:hover { color:#fff; }
     .section-title { margin:22px 0 12px; font-size:13px; }
     .timeline { display:grid; gap:12px; }
     .timeline-row { display:grid; grid-template-columns:70px 1fr; gap:12px; }
@@ -1010,8 +1030,8 @@ const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
 const fmt = n => state.lang==='zh' ? (n >= 10000 ? (n/10000).toFixed(2)+"万" : n.toLocaleString("zh-CN")) : n.toLocaleString("en-US");
 const copy = {
-  zh:{riskSort:'按风险优先级排序',heatSort:'按热议度排序',riskOption:'风险优先级',heatOption:'热议度',empty:'没有符合筛选条件的主题',positive:'积极',neutral:'中性',negative:'消极',volume:'声量',negativeRate:'负面率',week:'周',representative:'代表文本',sample:'演示样本',thisWeekVolume:'本周总声量',negativeShare:'负面情绪占比',highRisk:'高风险主题',newTopics:'本周新增主题',persistentTopics:'跨周持续主题',avgSentiment:'平均情感分',vsLastWeek:'较上周',highRiskBand:'风险偏高',normalBand:'正常区间',priorityNeeded:'需优先处置的主题',modelDetected:'由模型识别的新话题',over7Days:'持续超过7天',moreNegative:'偏负面',morePositive:'偏正面',videosCreators:'视频 / 作者',current:'当前',currentWeek:'本周',historyWeek:'历史周',topicChain:'主题链',noTopic:'本周暂无有效主题',oneWindow:'当前仅有一个周度窗口，后续周报接入后将自动形成跨周主题链。',share:'声量占比',opportunity:'机会',heatAsset:'建议放大内容资产',responseAdvice:'建议确认回应与处置节奏',view:'视图',firstSeen:'首次出现',lasting:'已持续',heatBreakdown:'热议度构成',keywords:'关键词',evolution:'跨周演化',initialAdvice:'初步建议',riskAdvice:'优先核查声量增长来源、核心负面诉求与官方回应效果；建议加入人工情感复核。',opAdvice:'可提炼高共鸣关键词，转化为角色内容、社媒传播或社区运营素材。',topicType:'主题类型',statusLabel:'状态',coverageLabel:'覆盖视频 / 作者',consensusLabel:'跨视频共识度',trendLabel:'7日趋势',notRanked:'未进入榜单',volumeSource:'声量来源',platformComparison:'平台指标对比'},
-  en:{riskSort:'Sorted by risk priority',heatSort:'Sorted by heat score',riskOption:'Risk priority',heatOption:'Heat score',empty:'No topics match the filters',positive:'Positive',neutral:'Neutral',negative:'Negative',volume:'Volume',negativeRate:'Negative rate',week:'weeks',representative:'Representative posts',sample:'Demo sample',thisWeekVolume:'Total volume this week',negativeShare:'Negative sentiment share',highRisk:'High-risk topics',newTopics:'New topics this week',persistentTopics:'Persistent topics',avgSentiment:'Average sentiment',vsLastWeek:'vs last week',highRiskBand:'Elevated risk',normalBand:'Normal range',priorityNeeded:'Topics requiring priority action',modelDetected:'New topics detected by the model',over7Days:'Active for more than 7 days',moreNegative:'More negative',morePositive:'More positive',videosCreators:'Videos / creators',current:'Current',currentWeek:'This week',historyWeek:'Previous week',topicChain:'Topic chain',noTopic:'No valid topics this week',oneWindow:'Only one weekly window is available. Cross-week topic chains will appear after more reports are added.',share:'Volume share',opportunity:'Opportunity',heatAsset:'Consider amplifying this content asset',responseAdvice:'Review response and resolution timing',view:'view',firstSeen:'First seen',lasting:'Active for',heatBreakdown:'Heat-score breakdown',keywords:'Keywords',evolution:'Cross-week evolution',initialAdvice:'Initial recommendation',riskAdvice:'Verify the source of volume growth, core negative concerns, and the impact of official responses; add a manual sentiment review.',opAdvice:'Extract high-resonance keywords for character content, social distribution, or community operations.',topicType:'Topic type',statusLabel:'Status',coverageLabel:'Videos / creators',consensusLabel:'Cross-video consensus',trendLabel:'7-day trend',notRanked:'Not ranked',volumeSource:'Volume source',platformComparison:'Platform comparison'}
+  zh:{riskSort:'按风险优先级排序',heatSort:'按热议度排序',riskOption:'风险优先级',heatOption:'热议度',empty:'没有符合筛选条件的主题',positive:'积极',neutral:'中性',negative:'消极',volume:'声量',negativeRate:'负面率',week:'周',representative:'代表文本',sample:'演示样本',thisWeekVolume:'本周总声量',negativeShare:'负面情绪占比',highRisk:'高风险主题',newTopics:'本周新增主题',persistentTopics:'跨周持续主题',avgSentiment:'平均情感分',vsLastWeek:'较上周',highRiskBand:'风险偏高',normalBand:'正常区间',priorityNeeded:'需优先处置的主题',modelDetected:'由模型识别的新话题',over7Days:'持续超过7天',moreNegative:'偏负面',morePositive:'偏正面',videosCreators:'视频 / 作者',current:'当前',currentWeek:'本周',historyWeek:'历史周',topicChain:'主题链',noTopic:'本周暂无有效主题',oneWindow:'当前仅有一个周度窗口，后续周报接入后将自动形成跨周主题链。',share:'声量占比',opportunity:'机会',heatAsset:'建议放大内容资产',responseAdvice:'建议确认回应与处置节奏',view:'视图',firstSeen:'首次出现',lasting:'已持续',heatBreakdown:'热议度构成',keywords:'关键词',evolution:'跨周演化',initialAdvice:'初步建议',riskAdvice:'优先核查声量增长来源、核心负面诉求与官方回应效果；建议加入人工情感复核。',opAdvice:'可提炼高共鸣关键词，转化为角色内容、社媒传播或社区运营素材。',topicType:'主题类型',statusLabel:'状态',coverageLabel:'覆盖视频 / 作者',consensusLabel:'跨视频共识度',trendLabel:'7日趋势',notRanked:'未进入榜单',volumeSource:'声量来源',platformComparison:'平台指标对比',riskOverview:'风险主题概览',riskOverviewDesc:'以下主题按照当前平台的风险分由高到低排列，并展示主要代表文本。',riskScoreLabel:'风险分',viewTopicDetail:'查看完整主题详情'},
+  en:{riskSort:'Sorted by risk priority',heatSort:'Sorted by heat score',riskOption:'Risk priority',heatOption:'Heat score',empty:'No topics match the filters',positive:'Positive',neutral:'Neutral',negative:'Negative',volume:'Volume',negativeRate:'Negative rate',week:'weeks',representative:'Representative posts',sample:'Demo sample',thisWeekVolume:'Total volume this week',negativeShare:'Negative sentiment share',highRisk:'High-risk topics',newTopics:'New topics this week',persistentTopics:'Persistent topics',avgSentiment:'Average sentiment',vsLastWeek:'vs last week',highRiskBand:'Elevated risk',normalBand:'Normal range',priorityNeeded:'Topics requiring priority action',modelDetected:'New topics detected by the model',over7Days:'Active for more than 7 days',moreNegative:'More negative',morePositive:'More positive',videosCreators:'Videos / creators',current:'Current',currentWeek:'This week',historyWeek:'Previous week',topicChain:'Topic chain',noTopic:'No valid topics this week',oneWindow:'Only one weekly window is available. Cross-week topic chains will appear after more reports are added.',share:'Volume share',opportunity:'Opportunity',heatAsset:'Consider amplifying this content asset',responseAdvice:'Review response and resolution timing',view:'view',firstSeen:'First seen',lasting:'Active for',heatBreakdown:'Heat-score breakdown',keywords:'Keywords',evolution:'Cross-week evolution',initialAdvice:'Initial recommendation',riskAdvice:'Verify the source of volume growth, core negative concerns, and the impact of official responses; add a manual sentiment review.',opAdvice:'Extract high-resonance keywords for character content, social distribution, or community operations.',topicType:'Topic type',statusLabel:'Status',coverageLabel:'Videos / creators',consensusLabel:'Cross-video consensus',trendLabel:'7-day trend',notRanked:'Not ranked',volumeSource:'Volume source',platformComparison:'Platform comparison',riskOverview:'Risk topic overview',riskOverviewDesc:'Topics are ranked by risk score for the current platform, with representative posts shown below.',riskScoreLabel:'Risk score',viewTopicDetail:'View full topic details'}
 };
 const tr = key => copy[state.lang][key];
 const loc=(zh,en)=>state.lang==='zh'?zh:en;
@@ -1224,7 +1244,10 @@ function renderKpis(){
     [tr('persistentTopics'), k.persistent_topics, tr('over7Days')],
     [tr('avgSentiment'), k.sentiment_score.toFixed(2), `<span class="${k.sentiment_score<.5?'up':'down'}">${k.sentiment_score<.5?tr('moreNegative'):tr('morePositive')}</span>`]
   ];
-  $("#kpiGrid").innerHTML = items.map(x=>`<div class="card kpi"><div class="kpi-label">${x[0]}</div><div class="kpi-value">${x[1]}</div><div class="kpi-foot">${x[2]}</div></div>`).join("");
+  $("#kpiGrid").innerHTML = items.map((x,i)=>i===2
+    ? `<button type="button" class="card kpi kpi-action" id="highRiskKpi" aria-label="${tr('highRisk')} ${x[1]} · ${tr('riskOverview')}"><div class="kpi-label">${x[0]}</div><div class="kpi-value">${x[1]}</div><div class="kpi-foot">${x[2]}</div></button>`
+    : `<div class="card kpi"><div class="kpi-label">${x[0]}</div><div class="kpi-value">${x[1]}</div><div class="kpi-foot">${x[2]}</div></div>`).join("");
+  $("#highRiskKpi")?.addEventListener('click',openHighRiskDrawer);
 }
 
 function renderTrend(){
@@ -1482,6 +1505,29 @@ function chainRows(){
 function renderChains(){
   $("#chainTableBody").innerHTML=chainRows().map(t=>`<tr data-topic="${t.id}"><td><span class="topic-name">${displayTopicName(t)}</span><span class="topic-sub">${t.chain}</span></td><td>${t.first_seen}</td><td>${t.weeks}${state.lang==='zh'?'周':' '+tr('week')}</td><td>${fmt(t.cumulative)}</td><td><span class="status ${statusClass(t.status)}">${displayStatus(t.status)}</span></td></tr>`).join('');
   $$("#chainTableBody tr").forEach(el=>el.onclick=()=>openTopic(el.dataset.topic));
+}
+
+function openHighRiskDrawer(){
+  const risks=currentWeek().topics
+    .map(t=>({t,m:metricFor(t)}))
+    .filter(x=>x.m&&x.m.count>0&&x.m.risk_score>=60)
+    .sort((a,b)=>b.m.risk_score-a.m.risk_score);
+  $("#drawerTitle").textContent=tr('riskOverview');
+  $("#drawerSub").textContent=`${currentWeek().label} · ${displayPlatform(state.platform)} · ${tr('highRisk')} ${risks.length}`;
+  $("#drawerBody").innerHTML=`
+    <p class="risk-drawer-intro">${tr('riskOverviewDesc')}</p>
+    <div class="risk-drawer-list">${risks.map(({t,m},i)=>`<article class="risk-topic-card">
+      <div class="risk-topic-head"><strong>${displayTopicName(t)}</strong><span class="risk-topic-rank">P${i+1}</span></div>
+      <div class="risk-topic-metrics">
+        <div class="risk-topic-metric"><span>${tr('riskScoreLabel')}</span><b>${m.risk_score}</b></div>
+        <div class="risk-topic-metric"><span>${tr('negativeRate')}</span><b style="color:${m.negative>=60?'var(--negative)':'#fff'}">${m.negative}%</b></div>
+        <div class="risk-topic-metric"><span>${tr('heatOption')}</span><b>${m.heat_score}</b></div>
+      </div>
+      <div class="risk-topic-quotes">${displayQuotes(t).slice(0,2).map(q=>`<p class="risk-topic-quote">“${q}”</p>`).join('')}</div>
+      <button type="button" class="risk-topic-open" data-risk-topic="${t.id}">${tr('viewTopicDetail')} →</button>
+    </article>`).join('')}</div>`;
+  $$("#drawerBody [data-risk-topic]").forEach(btn=>btn.addEventListener('click',()=>openTopic(btn.dataset.riskTopic)));
+  $("#drawerMask").classList.add('show'); $("#drawer").classList.add('show');
 }
 
 function openTopic(id){
