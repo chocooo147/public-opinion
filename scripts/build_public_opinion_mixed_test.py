@@ -512,12 +512,33 @@ function enrichWeekTopics(w){
     source = source.replace('$("#schemaBtn").onclick=openSchema; $("#jumpSchema").onclick=openSchema;', '$("#schemaBtn").onclick=openSchema; $("#jumpSchema")?.addEventListener("click",openSchema); $("#jumpSchemaSidebar")?.addEventListener("click",openSchema);')
     source = source.replace("const weighted=k=>rows.reduce((s,x)=>s+(Number(x.m[k])||0)*x.m.count,0)/volume;\n  const negative=Math.round(weighted('negative'));", "const weighted=k=>rows.reduce((s,x)=>s+(Number(x.m[k])||0)*x.m.count,0)/volume;\n  const hasWow=rows.some(x=>x.m.wow!==null&&x.m.wow!==undefined&&x.m.wow!=='');\n  const negative=Math.round(weighted('negative'));", 1)
     source = source.replace("return {volume,negative_rate:negative,wow:+weighted('wow').toFixed(1),", "return {volume,negative_rate:negative,wow:hasWow?+weighted('wow').toFixed(1):null,", 1)
+    visibility_helpers = """function visibleTopicIds(w,platform=state.platform){
+  return new Set(w.topics.filter(t=>{const m=metricFor(t,platform);return m&&Number(m.count)>0;}).map(t=>t.id));
+}
+function newVisibleTopicIds(w=currentWeek(),platform=state.platform){
+  const weekIndex=dashboardData.weeks.indexOf(w);
+  if(weekIndex<=0) return [];
+  const previousIds=visibleTopicIds(dashboardData.weeks[weekIndex-1],platform);
+  return w.topics.filter(t=>{const m=metricFor(t,platform);return m&&Number(m.count)>0&&!previousIds.has(t.id);}).map(t=>t.id);
+}
+"""
+    if "function newVisibleTopicIds(" not in source:
+        source = source.replace(
+            "function metricFor(t,platform=state.platform){ return platform==='综合' ? t.combined_metrics : t.platform_metrics?.[platform]; }\n",
+            "function metricFor(t,platform=state.platform){ return platform==='综合' ? t.combined_metrics : t.platform_metrics?.[platform]; }\n" + visibility_helpers,
+            1,
+        )
+    source = source.replace("new_topics:rows.filter(x=>x.t.status==='新生').length", "new_topics:newVisibleTopicIds(w,platform).length")
     source = source.replace("risk_topics:rows.filter(x=>x.m.risk_score>=60).length", "risk_topics:rows.filter(x=>x.m.risk_score>=60||x.m.negative>=60).length")
     source = source.replace(".filter(x=>x.m&&x.m.count>0&&x.m.risk_score>=60)", ".filter(x=>x.m&&x.m.count>0&&(x.m.risk_score>=60||x.m.negative>=60))")
     source = source.replace(".filter(x=>x.m&&x.m.count>0&&x.t.status==='新生')", ".filter(x=>x.m&&x.m.count>0&&(currentWeek().kpis.new_topic_ids||[]).includes(x.t.id))")
+    source = source.replace("function openNewTopicsDrawer(){\n  const topics=currentWeek().topics", "function openNewTopicsDrawer(){\n  const newIds=new Set(newVisibleTopicIds(currentWeek(),state.platform));\n  const topics=currentWeek().topics")
+    source = source.replace(".filter(x=>x.m&&x.m.count>0&&(currentWeek().kpis.new_topic_ids||[]).includes(x.t.id))", ".filter(x=>x.m&&x.m.count>0&&newIds.has(x.t.id))")
     source = source.replace("${tr('newTopicOverviewDesc')}", "${currentWeek().kpis.new_topic_status==='baseline_no_prior_week'?loc('W25为基准周，不生成W24新增对比。','W25 is the baseline week; no W24 comparison is generated.'):topics.length?tr('newTopicOverviewDesc'):loc('本周没有新增canonical主题；离群或删除文本不会自动升级为新主题。','No new canonical topic was detected this week; outliers and deleted texts are not promoted automatically.')}" )
     source = source.replace('本周没有新增canonical主题；离群或删除文本不会自动升级为新主题。', '本周没有新增canonical主题；这不代表后续周不会新增。未来出现此前未出现的canonical_topic_id时会自动计入；离群或删除文本不会直接升级。')
     source = source.replace('No new canonical topic was detected this week; outliers and deleted texts are not promoted automatically.', 'No new canonical topic was detected this week; this does not prevent future additions. A previously unseen canonical_topic_id will be counted automatically; outliers and deleted texts are not promoted directly.')
+    source = source.replace("currentWeek().kpis.new_topic_status==='baseline_no_prior_week'?loc('W25为基准周，不生成W24新增对比。','W25 is the baseline week; no W24 comparison is generated.'):topics.length?tr('newTopicOverviewDesc'):loc('本周没有新增canonical主题；这不代表后续周不会新增。未来出现此前未出现的canonical_topic_id时会自动计入；离群或删除文本不会直接升级。','No new canonical topic was detected this week; this does not prevent future additions. A previously unseen canonical_topic_id will be counted automatically; outliers and deleted texts are not promoted directly.')", "dashboardData.weeks.indexOf(currentWeek())===0?loc('W25为基准周，不生成W24新增对比。','W25 is the baseline week; no W24 comparison is generated.'):topics.length?loc('相较上一完整周，这些主题首次在当前平台出现有效声量。','Compared with the previous complete week, these topics recorded visible volume on the current platform for the first time.'):loc('相较上一完整周，当前平台没有首次出现有效声量的主题。','Compared with the previous complete week, no topic recorded visible volume on the current platform for the first time.')")
+    source = source.replace('<span class="risk-topic-rank new-topic-rank">${displayStatus(t.status)}</span>', '<span class="risk-topic-rank new-topic-rank">${loc(\'平台首现\',\'First on platform\')}</span>')
     # File previews are often opened from a local file URL, where WebCrypto
     # may be unavailable. Keep SHA-256 when available and add a deterministic
     # offline verifier for the supplied standard account only.

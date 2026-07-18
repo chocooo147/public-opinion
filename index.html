@@ -1123,6 +1123,15 @@ function populateWeekSelect(){
 
 function currentWeek(){ return dashboardData.weeks[state.weekIndex]; }
 function metricFor(t,platform=state.platform){ return platform==='综合' ? t.combined_metrics : t.platform_metrics?.[platform]; }
+function visibleTopicIds(w,platform=state.platform){
+  return new Set(w.topics.filter(t=>{const m=metricFor(t,platform);return m&&Number(m.count)>0;}).map(t=>t.id));
+}
+function newVisibleTopicIds(w=currentWeek(),platform=state.platform){
+  const weekIndex=dashboardData.weeks.indexOf(w);
+  if(weekIndex<=0) return [];
+  const previousIds=visibleTopicIds(dashboardData.weeks[weekIndex-1],platform);
+  return w.topics.filter(t=>{const m=metricFor(t,platform);return m&&Number(m.count)>0&&!previousIds.has(t.id);}).map(t=>t.id);
+}
 function topicsForWeek(w=currentWeek()){
   return w.topics.filter(t=>{
     const searchText=[t.name,t.name_en,...(t.keywords||[]),...(t.keywords_en||[])].filter(Boolean).join(' ').toLowerCase();
@@ -1136,7 +1145,7 @@ function aggregateWeek(w,platform=state.platform){
   const hasWow=rows.some(x=>x.m.wow!==null&&x.m.wow!==undefined&&x.m.wow!=='');
   const negative=Math.round(weighted('negative'));
   const neutral=21;
-  return {volume,negative_rate:negative,wow:hasWow?+weighted('wow').toFixed(1):null,risk_topics:rows.filter(x=>x.m.risk_score>=60||x.m.negative>=60).length,new_topics:rows.filter(x=>x.t.status==='新生').length,persistent_topics:rows.filter(x=>x.t.weeks>1).length,sentiment_score:+(1-negative/100-neutral/200).toFixed(2),sentiment:{positive:Math.max(0,100-negative-neutral),neutral,negative}};
+  return {volume,negative_rate:negative,wow:hasWow?+weighted('wow').toFixed(1):null,risk_topics:rows.filter(x=>x.m.risk_score>=60||x.m.negative>=60).length,new_topics:newVisibleTopicIds(w,platform).length,persistent_topics:rows.filter(x=>x.t.weeks>1).length,sentiment_score:+(1-negative/100-neutral/200).toFixed(2),sentiment:{positive:Math.max(0,100-negative-neutral),neutral,negative}};
 }
 
 function renderKpis(){
@@ -1449,16 +1458,17 @@ function openHighRiskDrawer(){
 }
 
 function openNewTopicsDrawer(){
+  const newIds=new Set(newVisibleTopicIds(currentWeek(),state.platform));
   const topics=currentWeek().topics
     .map(t=>({t,m:metricFor(t)}))
-    .filter(x=>x.m&&x.m.count>0&&(currentWeek().kpis.new_topic_ids||[]).includes(x.t.id))
+    .filter(x=>x.m&&x.m.count>0&&newIds.has(x.t.id))
     .sort((a,b)=>b.m.heat_score-a.m.heat_score);
   $("#drawerTitle").textContent=tr('newTopicOverview');
   $("#drawerSub").textContent=`${currentWeek().label} · ${displayPlatform(state.platform)} · ${tr('newTopics')} ${topics.length}`;
   $("#drawerBody").innerHTML=`
-    <p class="risk-drawer-intro">${currentWeek().kpis.new_topic_status==='baseline_no_prior_week'?loc('W25为基准周，不生成W24新增对比。','W25 is the baseline week; no W24 comparison is generated.'):topics.length?tr('newTopicOverviewDesc'):loc('本周没有新增canonical主题；这不代表后续周不会新增。未来出现此前未出现的canonical_topic_id时会自动计入；离群或删除文本不会直接升级。','No new canonical topic was detected this week; this does not prevent future additions. A previously unseen canonical_topic_id will be counted automatically; outliers and deleted texts are not promoted directly.')}</p>
+    <p class="risk-drawer-intro">${dashboardData.weeks.indexOf(currentWeek())===0?loc('W25为基准周，不生成W24新增对比。','W25 is the baseline week; no W24 comparison is generated.'):topics.length?loc('相较上一完整周，这些主题首次在当前平台出现有效声量。','Compared with the previous complete week, these topics recorded visible volume on the current platform for the first time.'):loc('相较上一完整周，当前平台没有首次出现有效声量的主题。','Compared with the previous complete week, no topic recorded visible volume on the current platform for the first time.')}</p>
     <div class="risk-drawer-list">${topics.map(({t,m})=>`<article class="risk-topic-card new-topic-card">
-      <div class="risk-topic-head"><strong>${displayTopicName(t)}</strong><span class="risk-topic-rank new-topic-rank">${displayStatus(t.status)}</span></div>
+      <div class="risk-topic-head"><strong>${displayTopicName(t)}</strong><span class="risk-topic-rank new-topic-rank">${loc('平台首现','First on platform')}</span></div>
       <div class="risk-topic-metrics">
         <div class="risk-topic-metric"><span>${tr('heatOption')}</span><b>${m.heat_score}</b></div>
         <div class="risk-topic-metric"><span>${tr('coverageLabel')}</span><b>${m.video_count} / ${m.creator_count}</b></div>
