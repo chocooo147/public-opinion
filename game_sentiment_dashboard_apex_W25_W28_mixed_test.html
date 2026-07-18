@@ -360,6 +360,18 @@
     .modal.show { opacity:1; pointer-events:auto; transform:translate(-50%,-50%) scale(1); }
     .modal-head { padding:18px 20px; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; }
     .modal-body { padding:20px; }
+    .download-modal { width:min(940px,94vw); }
+    .download-intro { margin:0 0 16px; color:var(--muted); font-size:12px; line-height:1.75; }
+    .download-context { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px; }
+    .download-context span { padding:6px 9px; border:1px solid var(--line); background:rgba(255,255,255,.035); color:#dfe6f4; font-size:10px; }
+    .download-warning { margin:0 0 16px; padding:12px 14px; border:1px solid rgba(243,179,76,.42); background:rgba(243,179,76,.07); color:#f4dca8; font-size:11px; line-height:1.7; }
+    .download-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; }
+    .download-card { min-width:0; padding:16px; border:1px solid var(--line); background:rgba(255,255,255,.025); display:flex; flex-direction:column; gap:9px; }
+    .download-card strong { color:#fff; font-size:13px; }
+    .download-card p { min-height:68px; margin:0; color:var(--muted); font-size:10px; line-height:1.65; }
+    .download-card .btn { margin-top:auto; text-align:center; text-decoration:none; justify-content:center; }
+    .download-spec { margin-top:16px; padding-top:14px; border-top:1px solid var(--line); color:var(--muted); font-size:10px; line-height:1.7; }
+    @media(max-width:760px){.download-grid{grid-template-columns:1fr}.download-card p{min-height:0}}
     pre { white-space:pre-wrap; background:#090909; color:#e0e0dc; border:1px solid var(--line); border-radius:12px; padding:14px; font-size:11px; line-height:1.65; overflow:auto; }
     .auth-hidden { display:none !important; }
     body.auth-locked { overflow:hidden; }
@@ -642,7 +654,7 @@
       <div class="side-section">
         <div class="side-label">Operations</div>
         <div class="nav-item" data-anchor="risk"><span class="nav-icon">△</span>风险与机会</div>
-        <div class="nav-item" id="downloadBtn"><span class="nav-icon">⇩</span>下载数据模板</div>
+        <div class="nav-item" id="downloadBtn"><span class="nav-icon">⇩</span>报告下载中心</div>
       </div>
       <div class="sidebar-note sidebar-data-note">
         <strong>当前数据说明</strong>
@@ -840,6 +852,34 @@
   </div>
 </div>
 
+<div class="drawer-mask" id="downloadMask" style="z-index:60"></div>
+<div class="modal download-modal" id="downloadModal" style="z-index:61">
+  <div class="modal-head"><strong>APAC 周报下载中心</strong><button class="drawer-close" id="downloadClose">×</button></div>
+  <div class="modal-body">
+    <p class="download-intro">下载内容已按 APAC Weekly Community Sentiment Report Skill 整理。报告固定采用“概览 → 核心话题 → 情感历史 → UGC/直播观看 → 方法说明 → 数据质量检查”的顺序，并要求结论、归因、证据、对比和影响完整闭环。</p>
+    <div class="download-context" id="downloadContext"></div>
+    <p class="download-warning" id="downloadWarning"></p>
+    <div class="download-grid">
+      <article class="download-card">
+        <strong>① APAC Markdown 报告模板</strong>
+        <p>用于撰写完整周报。已将执行摘要并入 Overview，将下周监测指标并入 Data Quality Check，保持 Skill 规定的顶层章节顺序。</p>
+        <a class="btn primary" id="downloadReportTemplate" href="templates/APAC_Weekly_Community_Sentiment_Report_Template.md" download>下载报告模板 .md</a>
+      </article>
+      <article class="download-card">
+        <strong>② 当前周报告输入包</strong>
+        <p>导出当前周、所选平台、上一周基准、主题指标、真实关键词与方法限制。该文件是报告输入，不会把缺失的日本或观看数据伪装成已完成报告。</p>
+        <button class="btn primary" id="downloadReportInput" type="button">下载当前周输入包 .json</button>
+      </article>
+      <article class="download-card">
+        <strong>③ 完整看板数据</strong>
+        <p>保留 W25—W28 全部周次、平台指标、主题链、关键词统计与溯源信息，供数据复核或后续重新生成报告。</p>
+        <button class="btn" id="downloadFullDashboard" type="button">下载完整数据 .json</button>
+      </article>
+    </div>
+    <div class="download-spec">导出规则：自然周必须完整；经 Skill 要求，日本与中国均需出现；不同定义的地区或平台指标不得直接横向比较；Mixed 不得被强制写成 Neutral；未经验证的因果关系必须标记为假设。</div>
+  </div>
+</div>
+
 <div class="drawer-mask" id="adminMask" style="z-index:70"></div>
 <div class="modal admin-modal" id="adminModal">
   <div class="modal-head"><strong>账号管理</strong><button class="drawer-close" id="adminClose">×</button></div>
@@ -947,7 +987,7 @@ const tr = key => copy[state.lang][key];
 const loc=(zh,en)=>state.lang==='zh'?zh:en;
 const staticTranslations = new Map([
   ['游戏舆情监测中心','Game Sentiment Monitor'],['周度主题识别 · 跨周主题链 · 情感与风险融合','Weekly topic discovery · Cross-week topic chains · Sentiment and risk'],
-  ['BERTopic已接入·B站&小黑盒真实数据','BERTopic connected · real Bilibili & Heybox data'],['数据接入说明','Data schema'],['导入 JSON','Import JSON'],['舆情总览','Overview'],['主题监测','Topics'],['主题演化','Evolution'],['情感分析','Sentiment'],['风险与机会','Risk & Opportunity'],['下载数据模板','Download template'],
+  ['BERTopic已接入·B站&小黑盒真实数据','BERTopic connected · real Bilibili & Heybox data'],['数据接入说明','Data schema'],['导入 JSON','Import JSON'],['舆情总览','Overview'],['主题监测','Topics'],['主题演化','Evolution'],['情感分析','Sentiment'],['风险与机会','Risk & Opportunity'],['报告下载中心','Report downloads'],
   ['本周核心主题','Core Topics This Week'],['点击主题可查看跨周主题链、代表文本和情绪变化。','Select a topic to view its cross-week chain, representative posts, and sentiment changes.'],
   ['周度主题识别口径','Weekly Topic Methodology'],['计算主题热议度公式','Topic Heat Formula'],['全周语料','Full-week corpus'],['语义聚类','Semantic clustering'],['共识校验','Consensus validation'],['综合评分','Composite scoring'],['周度 Top 10','Weekly Top 10'],
   ['主题类型','Topic type'],['覆盖视频/作者','Videos / creators'],['跨视频共识度','Cross-video consensus'],['热议度','Heat score'],
@@ -972,7 +1012,13 @@ const staticTranslations = new Map([
   ['BERTopic 模型接入字段','BERTopic Integration Schema'],['模型每周输出一个 JSON 对象。页面按','The model outputs one JSON object per week. The dashboard uses'],['建立周报，通过','to build weekly reports and'],['追踪跨周主题，并校验覆盖视频、覆盖作者及热议度五项分值，避免将单个热门视频误判为全周共同热点。','to track cross-week topics. It validates video coverage, creator coverage, and the five heat-score components so one popular video is not mistaken for a weekly consensus topic.'],['下载示例 JSON','Download sample JSON'],
   ['主题排序方式','Topic sort order'],['覆盖视频/作者','Videos / creators'],['本周核心主题','Core Topics This Week'],
   ['APEX 舆情控制台','APEX Sentiment Console'],['授权账号访问','Authorized accounts only'],['账号','Username'],['密码','Password'],['登录并进入看板','Sign in to dashboard'],['账号由管理员统一配置。未授权用户无法查看看板或导入 JSON 数据。','Accounts are issued by an administrator. Unauthorized users cannot view the dashboard or import JSON data.'],
-  ['账号管理','Account management'],['退出','Sign out'],['管理员可以创建账号、重置密码、停用或删除普通账号。管理员账号 choco 为系统保留账号。','Administrators can create accounts, reset passwords, disable accounts, or delete users. The choco administrator account is protected.'],['账号名称','Username'],['派发密码','Issued password'],['创建账号','Create account'],['账号名称至少 3 个字符，密码至少 6 个字符。','Usernames require at least 3 characters and passwords at least 6.'],['角色','Role'],['操作','Actions']
+  ['账号管理','Account management'],['退出','Sign out'],['管理员可以创建账号、重置密码、停用或删除普通账号。管理员账号 choco 为系统保留账号。','Administrators can create accounts, reset passwords, disable accounts, or delete users. The choco administrator account is protected.'],['账号名称','Username'],['派发密码','Issued password'],['创建账号','Create account'],['账号名称至少 3 个字符，密码至少 6 个字符。','Usernames require at least 3 characters and passwords at least 6.'],['角色','Role'],['操作','Actions'],
+  ['APAC 周报下载中心','APAC Report Downloads'],['① APAC Markdown 报告模板','① APAC Markdown report template'],['下载报告模板 .md','Download report template .md'],['② 当前周报告输入包','② Current-week report input'],['下载当前周输入包 .json','Download current-week input .json'],['③ 完整看板数据','③ Full dashboard data'],['下载完整数据 .json','Download full data .json'],
+  ['下载内容已按 APAC Weekly Community Sentiment Report Skill 整理。报告固定采用“概览 → 核心话题 → 情感历史 → UGC/直播观看 → 方法说明 → 数据质量检查”的顺序，并要求结论、归因、证据、对比和影响完整闭环。','Downloads follow the APAC Weekly Community Sentiment Report Skill. The fixed order is Overview → Top Conversation Drivers → Sentiment History → UGC / Stream Viewership → Methodology Notes → Data Quality Check, using conclusion, attribution, evidence, comparison, and impact.'],
+  ['用于撰写完整周报。已将执行摘要并入 Overview，将下周监测指标并入 Data Quality Check，保持 Skill 规定的顶层章节顺序。','Use this to write the complete report. The executive summary is included in Overview and next-week monitoring is included in Data Quality Check, preserving the required top-level order.'],
+  ['导出当前周、所选平台、上一周基准、主题指标、真实关键词与方法限制。该文件是报告输入，不会把缺失的日本或观看数据伪装成已完成报告。','Exports the selected week and platform, previous-week baseline, topic metrics, observed keywords, and methodology limits. It is report input and does not present missing Japan or viewership data as complete.'],
+  ['保留 W25—W28 全部周次、平台指标、主题链、关键词统计与溯源信息，供数据复核或后续重新生成报告。','Keeps all W25–W28 weeks, platform metrics, topic chains, keyword statistics, and provenance for review or later report regeneration.'],
+  ['导出规则：自然周必须完整；经 Skill 要求，日本与中国均需出现；不同定义的地区或平台指标不得直接横向比较；Mixed 不得被强制写成 Neutral；未经验证的因果关系必须标记为假设。','Export rules: use complete natural weeks; include both Japan and China; do not directly compare metrics with different definitions; do not force Mixed into Neutral; label unverified causal claims as hypotheses.']
 ]);
 const statusTranslations={'新生':'New','上升':'Rising','高位持续':'Sustained high','稳定延续':'Stable','回落':'Declining','复燃':'Resurgent'};
 const displayStatus=s=>state.lang==='zh'?s:(statusTranslations[s]||s);
@@ -1057,7 +1103,7 @@ function unlockDashboard(account){
   renderAll();
 }
 function lockDashboard(message=''){
-  authCurrentUser=null; writeSessionUsername(''); closeAdmin(); closeDrawer(); closeSchema();
+  authCurrentUser=null; writeSessionUsername(''); closeAdmin(); closeDrawer(); closeSchema(); closeDownloadCenter();
   document.body.classList.add('auth-locked');
   $('#dashboardApp').classList.add('auth-hidden'); $('#loginScreen').classList.remove('hidden');
   $('#loginPassword').value=''; $('#loginError').textContent=message;
@@ -1113,6 +1159,7 @@ function applyLanguage(){
   const signedIn=authenticatedAccount();
   if(signedIn) $('#currentRole').textContent=signedIn.role==='admin'?loc('管理员','Admin'):loc('已授权','Authorized');
   if($('#adminModal')?.classList.contains('show')) renderAccounts();
+  if($('#downloadModal')?.classList.contains('show')) openDownloadCenter();
   document.querySelector('.method-flow')?.setAttribute('aria-label',loc('周度主题识别流程','Weekly topic discovery process'));
   document.querySelector('.formula-line[aria-label="主题热议度权重"], .formula-line[aria-label="Topic heat-score weights"]')?.setAttribute('aria-label',loc('主题热议度权重','Topic heat-score weights'));
   document.querySelector('.formula-line[aria-label="跨视频共识度权重"], .formula-line[aria-label="Cross-video consensus weights"]')?.setAttribute('aria-label',loc('跨视频共识度权重','Cross-video consensus weights'));
@@ -1568,6 +1615,80 @@ function openSchema(){ $("#schemaPre").textContent=JSON.stringify(schemaExample,
 function closeSchema(){ $("#modalMask").classList.remove('show'); $("#schemaModal").classList.remove('show'); }
 function downloadJSON(obj,name){ const blob=new Blob([JSON.stringify(obj,null,2)],{type:'application/json'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=name; a.click(); URL.revokeObjectURL(url); }
 
+function finiteOrNull(value){ return value===null||value===undefined||value===''?null:(Number.isFinite(Number(value))?Number(value):null); }
+function reportWeekSummary(week,platform){
+  if(!week) return null;
+  const rows=week.topics.map(topic=>({topic,metric:metricFor(topic,platform)})).filter(row=>row.metric&&Number(row.metric.count)>0);
+  const volume=rows.reduce((sum,row)=>sum+Number(row.metric.count||0),0);
+  const weighted=key=>volume?rows.reduce((sum,row)=>sum+Number(row.metric[key]||0)*Number(row.metric.count||0),0)/volume:null;
+  return {
+    week_id:week.week_id, label:week.label, start:week.start, end:week.end,
+    selected_platform:platform, observed_volume:volume,
+    volume_unit:platform==='B站'?'mapped_comment_texts':platform==='小黑盒'?'public_search_visible_posts_sample':'mixed_incomparable_observation_units',
+    sentiment:{model:'SnowNLP',score_0_to_1:finiteOrNull(weighted('sentiment')),positive_rate_percent:finiteOrNull(weighted('positive')),neutral_rate_percent:finiteOrNull(weighted('neutral')),negative_rate_percent:finiteOrNull(weighted('negative')),report_label:'analyst_review_required'},
+    topic_count:rows.length,
+    observed_video_or_content_count:rows.reduce((sum,row)=>sum+Number(row.metric.video_count||0),0),
+    observed_creator_count:rows.reduce((sum,row)=>sum+Number(row.metric.creator_count||0),0)
+  };
+}
+function reportTopicRows(week,previousWeek,platform){
+  const active=week.topics.map(topic=>({topic,metric:metricFor(topic,platform)})).filter(row=>row.metric&&Number(row.metric.count)>0);
+  const total=active.reduce((sum,row)=>sum+Number(row.metric.count||0),0)||1;
+  return active.sort((a,b)=>Number(b.metric.count)-Number(a.metric.count)).slice(0,10).map((row,index)=>{
+    const previousTopic=previousWeek?.topics.find(topic=>topic.id===row.topic.id);
+    const previousMetric=previousTopic?metricFor(previousTopic,platform):null;
+    const currentCount=Number(row.metric.count||0), previousCount=Number(previousMetric?.count||0);
+    const actualKeywords=topicKeywordStats(row.topic,platform).slice(0,15).map(item=>({keyword:item.keyword,occurrences:item.occurrences,document_count:item.document_count,document_coverage:item.document_coverage}));
+    const evidence=platform==='小黑盒'?[]:(row.topic.quotes||[]).slice(0,3).map(text=>({text,source_platform:'B站'}));
+    return {
+      rank:index+1, topic_id:row.topic.id, topic_chain_id:row.topic.chain, topic_name:row.topic.name,
+      current_volume:currentCount, previous_volume:previousCount,
+      current_share_percent:+(currentCount/total*100).toFixed(2),
+      week_over_week_percent:previousCount?+((currentCount-previousCount)/previousCount*100).toFixed(2):(currentCount?'new':null),
+      dashboard_status:row.topic.status, storyline_stage:'analyst_review_required',
+      sentiment:{score_0_to_1:finiteOrNull(row.metric.sentiment),positive_rate_percent:finiteOrNull(row.metric.positive),neutral_rate_percent:finiteOrNull(row.metric.neutral),negative_rate_percent:finiteOrNull(row.metric.negative),report_label:'analyst_review_required'},
+      coverage:{video_or_content_count:finiteOrNull(row.metric.video_count),creator_count:finiteOrNull(row.metric.creator_count)},
+      heat_score:finiteOrNull(row.metric.heat_score),consensus_score:finiteOrNull(row.metric.consensus_score),risk_score:finiteOrNull(row.metric.risk_score),
+      observed_keywords:actualKeywords, representative_evidence:evidence,
+      evidence_note:platform==='小黑盒'?'Heybox representative post text is not embedded by topic in the current dashboard payload. Add source excerpts before writing the narrative.':platform==='综合'?'Representative evidence shown here is Bilibili-only; add Heybox source excerpts before making a combined-platform claim.':'Representative evidence is drawn from mapped Bilibili text.'
+    };
+  });
+}
+function buildReportInputPackage(){
+  const week=currentWeek(), previousWeek=state.weekIndex>0?dashboardData.weeks[state.weekIndex-1]:null, platform=state.platform;
+  const currentSummary=reportWeekSummary(week,platform), previousSummary=reportWeekSummary(previousWeek,platform);
+  const warnings=[
+    'Japan data is not present in the current APEX dashboard and must be supplied before the APAC report is complete.',
+    'Official total views and watch-hours data are not present; do not infer viewership from discussion volume.',
+    'SnowNLP sentiment and derived risk scores are exploratory model outputs and are not independently validated for formal reporting.',
+    'Heybox coverage is a non-exhaustive public-search sample and does not include comment bodies.',
+    'Bilibili counts mapped comment texts while Heybox counts search-visible posts; the units are not directly comparable.'
+  ];
+  return {
+    schema_version:'apac_weekly_sentiment_report_input_v2', generated_at:new Date().toISOString(),
+    export_status:'draft_input_only_not_a_complete_report', template_path:'templates/APAC_Weekly_Community_Sentiment_Report_Template.md',
+    report_rule:{section_order:['Overview','Top Conversation Drivers','Sentiment History','UGC / Stream Viewership','Methodology Notes','Data Quality Check'],narrative_sequence:['Conclusion','Attribution','Evidence','Comparison','Impact'],sentiment_order:['Positive','Neutral or Mixed','Negative']},
+    reporting_period:{week_id:week.week_id,label:week.label,start:week.start,end:week.end,is_complete_natural_week:true},
+    selection:{region:'China',platform_view:platform},
+    required_input_status:{japan:'missing',china:'available_with_exploratory_limitations',previous_week:previousWeek?'available':'missing',official_viewership:'missing',representative_heybox_text:'missing_from_dashboard_payload'},
+    regions:{
+      japan:{status:'missing',required_fields:['overall sentiment','week-over-week trend','conversation drivers','representative feedback','UGC and viewership']},
+      china:{status:'available_with_limitations',current_week:currentSummary,previous_week:previousSummary,conversation_drivers:reportTopicRows(week,previousWeek,platform),sentiment_history:dashboardData.weeks.slice(0,state.weekIndex+1).map(item=>reportWeekSummary(item,platform)),ugc_and_viewership:{status:'incomplete',total_views:null,watch_hours:null,popularity_or_heat:null,ugc_volume:null,active_creators:null,available_dashboard_coverage:{video_or_content_count:currentSummary.observed_video_or_content_count,creator_count:currentSummary.observed_creator_count},warning:'Dashboard coverage counts are not a substitute for official reach, watch-hours, popularity, or creator-activity metrics.'}}
+    },
+    methodology:{topic_model:dashboardData.meta.model_version,topic_assignment:'single canonical topic per mapped text in this dashboard',sentiment_model:dashboardData.meta.sentiment_model,sentiment_scale:'0 to 1 SnowNLP model output; APAC report label thresholds require analyst confirmation',platform_scope:dashboardData.meta.platform_status,formal_reporting_qualified:Boolean(dashboardData.meta.qualified_for_formal_reporting),regional_comparability:'not available because Japan inputs are missing'},
+    data_quality_warnings:warnings,
+    analyst_actions_required:['Add Japan inputs.','Add official UGC/viewership metrics for both regions.','Assign Positive, Neutral, Mixed, or Negative labels using one disclosed threshold system.','Review representative evidence and write each topic as reaction + reason + comparison + impact.','Confirm two or three next-week monitoring metrics.']
+  };
+}
+function openDownloadCenter(){
+  if(!requireAuthenticated()) return;
+  const week=currentWeek(), platform=displayPlatform(state.platform);
+  $('#downloadContext').innerHTML=`<span>${loc('报告周次','Reporting week')} · ${week.label}</span><span>${loc('平台视图','Platform view')} · ${platform}</span><span>${loc('模板版本','Template version')} · 2.0</span>`;
+  $('#downloadWarning').textContent=loc('完整 APAC 报告仍缺少日本数据与官方观看指标；当前导出的 JSON 是可追溯输入包，不是可直接发布的最终报告。','A complete APAC report still requires Japan data and official viewership metrics. The JSON export is a traceable input package, not a publish-ready final report.');
+  $('#downloadMask').classList.add('show'); $('#downloadModal').classList.add('show');
+}
+function closeDownloadCenter(){ $('#downloadMask')?.classList.remove('show'); $('#downloadModal')?.classList.remove('show'); }
+
 $('#loginForm').addEventListener('submit',async e=>{
   e.preventDefault();
   const username=$('#loginUsername').value.trim();
@@ -1636,7 +1757,10 @@ $("#topicSearch").addEventListener('input',e=>{state.search=e.target.value.trim(
 $("#drawerClose").onclick=closeDrawer; $("#drawerMask").onclick=closeDrawer;
 $("#schemaBtn").onclick=openSchema; $("#jumpSchema")?.addEventListener("click",openSchema); $("#jumpSchemaSidebar")?.addEventListener("click",openSchema); $("#modalClose").onclick=closeSchema; $("#modalMask").onclick=closeSchema;
 $("#downloadSchema").onclick=()=>downloadJSON(schemaExample,'game_sentiment_data_example.json');
-$("#downloadBtn").onclick=()=>downloadJSON(schemaExample,'game_sentiment_data_template.json');
+$("#downloadBtn").onclick=openDownloadCenter;
+$("#downloadClose").onclick=closeDownloadCenter; $("#downloadMask").onclick=closeDownloadCenter;
+$("#downloadReportInput").onclick=()=>{const payload=buildReportInputPackage(),safePlatform=state.platform==='综合'?'combined':state.platform==='B站'?'bilibili':'heybox';downloadJSON(payload,`apac_report_input_${currentWeek().week_id}_${safePlatform}.json`);};
+$("#downloadFullDashboard").onclick=()=>downloadJSON(dashboardData,'apex_sentiment_dashboard_complete_data.json');
 $("#importBtn").onclick=()=>{if(requireAuthenticated())$("#fileInput").click();};
 $("#fileInput").addEventListener('change',e=>{
   if(!requireAuthenticated()) return;
