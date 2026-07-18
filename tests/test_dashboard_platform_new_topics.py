@@ -87,7 +87,7 @@ class PlatformNewTopicTests(unittest.TestCase):
         for week in self.data["weeks"]:
             for platform in counts:
                 stats = week["keyword_stats"][platform]
-                effective = [row for row in stats if row["document_coverage"] >= 0.02]
+                effective = [row for row in stats if row["document_count"] >= 2 and row["document_coverage"] >= 0.02]
                 counts[platform].append(len(effective))
                 top_tens[platform].append(tuple(row["keyword"] for row in effective[:10]))
                 self.assertTrue(all(row["occurrences"] > 0 for row in stats))
@@ -118,6 +118,7 @@ class PlatformNewTopicTests(unittest.TestCase):
             with self.subTest(path=path.name):
                 source = path.read_text(encoding="utf-8")
                 self.assertIn("const KEYWORD_MIN_DOCUMENT_COVERAGE=.02", source)
+                self.assertIn("Number(x.document_count)>=2", source)
                 self.assertIn("有效关键词", source)
                 self.assertIn("实际出现次数", source)
                 self.assertIn("x.document_count", source)
