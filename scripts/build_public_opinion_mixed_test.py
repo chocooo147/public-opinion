@@ -4,7 +4,9 @@ import copy
 import csv
 import hashlib
 import json
+import math
 import re
+from collections import Counter, defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -26,6 +28,11 @@ SNOW_TOPIC_JSON = ROOT / "outputs/bilibili_apex_W25_W28_snownlp_topic_weekly.jso
 SNOW_WEEKLY_CSV = ROOT / "outputs/bilibili_apex_W25_W28_snownlp_weekly.csv"
 SNOW_VALIDATION = ROOT / "outputs/bilibili_apex_W25_W28_snownlp_validation.json"
 WEEK_AUDIT = ROOT / "outputs/week_boundary_audit.json"
+HEYBOX_ASSIGNMENTS = ROOT / "outputs/heybox_apex_W25_W28_public_search_assignments.csv"
+HEYBOX_MANIFEST = ROOT / "outputs/heybox_apex_W25_W28_public_search_manifest.json"
+VIDEO_LINKS = REPO / "outputs/representative_video_links.json"
+if not VIDEO_LINKS.exists():
+    VIDEO_LINKS = ROOT / "outputs/representative_video_links.json"
 WEEKS = ["2026_W25", "2026_W26", "2026_W27", "2026_W28"]
 SEED = 2717
 
@@ -90,6 +97,67 @@ def load_snownlp_results():
     return topic, weekly, validation
 
 
+def load_representative_video_links():
+    if not VIDEO_LINKS.exists():
+        return {}
+    return json.loads(VIDEO_LINKS.read_text(encoding="utf-8"))
+
+
+def load_heybox_sample_results():
+    if not HEYBOX_ASSIGNMENTS.exists():
+        return {}, {}
+    grouped = defaultdict(list)
+    with HEYBOX_ASSIGNMENTS.open(encoding="utf-8-sig", newline="") as handle:
+        for row in csv.DictReader(handle):
+            if row.get("week_id") in WEEKS and row.get("canonical_topic_id"):
+                grouped[(row["week_id"], row["canonical_topic_id"])].append(row)
+    manifest = json.loads(HEYBOX_MANIFEST.read_text(encoding="utf-8")) if HEYBOX_MANIFEST.exists() else {}
+    return grouped, manifest
+
+
+def build_heybox_sample_metric(rows, week_id, topic_id, all_rows):
+    counts = {week: len(all_rows.get((week, topic_id), [])) for week in WEEKS}
+    current_index = WEEKS.index(week_id)
+    count = len(rows)
+    previous = counts[WEEKS[current_index - 1]] if current_index else None
+    wow = None if previous is None else (100.0 if previous == 0 and count else (0.0 if previous == 0 else round((count - previous) / previous * 100, 1)))
+    comments = sum(int(row.get("comments") or 0) for row in rows)
+    likes = sum(int(row.get("likes") or 0) for row in rows)
+    scores = [float(row.get("sentiment_score") or 0.5) for row in rows]
+    labels = Counter(row.get("sentiment_label") or "neutral" for row in rows)
+    negative = round(labels["negative"] / count * 100, 2) if count else 0.0
+    positive = round(labels["positive"] / count * 100, 2) if count else 0.0
+    neutral = round(labels["neutral"] / count * 100, 2) if count else 100.0
+    sentiment = round(sum(scores) / count, 6) if count else 0.5
+    engagement = likes + comments
+    heat = clamp(18 + count * 10 + math.log1p(engagement) * 7) if count else 0
+    consensus = clamp(50 + abs(positive - negative) * 0.35) if count else 0
+    metric = build_metric(count, count, count, wow, heat, consensus, negative, [counts[week] for week in WEEKS[: current_index + 1]], "heybox_public_search_visible_sample", False, None)
+    metric.update({
+        "comment_count": comments,
+        "likes_count": likes,
+        "positive": positive,
+        "neutral": neutral,
+        "negative": negative,
+        "sentiment": sentiment,
+        "sentiment_model": "SnowNLP",
+        "sentiment_status": "model_only_unvalidated",
+        "risk_status": "model_only_derived",
+        "risk_score": risk_score_from_model(negative, wow, consensus),
+        "data_type": "real_sample",
+        "simulated": False,
+        "estimated": True,
+        "sample_limited": True,
+        "sample_scope": "public_search_visible_posts_only",
+        "count_unit": "visible_posts",
+        "coverage_note": "Search-visible posts only; comment bodies were not collected.",
+        "core_fields_real": ["count", "comment_count", "likes_count", "trend", "wow"],
+        "estimated_fields": ["negative", "sentiment", "heat_score", "consensus_score", "risk_score"],
+        "representative_posts": [{"text": row.get("text", ""), "url": row.get("url", "")} for row in rows[:3]],
+    })
+    return metric
+
+
 def build_metric(count, videos, creators, wow, heat, consensus, negative, trend, source, simulated, seed):
     count = max(0, int(count)); videos = max(0, int(videos)); creators = max(0, int(creators))
     return {
@@ -111,6 +179,9 @@ def make_data():
     weekly = json.loads(SOURCE.read_text(encoding="utf-8"))
     registry = {x["canonical_topic_id"]: x for x in json.loads(REGISTRY.read_text(encoding="utf-8"))}
     snow_topic, snow_week, snow_validation = load_snownlp_results()
+    representative_videos = load_representative_video_links()
+    heybox_rows, heybox_manifest = load_heybox_sample_results()
+    heybox_sample_available = bool(heybox_rows)
     by_week = {w: [x for x in weekly if x["week_id"] == w] for w in WEEKS}
     output_weeks = []
     for w in WEEKS:
@@ -146,17 +217,22 @@ def make_data():
                 b["risk_status"] = "model_only_derived"
                 b["risk_score_estimated"] = True
                 b["risk_score"] = risk_score_from_model(b["negative"], wow, b["consensus_score"])
-            # Deterministic UI-only Heybox simulation derived only from Bilibili metrics.
-            ratio = .30 + (seed % 31) / 100
-            vr = .25 + ((seed >> 7) % 31) / 100
-            cr = .25 + ((seed >> 13) % 31) / 100
-            delta = ((seed >> 19) % 17) - 8
-            h = build_metric(round(count * ratio), round(videos * vr), round(creators * cr), round((wow or 0) + (delta / 4)), clamp(heat + delta), clamp(consensus + (((seed >> 23) % 17) - 8)), clamp(negative + (((seed >> 29) % 13) - 6)), [round(v * (0.9 + ((seed % 9) / 100))) for v in trend], "heybox_simulated_for_ui_test", True, SEED)
-            h.update({"data_type": "simulated", "simulation_rule": "stable_sha256_seeded_multipliers_v1", "estimated_fields": ["count", "video_count", "creator_count", "heat_score", "consensus_score", "negative", "sentiment", "risk_score"]})
+            if heybox_sample_available:
+                h = build_heybox_sample_metric(heybox_rows.get((w, cid), []), w, cid, heybox_rows)
+            else:
+                # Deterministic UI-only fallback used only when no real Heybox sample exists.
+                ratio = .30 + (seed % 31) / 100
+                vr = .25 + ((seed >> 7) % 31) / 100
+                cr = .25 + ((seed >> 13) % 31) / 100
+                delta = ((seed >> 19) % 17) - 8
+                h = build_metric(round(count * ratio), round(videos * vr), round(creators * cr), round((wow or 0) + (delta / 4)), clamp(heat + delta), clamp(consensus + (((seed >> 23) % 17) - 8)), clamp(negative + (((seed >> 29) % 13) - 6)), [round(v * (0.9 + ((seed % 9) / 100))) for v in trend], "heybox_simulated_for_ui_test", True, SEED)
+                h.update({"data_type": "simulated", "simulation_rule": "stable_sha256_seeded_multipliers_v1", "estimated_fields": ["count", "video_count", "creator_count", "heat_score", "consensus_score", "negative", "sentiment", "risk_score"]})
             combined_count = b["count"] + h["count"]
             combined_videos = b["video_count"] + h["video_count"]
             combined_creators = b["creator_count"] + h["creator_count"]
-            combined = build_metric(combined_count, combined_videos, combined_creators, wow, (b["heat_score"] + h["heat_score"]) / 2, (b["consensus_score"] + h["consensus_score"]) / 2, (b["negative"] + h["negative"]) / 2, [a + c for a, c in zip(b["trend"], h["trend"])], "mixed_real_and_simulated", True, SEED)
+            combined_source = "mixed_real_and_real_sample_incomparable_units" if heybox_sample_available else "mixed_real_and_simulated"
+            combined = build_metric(combined_count, combined_videos, combined_creators, wow, (b["heat_score"] + h["heat_score"]) / 2, (b["consensus_score"] + h["consensus_score"]) / 2, (b["negative"] + h["negative"]) / 2, [a + c for a, c in zip(b["trend"], h["trend"])], combined_source, not heybox_sample_available, SEED if not heybox_sample_available else None)
+            combined.update({"estimated": True, "sample_limited": heybox_sample_available, "unit_warning": "B站为评论数，小黑盒为公开搜索可见帖子数；综合值仅用于界面探索，不可作为跨平台总量。" if heybox_sample_available else ""})
             topic = {
                 "id": cid, "chain": cid, "name": reg["canonical_topic_name"], "name_en": reg["canonical_topic_name"],
                 "keywords": [k.strip() for k in reg["topic_keywords"].split("|") if k.strip()][:15],
@@ -164,11 +240,12 @@ def make_data():
                 "share": round(percent(x.get("weekly_share")), 2), "sentiment": b["sentiment"], "trend": b["trend"],
                 "risk": "风险" if b["risk_score"] >= 60 else "机会", "first_seen": reg["first_seen_week"].replace("2026_W", "") if reg["first_seen_week"] else "",
                 "weeks": reg["active_weeks"], "cumulative": reg["cumulative_volume"], "quotes": (x.get("representative_texts") or reg["representative_texts"])[:5],
+                "representative_videos": representative_videos.get(f"{w}:{cid}", []),
                 "video_count": b["video_count"], "creator_count": b["creator_count"], "comment_count": b["comment_count"],
                 "topic_type": reg["topic_type"], "metrics_source": "bilibili_real_model_output", "estimated": bool(b.get("risk_score_estimated") or b.get("sentiment_estimated")),
                 "data_type": "real", "core_fields_real": ["count", "comment_count", "video_count", "creator_count", "trend", "wow"],
                 "sentiment_status": b.get("sentiment_status", "model_only_full_coverage"), "sentiment_estimated": b.get("sentiment_estimated", True), "sentiment_source": "SnowNLP", "risk_status": b.get("risk_status", "model_only_derived"), "risk_score_estimated": True,
-                "data_provenance": {"B站": {"data_type": "real", "metrics_source": "bilibili_real_model_output", "core_fields_real": True, "sentiment_source": "SnowNLP", "sentiment_estimated": b.get("sentiment_estimated", True), "auxiliary_fields_observed": ["heat_score", "consensus_score"], "risk_status": b.get("risk_status", "model_only_derived")}, "小黑盒": {"data_type": "simulated", "metrics_source": "heybox_simulated_for_ui_test", "simulated": True}, "综合": {"data_type": "mixed", "metrics_source": "mixed_real_and_simulated"}},
+                "data_provenance": {"B站": {"data_type": "real", "metrics_source": "bilibili_real_model_output", "core_fields_real": True, "sentiment_source": "SnowNLP", "sentiment_estimated": b.get("sentiment_estimated", True), "auxiliary_fields_observed": ["heat_score", "consensus_score"], "risk_status": b.get("risk_status", "model_only_derived")}, "小黑盒": {"data_type": h["data_type"], "metrics_source": h["metrics_source"], "simulated": h["simulated"], "sample_limited": h.get("sample_limited", False)}, "综合": {"data_type": "mixed", "metrics_source": combined_source}},
                 "platform_metrics": {"B站": b, "小黑盒": h}, "combined_metrics": combined,
             }
             topics.append(topic)
@@ -182,7 +259,7 @@ def make_data():
                              "events": [{"date": start[5:], "title": t, "desc": "来源于真实B站主题事件标签；不代表正式事件结论。"} for t in sorted({registry[x["canonical_topic_id"]]["main_event_tag"] for x in rows if registry[x["canonical_topic_id"]]["main_event_tag"]})],
                              "kpis": {"total_volume": sum(t["platform_metrics"]["B站"]["count"] for t in topics), "topic_count": len(topics), "new_topic_count": len(new_topics), "new_topic_status": "baseline_no_prior_week" if w == WEEKS[0] else ("none_detected" if not new_topics else "detected"), "continuing_topic_count": len(continuing_topics), "new_topic_ids": [t["id"] for t in new_topics], "continuing_topic_ids": [t["id"] for t in continuing_topics], "total_video_count": sum(t["platform_metrics"]["B站"]["video_count"] for t in topics), "total_creator_count": sum(t["platform_metrics"]["B站"]["creator_count"] for t in topics), "sentiment_status": "model_only_full_coverage", "risk_status": "model_only_derived"},
                              "sentiment": {**snow_week.get(w, {"week_id": w, "text_count": 0, "positive_rate": 0.0, "neutral_rate": 0.0, "negative_rate": 0.0, "avg_sentiment_score": 0.5, "sentiment_model": "SnowNLP", "sentiment_version": "0.12.3"}), "sentiment_source": "SnowNLP_model_only", "sentiment_status": "model_only_full_coverage"}, "formal_sentiment_source": "model_only", "platforms": {"B站": 0, "小黑盒": 0},
-                             "data_provenance": {"B站": "real_model_output", "小黑盒": "simulated_for_ui_test", "综合": "mixed_real_and_simulated"},
+                             "data_provenance": {"B站": "real_model_output", "小黑盒": "public_search_visible_sample" if heybox_sample_available else "simulated_for_ui_test", "综合": "mixed_real_and_real_sample_incomparable_units" if heybox_sample_available else "mixed_real_and_simulated"},
                              "evolution": [e for e in json.loads((ROOT / "outputs/apex_topic_evolution_W25_W28.json").read_text(encoding="utf-8")) if e["target_week"] == w or e["source_week"] == w]})
         b_total = sum(t["platform_metrics"]["B站"]["count"] for t in topics)
         h_total = sum(t["platform_metrics"]["小黑盒"]["count"] for t in topics)
@@ -190,7 +267,7 @@ def make_data():
         output_weeks[-1]["platforms"] = {"B站": round(b_total / total_platform * 100, 2), "小黑盒": round(h_total / total_platform * 100, 2)}
     sentiment_status = "model_only_full_coverage"
     week_audit = json.loads(WEEK_AUDIT.read_text(encoding="utf-8")) if WEEK_AUDIT.exists() else {}
-    meta = {"game_name": "Apex Legends", "platform": "B站", "generated_at": datetime.now(timezone.utc).isoformat(), "model_status": "frozen_exploratory_model_only", "model_version": "apex_bilibili_bertopic_exploratory_v1", "data_version": "apex_bilibili_scope_final_v1", "metrics_source": "bilibili_real_model_output", "default_week_id": "2026-W28", "qualified_for_exploratory_bertopic": True, "qualified_for_formal_auxiliary_reporting": False, "formal_report_mode": "model_only_exploratory", "qualified_for_formal_reporting": False, "sentiment_status": sentiment_status, "sentiment_model": "SnowNLP_model_only", "sentiment_estimated": True, "sentiment_validation": {"snownlp": snow_validation}, "risk_status": "model_only_derived", "bias_target_percent": [2, 5], "bias_claim": "not_claimed_without_external_or_double_coded_benchmark", "week_boundary": {"latest_complete_week": week_audit.get("latest_complete_week", "2026_W28"), "current_open_week": week_audit.get("current_open_week", "2026_W29"), "current_open_week_status": week_audit.get("current_open_week_status", "incomplete_as_of_2026-07-18")}, "platform_status": {"B站": "real", "小黑盒": "simulated", "综合": "mixed_real_and_simulated"}, "feature_status": {"topic_model": "available_for_exploratory_model_only", "topic_evolution": "available", "sentiment": sentiment_status, "risk_matrix": "model_only_derived", "formal_reporting": "not_qualified"}, "notice": "W25—W28为完整自然周；W29（7.13—7.19）截至2026-07-18仍未完成且不进入本看板。B站主题、计数、情感与风险均由模型全量计算；本版本不使用人工标签、人工校准或人工训练的情感模型。SnowNLP验证指标仅用于说明模型质量，不代表正式统计结论。"}
+    meta = {"game_name": "Apex Legends", "platform": "B站", "generated_at": datetime.now(timezone.utc).isoformat(), "model_status": "frozen_exploratory_model_only", "model_version": "apex_bilibili_bertopic_exploratory_v1", "data_version": "apex_bilibili_scope_final_v1", "metrics_source": "bilibili_real_model_output", "default_week_id": "2026-W28", "qualified_for_exploratory_bertopic": True, "qualified_for_formal_auxiliary_reporting": False, "formal_report_mode": "model_only_exploratory", "qualified_for_formal_reporting": False, "sentiment_status": sentiment_status, "sentiment_model": "SnowNLP_model_only", "sentiment_estimated": True, "sentiment_validation": {"snownlp": snow_validation}, "risk_status": "model_only_derived", "bias_target_percent": [2, 5], "bias_claim": "not_claimed_without_external_or_double_coded_benchmark", "week_boundary": {"latest_complete_week": week_audit.get("latest_complete_week", "2026_W28"), "current_open_week": week_audit.get("current_open_week", "2026_W29"), "current_open_week_status": week_audit.get("current_open_week_status", "incomplete_as_of_2026-07-18")}, "platform_status": {"B站": "real", "小黑盒": "real_public_search_sample" if heybox_sample_available else "simulated", "综合": "mixed_incomparable_units" if heybox_sample_available else "mixed_real_and_simulated"}, "heybox_sample": heybox_manifest if heybox_sample_available else None, "feature_status": {"topic_model": "available_for_exploratory_model_only", "topic_evolution": "available", "sentiment": sentiment_status, "risk_matrix": "model_only_derived", "formal_reporting": "not_qualified"}, "notice": "W25—W28为完整自然周。B站为真实模型输出；小黑盒为真实公开搜索可见帖子样本（非全量，未采集评论正文）。两平台计数单位不同，综合视图仅供探索，不得作为跨平台总量或正式统计。" if heybox_sample_available else "W25—W28为完整自然周；W29（7.13—7.19）截至2026-07-18仍未完成且不进入本看板。B站主题、计数、情感与风险均由模型全量计算；本版本不使用人工标签、人工校准或人工训练的情感模型。SnowNLP验证指标仅用于说明模型质量，不代表正式统计结论。"}
     return {"meta": meta, "weeks": output_weeks}
 
 
@@ -235,9 +312,11 @@ function enrichWeekTopics(w){
     const b=t.platform_metrics?.['B站']||{count:t.count||0,video_count:t.video_count||0,creator_count:t.creator_count||0,heat_score:t.heat_score||0,consensus_score:t.consensus_score||0,negative:t.negative||0,wow:t.wow||0,trend:t.trend||[t.count||0],metrics_source:'bilibili_real_model_output',estimated:true,simulated:false};
     t.platform_metrics={...(t.platform_metrics||{}),'B站':b}; t.data_provenance=t.data_provenance||{}; t.data_provenance['B站']={...(t.data_provenance['B站']||{}),data_type:'real',metrics_source:'bilibili_real_model_output'};
     if(!t.platform_metrics['小黑盒']) t.platform_metrics['小黑盒']=simulatedMetricFromBilibili(t,w);
-    const h=t.platform_metrics['小黑盒']; t.data_provenance['小黑盒']={data_type:'simulated',metrics_source:'heybox_simulated_for_ui_test',simulated:true,simulation_seed:SIMULATION_SEED};
-    const combined={...b,count:(b.count||0)+(h.count||0),video_count:(b.video_count||0)+(h.video_count||0),creator_count:(b.creator_count||0)+(h.creator_count||0),comment_count:(b.comment_count||0)+(h.comment_count||0),heat_score:clampScore(((b.heat_score||0)+(h.heat_score||0))/2),consensus_score:clampScore(((b.consensus_score||0)+(h.consensus_score||0))/2),negative:clampScore(((b.negative||0)+(h.negative||0))/2),metrics_source:'mixed_real_and_simulated',simulated:true,estimated:true};
-    t.combined_metrics={...(t.combined_metrics||{}),...combined}; t.data_provenance['综合']={data_type:'mixed',metrics_source:'mixed_real_and_simulated'};
+    const h=t.platform_metrics['小黑盒']; const heyboxRealSample=h.metrics_source==='heybox_public_search_visible_sample';
+    t.data_provenance['小黑盒']=heyboxRealSample?{data_type:'real_sample',metrics_source:h.metrics_source,simulated:false,sample_limited:true}:{data_type:'simulated',metrics_source:'heybox_simulated_for_ui_test',simulated:true,simulation_seed:SIMULATION_SEED};
+    const combinedSource=heyboxRealSample?'mixed_real_and_real_sample_incomparable_units':'mixed_real_and_simulated';
+    const combined={...b,count:(b.count||0)+(h.count||0),video_count:(b.video_count||0)+(h.video_count||0),creator_count:(b.creator_count||0)+(h.creator_count||0),comment_count:(b.comment_count||0)+(h.comment_count||0),heat_score:clampScore(((b.heat_score||0)+(h.heat_score||0))/2),consensus_score:clampScore(((b.consensus_score||0)+(h.consensus_score||0))/2),negative:clampScore(((b.negative||0)+(h.negative||0))/2),metrics_source:combinedSource,simulated:!heyboxRealSample,estimated:true,sample_limited:heyboxRealSample,unit_warning:heyboxRealSample?'B站为评论数，小黑盒为公开搜索可见帖子数；综合值不可解释为跨平台总量。':''};
+    t.combined_metrics={...(t.combined_metrics||{}),...combined}; t.data_provenance['综合']={data_type:'mixed',metrics_source:combinedSource};
     t.metrics_source='bilibili_real_model_output'; t.sentiment_status=t.sentiment_status||b.sentiment_status||'estimated_for_dashboard_test'; t.sentiment_estimated=t.sentiment_estimated??b.sentiment_estimated??true; t.sentiment_source=t.sentiment_source||b.sentiment_model||'estimated_rule'; t.risk_status='estimated_for_dashboard_test'; t.risk_score_estimated=true;
     t.quotes=t.quotes||[]; t.name_en=t.name_en||t.name; t.keywords_en=t.keywords_en||t.keywords; t.quotes_en=t.quotes_en||t.quotes;
   });
@@ -247,6 +326,12 @@ function enrichWeekTopics(w){
 '''
     if start is not None:
         source = source[:start] + enrich + source[end:]
+    elif "function enrichWeekTopics" not in source:
+        # A generated page has no demo marker. Its data block replacement ends
+        # at DASHBOARD_HISTORY_KEY, so explicitly restore the runtime adapter
+        # required by the bundled data and JSON import path.
+        history_start = source.index("const DASHBOARD_HISTORY_KEY")
+        source = source[:history_start] + enrich + source[history_start:]
     # Replace the example schema (which contained old demo themes) with the real
     # current dataset object.
     if "const schemaExample = {" in source:
@@ -333,6 +418,61 @@ function enrichWeekTopics(w){
     source = source.replace('人工覆盖子集', '人工复核子集')
     source = source.replace('平均情感分', '本周情感结构')
     source = source.replace("${displayKeywords(t).join(' · ')}", "${displayKeywords(t).slice(0,5).join(' · ')}")
+    chain_old = (
+        "function chainRows(){\n"
+        "  const all=[].concat(...dashboardData.weeks.map(w=>w.topics));\n"
+        "  const map={}; all.forEach(t=>{ if(!map[t.chain] || t.weeks>map[t.chain].weeks) map[t.chain]=t; });\n"
+        "  return Object.values(map).filter(t=>t.weeks>1).sort((a,b)=>b.weeks-a.weeks).slice(0,8);\n"
+        "}"
+    )
+    chain_new = (
+        "function chainStats(chain, upto=currentWeek()){\n"
+        "  const end=Math.max(0,dashboardData.weeks.findIndex(w=>w.week_id===upto.week_id));\n"
+        "  const rows=dashboardData.weeks.slice(0,end+1).flatMap(w=>w.topics.filter(t=>t.chain===chain && metricFor(t)?.count>0));\n"
+        "  const latest=rows[rows.length-1], first=rows[0];\n"
+        "  return {first_seen:first?.first_seen||latest?.first_seen||'',weeks:rows.length,cumulative:rows.reduce((sum,t)=>sum+(Number(metricFor(t)?.count)||0),0),latest:latest||first};\n"
+        "}\n"
+        "function chainRows(){\n"
+        "  const map={};\n"
+        "  const end=Math.max(0,dashboardData.weeks.findIndex(w=>w.week_id===currentWeek().week_id));\n"
+        "  const chains=[...new Set(dashboardData.weeks.slice(0,end+1).flatMap(w=>w.topics.map(t=>t.chain)))];\n"
+        "  chains.forEach(chain=>{const s=chainStats(chain);if(s.weeks>1&&s.latest)map[chain]={...s.latest,...s,status:s.latest.status};});\n"
+        "  return Object.values(map).sort((a,b)=>b.weeks-a.weeks||b.cumulative-a.cumulative).slice(0,8);\n"
+        "}"
+    )
+    source = source.replace(chain_old, chain_new)
+    render_chains_old = (
+        "function renderChains(){\n"
+        "  $(\"#chainTableBody\").innerHTML=chainRows().map(t=>`<tr data-topic=\"${t.id}\"><td><span class=\"topic-name\">${displayTopicName(t)}</span><span class=\"topic-sub\">${t.chain}</span></td><td>${t.first_seen}</td><td>${t.weeks}${state.lang==='zh'?'周':' '+tr('week')}</td><td>${fmt(t.cumulative)}</td><td><span class=\"status ${statusClass(t.status)}\">${displayStatus(t.status)}</span></td></tr>`).join('');\n"
+        "  $$(\"#chainTableBody tr\").forEach(el=>el.onclick=()=>openTopic(el.dataset.topic));\n"
+        "}"
+    )
+    render_chains_new = (
+        "function renderChains(){\n"
+        "  const rows=chainRows();\n"
+        "  $(\"#chainTableBody\").innerHTML=rows.length?rows.map(t=>`<tr data-topic=\"${t.id}\"><td><span class=\"topic-name\">${displayTopicName(t)}</span><span class=\"topic-sub\">${t.chain}</span></td><td>${t.first_seen}</td><td>${t.weeks}${state.lang==='zh'?'周':' '+tr('week')}</td><td>${fmt(t.cumulative)}</td><td><span class=\"status ${statusClass(t.status)}\">${displayStatus(t.status)}</span></td></tr>`).join(''):`<tr><td colspan=\"5\" style=\"text-align:center;color:var(--muted);padding:24px\">${currentWeek().kpis.new_topic_status==='baseline_no_prior_week'?'W25为基准周，尚无跨周持续主题。':'当前周暂无跨周持续主题。'}</td></tr>`;\n"
+        "  $$(\"#chainTableBody tr[data-topic]\").forEach(el=>el.onclick=()=>openTopic(el.dataset.topic));\n"
+        "}"
+    )
+    source = source.replace(render_chains_old, render_chains_new)
+    source = source.replace(
+        "const history=dashboardData.weeks.map(w=>({w,t:w.topics.find(x=>x.chain===t.chain)})).filter(x=>x.t);",
+        "const selectedIndex=dashboardData.weeks.findIndex(w=>w.week_id===selectedWeek.week_id); const history=dashboardData.weeks.slice(0,selectedIndex+1).map(w=>({w,t:w.topics.find(x=>x.chain===t.chain)})).filter(x=>x.t); const chainSummary=chainStats(t.chain,selectedWeek);"
+    )
+    source = source.replace(
+        "${tr('topicChain')} ${t.chain} · ${tr('firstSeen')} ${t.first_seen} · ${tr('lasting')} ${t.weeks} ${tr('week')}",
+        "${tr('topicChain')} ${t.chain} · ${tr('firstSeen')} ${chainSummary.first_seen} · ${tr('lasting')} ${chainSummary.weeks} ${tr('week')} · ${tr('volume')} ${fmt(chainSummary.cumulative)}"
+    )
+    source = source.replace("${hm.wow>=0?'+':''}${hm.wow}%", "${hm.wow==null?'—':(hm.wow>=0?'+':'')+hm.wow+'%'}")
+    source = source.replace("initialAdvice:'初步建议'", "initialAdvice:'代表性B站视频'")
+    source = source.replace("priorityNeeded:'辅助复核建议'", "priorityNeeded:'辅助复核意见'")
+    source = source.replace("['初步建议','Initial recommendation']", "['代表性B站视频','Representative Bilibili videos']")
+    source = source.replace('建议加入人工情感复核。', '建议查看模型结果说明。')
+    source = source.replace('监控超过7天的舆情，保留首次出现、持续周数和当前状态。', '按所选周累计活跃周数与声量，显示当前可追踪的连续主题。')
+    source = source.replace('Monitor topics lasting more than seven days, including first appearance, duration, and current status.', 'Accumulate active weeks and volume through the selected week for continuously traceable topics.')
+    source = source.replace("""    <div class="section-title">${tr('initialAdvice')}</div>
+    <div class="quote">${t.risk==='风险'?tr('riskAdvice'):tr('opAdvice')}</div>""", """    <div class="section-title">代表性B站视频</div>
+    <div class="video-link-list">${(t.representative_videos||[]).map(v=>`<a class="video-link" href="${v.url}" target="_blank" rel="noopener noreferrer">${v.bvid} · ${v.comment_count}条相关文本 ↗</a>`).join('') || '<div class="quote">当前周未形成可用视频链接。</div>'}</div>""")
     # Move the model notice into the sidebar and keep the weekly header sticky.
     source = re.sub(r'\n\s*<div class="notice">.*?</div>\n\s*\n\s*<div class="kpi-grid"', '\n\n        <div class="kpi-grid"', source, count=1, flags=re.S)
     if "const USER_USERNAME='nick';" not in source:
@@ -342,8 +482,8 @@ function enrichWeekTopics(w){
     # Move the model notice into the sidebar and keep the weekly header sticky.
     source = re.sub(r'\n\s*<div class="notice">.*?</div>\n\s*\n\s*<div class="kpi-grid"', '\n\n        <div class="kpi-grid"', source, count=1, flags=re.S)
     source = source.replace('      <!-- Protected author signature. Keep this attribution in all published versions. -->', '      <div class="notice sidebar-model-notice"><div><b>模型接入提示：</b> B站主题、情感与风险仅使用模型全量输出；本版本不使用人工标签或人工校准；小黑盒为固定规则模拟。</div><button class="btn" id="jumpSchemaSidebar">查看字段结构</button></div>\n      <!-- Protected author signature. Keep this attribution in all published versions. -->', 1)
-    source = source.replace('</style>', '.page-head{position:sticky;top:0;z-index:40;background:linear-gradient(180deg,rgba(8,9,11,.98) 0%,rgba(8,9,11,.94) 78%,rgba(8,9,11,.72) 100%);backdrop-filter:blur(12px);padding-top:12px;padding-bottom:14px;border-bottom:1px solid rgba(255,255,255,.08)}.sidebar-model-notice{margin:16px 0 0;padding:12px;border:1px solid rgba(242,31,43,.3);background:rgba(242,31,43,.07);font-size:10px;line-height:1.55;display:grid;gap:8px}.sidebar-model-notice .btn{justify-self:start;padding:6px 9px;font-size:10px}.dashboard-flow{display:grid;gap:18px}.dashboard-flow > *{grid-column:1 / -1 !important}.dashboard-flow>.method-grid{margin:0}.dashboard-flow>.card{width:100%}.dashboard-flow>.trend-risk-row{display:grid;grid-template-columns:minmax(0,7fr) minmax(320px,5fr);gap:18px}.dashboard-flow>.trend-risk-row>.card{min-width:0}.dashboard-flow>.chain-card{width:100%}.legacy-layout-hidden{display:none!important}.kpi-action{cursor:pointer;text-align:left}.kpi-action:focus-visible{outline:2px solid var(--accent);outline-offset:3px}.drawer-chart{display:grid;gap:10px;margin:14px 0}.drawer-chart-row{display:grid;grid-template-columns:78px 1fr 44px;align-items:center;gap:9px;font-size:11px}.drawer-chart-bar{height:9px;background:rgba(255,255,255,.09);overflow:hidden}.drawer-chart-bar i{display:block;height:100%;background:linear-gradient(90deg,#f21f2b,#f3b34c)}.drawer-keywords{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}.drawer-keyword{padding:8px 10px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05);color:#f4f0df}.drawer-action-list{display:grid;gap:9px;margin-top:14px}@media(max-width:900px){.page-head{position:sticky;top:0}.dashboard-flow>.trend-risk-row{grid-template-columns:1fr}.sidebar-model-notice{margin-left:0;margin-right:0}} </style>', 1)
-    source = source.replace('</style>', '.page-head{position:sticky;top:72px;z-index:40;align-items:center}.page-head>div:first-child{min-width:0;flex:1 1 auto}.page-head h2{white-space:nowrap;font-size:22px}.page-head p{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.filters{flex:0 0 auto;flex-wrap:nowrap;white-space:nowrap;gap:8px}.history-label,.chip-group{white-space:nowrap}.dashboard-flow>.trend-risk-row{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,.8fr);gap:18px}.dashboard-flow>.trend-risk-row>.card{grid-column:auto!important;min-width:0}.dashboard-flow>.chain-event-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px}.dashboard-flow>.chain-event-row>.card{grid-column:auto!important;min-width:0;width:100%}.drawer-donut-wrap{display:flex;align-items:center;gap:18px;margin:16px 0 20px}.drawer-donut{width:150px;height:150px;border-radius:50%;background:conic-gradient(var(--sentiment-positive) 0 var(--p1),var(--sentiment-neutral) var(--p1) var(--p2),var(--sentiment-negative) var(--p2) 100%);display:grid;place-items:center;position:relative;flex:0 0 150px}.drawer-donut:after{content:"";position:absolute;width:88px;height:88px;border-radius:50%;background:#101010}.drawer-donut span{position:relative;z-index:1;color:#fff;font-size:20px;font-weight:800}.drawer-donut-legend{display:grid;gap:8px;font-size:11px}.drawer-donut-legend i{display:inline-block;width:9px;height:9px;margin-right:6px;border-radius:2px}@media(max-width:900px){.page-head{top:72px}.filters{flex-wrap:wrap}.dashboard-flow>.trend-risk-row,.dashboard-flow>.chain-event-row{grid-template-columns:1fr}.dashboard-flow>.trend-risk-row>.card,.dashboard-flow>.chain-event-row>.card{grid-column:1!important}.drawer-donut-wrap{align-items:flex-start}} </style>', 1)
+    source = source.replace('</style>', '.page-head{position:sticky;top:0;z-index:40;background:linear-gradient(180deg,rgba(8,9,11,.98) 0%,rgba(8,9,11,.94) 78%,rgba(8,9,11,.72) 100%);backdrop-filter:blur(12px);padding-top:12px;padding-bottom:14px;border-bottom:1px solid rgba(255,255,255,.08)}.sidebar-model-notice{margin:16px 0 0;padding:12px;border:1px solid rgba(242,31,43,.3);background:rgba(242,31,43,.07);font-size:10px;line-height:1.55;display:grid;gap:8px}.sidebar-model-notice .btn{justify-self:start;padding:6px 9px;font-size:10px}.dashboard-flow{display:grid;gap:18px}.dashboard-flow > *{grid-column:1 / -1 !important}.dashboard-flow>.method-grid{margin:0}.dashboard-flow>.card{width:100%}.dashboard-flow>.trend-risk-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px}.dashboard-flow>.trend-risk-row>.card{min-width:0}.dashboard-flow>.chain-card{width:100%}.legacy-layout-hidden{display:none!important}.kpi-action{cursor:pointer;text-align:left}.kpi-action:focus-visible{outline:2px solid var(--accent);outline-offset:3px}.drawer-chart{display:grid;gap:10px;margin:14px 0}.drawer-chart-row{display:grid;grid-template-columns:78px 1fr 44px;align-items:center;gap:9px;font-size:11px}.drawer-chart-bar{height:9px;background:rgba(255,255,255,.09);overflow:hidden}.drawer-chart-bar i{display:block;height:100%;background:linear-gradient(90deg,#f21f2b,#f3b34c)}.drawer-keywords{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}.drawer-keyword{padding:8px 10px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05);color:#f4f0df}.drawer-action-list{display:grid;gap:9px;margin-top:14px}@media(max-width:900px){.page-head{position:sticky;top:0}.dashboard-flow>.trend-risk-row{grid-template-columns:1fr}.sidebar-model-notice{margin-left:0;margin-right:0}} </style>', 1)
+    source = source.replace('</style>', '.page-head{position:sticky;top:72px;z-index:40;align-items:center}.page-head>div:first-child{min-width:0;flex:1 1 auto}.page-head h2{white-space:nowrap;font-size:22px}.page-head p{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.filters{flex:0 0 auto;flex-wrap:nowrap;white-space:nowrap;gap:8px}.history-label,.chip-group{white-space:nowrap}.dashboard-flow>.trend-risk-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px}.dashboard-flow>.trend-risk-row>.card{grid-column:auto!important;min-width:0}.dashboard-flow>.chain-event-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px}.dashboard-flow>.chain-event-row>.card{grid-column:auto!important;min-width:0;width:100%}.drawer-donut-wrap{display:flex;align-items:center;gap:18px;margin:16px 0 20px}.drawer-donut{width:150px;height:150px;border-radius:50%;background:conic-gradient(var(--sentiment-positive) 0 var(--p1),var(--sentiment-neutral) var(--p1) var(--p2),var(--sentiment-negative) var(--p2) 100%);display:grid;place-items:center;position:relative;flex:0 0 150px}.drawer-donut:after{content:"";position:absolute;width:88px;height:88px;border-radius:50%;background:#101010}.drawer-donut span{position:relative;z-index:1;color:#fff;font-size:20px;font-weight:800}.drawer-donut-legend{display:grid;gap:8px;font-size:11px}.drawer-donut-legend i{display:inline-block;width:9px;height:9px;margin-right:6px;border-radius:2px}.video-link-list{display:grid;gap:8px}.video-link{display:block;padding:10px 12px;border:1px solid rgba(70,205,238,.38);background:rgba(70,205,238,.06);color:#9deaff;text-decoration:none;font-size:11px}.video-link:hover{border-color:#46cdee;background:rgba(70,205,238,.12);color:#fff}@media(max-width:900px){.page-head{top:72px}.filters{flex-wrap:wrap}.dashboard-flow>.trend-risk-row,.dashboard-flow>.chain-event-row{grid-template-columns:1fr}.dashboard-flow>.trend-risk-row>.card,.dashboard-flow>.chain-event-row>.card{grid-column:1!important}.drawer-donut-wrap{align-items:flex-start}} </style>', 1)
     ui_js = r'''function dashboardKeywordStats(w){\n  w=w||currentWeek(); const freq={}; w.topics.forEach(function(t){displayKeywords(t).forEach(function(k){freq[k]=(freq[k]||0)+(metricFor(t)?metricFor(t).count:0);});}); return Object.entries(freq).sort(function(a,b){return b[1]-a[1];});\n}\nfunction showMetricDrawer(title,sub,body){$("#drawerTitle").textContent=title;$("#drawerSub").textContent=sub;$("#drawerBody").innerHTML=body;$("#drawerMask").classList.add("show");$("#drawer").classList.add("show");}\nfunction openVolumeDrawer(){var w=currentWeek(),totals={"B站":0,"小黑盒":0};w.topics.forEach(function(t){Object.keys(totals).forEach(function(p){totals[p]+=Number(t.platform_metrics&&t.platform_metrics[p]&&t.platform_metrics[p].count)||0;});});var all=totals["B站"]+totals["小黑盒"]||1;var bars=Object.entries(totals).map(function(x){var k=x[0],v=x[1];return '<div class="platform-row"><span>'+displayPlatform(k)+(k==="B站"?" · "+loc("真实","Real"):" · "+loc("模拟","Simulated"))+'</span><div class="platform-bar"><i style="width:'+(v/all*100)+'%"></i></div><b style="color:#dbe3f4">'+(v/all*100).toFixed(1)+'%</b></div>';}).join("");showMetricDrawer(loc("本周总声量","Total volume this week"),w.label+" · "+fmt(all)+" "+loc("条","items"),'<p class="risk-drawer-intro">'+loc("平台声量分布仅在此二级页面展示；B站为真实数据，小黑盒为固定规则模拟。","Platform volume is shown only in this detail view; Bilibili is real and Heybox is deterministic simulation.")+'</p><div class="platform-bars drawer-platform-bars">'+bars+'</div><div class="detail-kpis"><div class="detail-kpi"><span>'+loc("总声量","Total volume")+'</span><strong>'+fmt(all)+'</strong></div><div class="detail-kpi"><span>B站</span><strong>'+fmt(totals["B站"])+'</strong></div><div class="detail-kpi"><span>小黑盒</span><strong>'+fmt(totals["小黑盒"])+'</strong></div></div>');}\nfunction openSentimentDrawer(){var w=currentWeek(),cur=aggregateWeek(w),summaries=dashboardData.weeks.map(function(x){return {w:x,s:aggregateWeek(x)};}),max=Math.max.apply(null,summaries.map(function(x){return x.s.volume;}).concat([1]));var rows=[[loc("积极","Positive"),cur.sentiment.positive,"var(--sentiment-positive)"],[loc("中性","Neutral"),cur.sentiment.neutral,"var(--sentiment-neutral)"],[loc("负面","Negative"),cur.sentiment.negative,"var(--sentiment-negative)"]];var rhtml=rows.map(function(r){return '<div class="sentiment-row"><span>'+r[0]+'</span><div class="bar"><i style="width:'+r[1]+'%;background:'+r[2]+'"></i></div><b style="color:'+r[2]+'">'+r[1]+'%</b></div>';}).join("");var chart=summaries.map(function(x){return '<div class="drawer-chart-row"><span>'+x.w.label+'</span><div class="drawer-chart-bar"><i style="width:'+(x.s.volume/max*100)+'%"></i></div><b>'+x.s.negative_rate+'%</b></div>';}).join("");showMetricDrawer(loc("本周情感结构","Sentiment this week"),w.label+" · "+loc("人工覆盖子集","Human-validated subset"),'<p class="risk-drawer-intro">'+loc("本页展示本周结构和历史环比；未覆盖评论继续保留在人工复核队列。","This view shows the current structure and week-over-week comparison; unlabeled comments remain in the human review queue.")+'</p><div class="sentiment-list">'+rhtml+'</div><div class="section-title">'+loc("近5周情感结构环比","Five-week sentiment comparison")+'</div><div class="drawer-chart">'+chart+'</div>');}\nfunction openKeywordDrawer(){var stats=dashboardKeywordStats(currentWeek()),max=stats[0]?stats[0][1]:1;var chips=stats.slice(0,30).map(function(x,i){return '<span class="drawer-keyword" style="font-size:'+(12+x[1]/max*10)+'px;color:'+(i<5?"#f2c94c":"#e3e3df")+'">'+x[0]+'<small style="display:block;color:var(--muted);font-size:10px;margin-top:3px">'+fmt(x[1])+' '+loc("声量","volume")+'</small></span>';}).join("");showMetricDrawer(loc("高频关键词","Top keywords"),currentWeek().label+" · "+stats.length+" "+loc("个关键词","keywords"),'<p class="risk-drawer-intro">'+loc("关键词按本周主题声量加权汇总，用于辅助人工命名主题和发现新词。","Keywords are weighted by this week’s topic volume for human topic naming and new-term discovery.")+'</p><div class="drawer-keywords">'+chips+'</div>');}\nfunction openActionDrawer(){var topics=filteredTopics(),risks=topics.filter(function(t){return t.risk==="风险";}).sort(function(a,b){return metricFor(b).risk_score-metricFor(a).risk_score;}),ops=topics.filter(function(t){return t.risk==="机会";}).sort(function(a,b){return metricFor(b).heat_score-metricFor(a).heat_score;}),items=risks.map(function(t){return {t:t,kind:"risk"};}).concat(ops.map(function(t){return {t:t,kind:"op"};}));var html=items.map(function(x,i){var tm=metricFor(x.t);return '<div class="risk-item" data-topic="'+x.t.id+'"><div class="risk-line '+(x.kind==="op"?"op":"")+'"></div><div><strong>'+displayTopicName(x.t)+'</strong><span>'+(x.kind==="op"?tr("heatOption")+" "+tm.heat_score+" · "+tr("heatAsset"):tr("negativeRate")+" "+tm.negative+"% · "+tr("responseAdvice"))+'</span></div><div class="risk-level">'+(x.kind==="op"?tr("opportunity"):"P"+Math.min(3,i+1))+'</div></div>';}).join("");showMetricDrawer(loc("辅助复核建议","Review priorities"),currentWeek().label+" · "+items.length+" "+loc("项","items"),'<p class="risk-drawer-intro">'+loc("以下建议用于辅助专业人员安排复核顺序，不替代人工舆情判断。","These suggestions help professionals prioritize review and do not replace human judgment.")+'</p><div class="drawer-action-list">'+html+'</div>');$$("#drawerBody .risk-item").forEach(function(el){el.onclick=function(){openTopic(el.dataset.topic);};});}\nfunction renderKpis(){var w=currentWeek(),k=aggregateWeek(w),keywordCount=dashboardKeywordStats(w).length,items=[[tr("thisWeekVolume"),fmt(k.volume),loc("查看平台声量","View platform volume")],[tr("negativeShare"),k.negative_rate+"%",loc("查看行动优先级","View review priorities")],[tr("highRisk"),k.risk_topics,tr("priorityNeeded")],[tr("newTopics"),k.new_topics,tr("modelDetected")],[tr("keywords"),keywordCount,loc("查看高频关键词","View top keywords")],[loc("本周情感结构","Sentiment this week"),k.sentiment_score.toFixed(2),loc("查看情感环比","View sentiment comparison")]],actions=[openVolumeDrawer,openActionDrawer,openHighRiskDrawer,openNewTopicsDrawer,openKeywordDrawer,openSentimentDrawer];$("#kpiGrid").innerHTML=items.map(function(x,i){return '<button type="button" class="card kpi kpi-action" id="kpiAction'+i+'" aria-label="'+x[0]+' '+x[1]+'"><div class="kpi-label">'+x[0]+'</div><div class="kpi-value">'+x[1]+'</div><div class="kpi-foot">'+x[2]+'</div></button>';}).join("");items.forEach(function(_,i){$("#kpiAction"+i).addEventListener("click",actions[i]);});}\nfunction arrangeDashboardOrder(){if(document.body.dataset.dashboardArranged)return;var main=document.querySelector("main"),overview=document.querySelector("#overview"),topics=document.querySelector("#topics"),risk=document.querySelector("#risk");if(!main||!overview||!topics||!risk)return;var method=topics.querySelector(".method-grid"),coreGrid=topics.querySelector(".grid-12"),coreCard=coreGrid&&coreGrid.querySelector(".span-12"),eventCard=coreGrid&&coreGrid.querySelector(".span-12:not(:first-child)"),trend=overview.querySelector(".grid-12 .span-8"),sentimentPanel=overview.querySelector("#sentiment"),riskGrid=risk.querySelector(".grid-12"),matrix=riskGrid&&riskGrid.querySelector(".span-7"),actionPanel=riskGrid&&riskGrid.querySelector(".span-5"),chainGrid=risk.querySelectorAll(".grid-12")[1],chainCard=chainGrid&&chainGrid.querySelector(".span-6:last-child"),keywordCard=chainGrid&&chainGrid.querySelector(".span-6:first-child");if(!method||!coreCard||!trend||!matrix||!chainCard)return;sentimentPanel&&sentimentPanel.classList.add("legacy-layout-hidden");actionPanel&&actionPanel.classList.add("legacy-layout-hidden");keywordCard&&keywordCard.classList.add("legacy-layout-hidden");if(eventCard){eventCard.querySelector(".platform-bars")&&eventCard.querySelector(".platform-bars").classList.add("legacy-layout-hidden");eventCard.querySelector(".panel-head")&&eventCard.querySelector(".panel-head").classList.add("legacy-layout-hidden");}var order=document.createElement("div");order.id="dashboardOrder";order.className="dashboard-flow";var row=document.createElement("div");row.className="trend-risk-row";trend.classList.remove("span-8");matrix.classList.remove("span-7");matrix.classList.add("span-5");row.append(trend,matrix);main.insertBefore(order,overview);order.append(method,coreCard,row,chainCard);if(eventCard)order.append(eventCard);[overview,topics,risk].forEach(function(s){s.classList.add("legacy-layout-hidden");});document.body.dataset.dashboardArranged="1";$$(".nav-item[data-anchor]").forEach(function(n){n.onclick=function(){var target=n.dataset.anchor==="evolution"?"evolution":"dashboardOrder";document.getElementById(target)&&document.getElementById(target).scrollIntoView({behavior:"smooth",block:"start"});$$(".nav-item").forEach(function(x){x.classList.remove("active");});n.classList.add("active");};});}\n'''
     # Refine the secondary drawers and dashboard order without changing the base HTML.
     ui_js = ui_js.replace('var chart=summaries.map(function(x){', 'var donut="<div class=\\"drawer-donut\\" style=\\"--p1:"+cur.sentiment.positive+"%;--p2:"+(cur.sentiment.positive+cur.sentiment.neutral)+"%\\"><span>"+cur.sentiment.positive+"%</span></div>";var chart=summaries.map(function(x){')
@@ -359,7 +499,16 @@ function enrichWeekTopics(w){
     ui_js = ui_js.replace('var method=topics.querySelector(".method-grid")', 'var pageHead=overview.querySelector(".page-head"),kpiGrid=document.querySelector("#kpiGrid"),method=topics.querySelector(".method-grid")')
     ui_js = ui_js.replace('if(!method||!coreCard||!trend||!matrix||!chainCard)return;', 'if(!pageHead||!kpiGrid||!method||!coreCard||!trend||!matrix||!chainCard)return;')
     ui_js = ui_js.replace('order.append(method,coreCard,row,chainEventRow)', 'order.append(pageHead,kpiGrid,method,coreCard,row,chainEventRow)')
-    source = source.replace("const schemaExample = dashboardData;", ui_js.replace("\\n", "\n") + "\nconst schemaExample = dashboardData;", 1)
+    # The generated page is also a valid future input template. Replace the
+    # adapter as one bounded block, instead of prepending it repeatedly on
+    # each run (which previously duplicated UI functions in the preview).
+    adapter_start = source.find("function dashboardKeywordStats")
+    schema_marker = "const schemaExample = dashboardData;"
+    schema_start = source.find(schema_marker, adapter_start if adapter_start >= 0 else 0)
+    if adapter_start >= 0 and schema_start >= 0:
+        source = source[:adapter_start] + ui_js.replace("\\n", "\n") + "\n" + source[schema_start:]
+    else:
+        source = source.replace(schema_marker, ui_js.replace("\\n", "\n") + "\n" + schema_marker, 1)
     source = source.replace('$("#schemaBtn").onclick=openSchema; $("#jumpSchema").onclick=openSchema;', '$("#schemaBtn").onclick=openSchema; $("#jumpSchema")?.addEventListener("click",openSchema); $("#jumpSchemaSidebar")?.addEventListener("click",openSchema);')
     source = source.replace("const weighted=k=>rows.reduce((s,x)=>s+(Number(x.m[k])||0)*x.m.count,0)/volume;\n  const negative=Math.round(weighted('negative'));", "const weighted=k=>rows.reduce((s,x)=>s+(Number(x.m[k])||0)*x.m.count,0)/volume;\n  const hasWow=rows.some(x=>x.m.wow!==null&&x.m.wow!==undefined&&x.m.wow!=='');\n  const negative=Math.round(weighted('negative'));", 1)
     source = source.replace("return {volume,negative_rate:negative,wow:+weighted('wow').toFixed(1),", "return {volume,negative_rate:negative,wow:hasWow?+weighted('wow').toFixed(1):null,", 1)
@@ -367,17 +516,57 @@ function enrichWeekTopics(w){
     source = source.replace(".filter(x=>x.m&&x.m.count>0&&x.m.risk_score>=60)", ".filter(x=>x.m&&x.m.count>0&&(x.m.risk_score>=60||x.m.negative>=60))")
     source = source.replace(".filter(x=>x.m&&x.m.count>0&&x.t.status==='新生')", ".filter(x=>x.m&&x.m.count>0&&(currentWeek().kpis.new_topic_ids||[]).includes(x.t.id))")
     source = source.replace("${tr('newTopicOverviewDesc')}", "${currentWeek().kpis.new_topic_status==='baseline_no_prior_week'?loc('W25为基准周，不生成W24新增对比。','W25 is the baseline week; no W24 comparison is generated.'):topics.length?tr('newTopicOverviewDesc'):loc('本周没有新增canonical主题；离群或删除文本不会自动升级为新主题。','No new canonical topic was detected this week; outliers and deleted texts are not promoted automatically.')}" )
-    source = source.replace('initializeAuth();', 'arrangeDashboardOrder();\ninitializeAuth();')
+    source = source.replace('本周没有新增canonical主题；离群或删除文本不会自动升级为新主题。', '本周没有新增canonical主题；这不代表后续周不会新增。未来出现此前未出现的canonical_topic_id时会自动计入；离群或删除文本不会直接升级。')
+    source = source.replace('No new canonical topic was detected this week; outliers and deleted texts are not promoted automatically.', 'No new canonical topic was detected this week; this does not prevent future additions. A previously unseen canonical_topic_id will be counted automatically; outliers and deleted texts are not promoted directly.')
+    # File previews are often opened from a local file URL, where WebCrypto
+    # may be unavailable. Keep SHA-256 when available and add a deterministic
+    # offline verifier for the supplied standard account only.
+    source = source.replace("const USER_PASSWORD_HASH='397d1a8097452b158e449ce9104699854463d2b5893e8f4004abfa1db9d58aa0';", "const USER_PASSWORD_HASH='397d1a8097452b158e449ce9104699854463d2b5893e8f4004abfa1db9d58aa0';\nconst USER_PASSWORD_FALLBACK_FINGERPRINT='bdda2306';")
+    source = source.replace("async function hashPassword(value){\n  if(!window.crypto?.subtle) throw new Error(loc('当前浏览器不支持安全密码摘要，请使用最新版浏览器。','This browser does not support secure password hashing. Please use a current browser.'));\n  const bytes=new TextEncoder().encode(value);\n  const digest=await crypto.subtle.digest('SHA-256',bytes);\n  return [...new Uint8Array(digest)].map(b=>b.toString(16).padStart(2,'0')).join('');\n}", "function fallbackPasswordFingerprint(value){ let h=2166136261; for(const ch of String(value)){h^=ch.charCodeAt(0);h=Math.imul(h,16777619);} return (h>>>0).toString(16).padStart(8,'0'); }\nasync function hashPassword(value){\n  if(!window.crypto?.subtle) return 'fallback:'+fallbackPasswordFingerprint(value);\n  const bytes=new TextEncoder().encode(value);\n  const digest=await crypto.subtle.digest('SHA-256',bytes);\n  return [...new Uint8Array(digest)].map(b=>b.toString(16).padStart(2,'0')).join('');\n}")
+    source = source.replace("function readAccounts(){\n  try { const parsed=JSON.parse(localStorage.getItem(AUTH_ACCOUNTS_KEY)||'[]'); return Array.isArray(parsed)?parsed:[]; }\n  catch(err){ return authMemoryAccounts; }\n}", "function readAccounts(){\n  try { const parsed=JSON.parse(localStorage.getItem(AUTH_ACCOUNTS_KEY)||'[]'); return (Array.isArray(parsed)?parsed:[]).filter(a=>a&&typeof a.username==='string'); }\n  catch(err){ return authMemoryAccounts.filter(a=>a&&typeof a.username==='string'); }\n}")
+    source = source.replace("if(!account||!account.active||account.passwordHash!==passwordHash) throw new Error(loc('账号或密码错误，或该账号已被停用。','Incorrect username or password, or the account is disabled.'));", "const localPreviewNick=username.toLowerCase()===USER_USERNAME && passwordHash==='fallback:'+USER_PASSWORD_FALLBACK_FINGERPRINT;\n    if(!account||!account.active||(account.passwordHash!==passwordHash&&!localPreviewNick)) throw new Error(loc('账号或密码错误，或该账号已被停用。','Incorrect username or password, or the account is disabled.'));")
+    auth_bootstrap = 'arrangeDashboardOrder();\ninitializeAuth();'
+    if re.search(r'(?:arrangeDashboardOrder\(\);\s*)+initializeAuth\(\);', source):
+        source = re.sub(r'(?:arrangeDashboardOrder\(\);\s*)+initializeAuth\(\);', auth_bootstrap, source)
+    else:
+        source = source.replace('initializeAuth();', auth_bootstrap, 1)
+    if real_data.get("meta", {}).get("platform_status", {}).get("小黑盒") == "real_public_search_sample":
+        sample_replacements = {
+            "小黑盒为固定规则模拟": "小黑盒为真实公开搜索样本（非全量）",
+            "小黑盒 · 模拟": "小黑盒 · 真实样本",
+            "小黑盒模拟": "小黑盒真实样本",
+            "真实＋模拟": "真实＋样本",
+            "B站真实模型结果已接入；情感与风险为纯模型输出；小黑盒为固定规则模拟。": "B站为真实模型输出；小黑盒为真实公开搜索样本（非全量、未采集评论正文）。",
+            "B站主题、情感与风险仅使用模型全量输出；本版本不使用人工标签或人工校准；小黑盒为固定规则模拟。": "B站为真实模型输出；小黑盒为真实公开搜索样本（非全量、未采集评论正文）；两平台计数单位不同。",
+            "平台声量分布仅在此二级页面展示；B站为真实数据，小黑盒为固定规则模拟。": "B站为评论数，小黑盒为公开搜索可见帖子数；两者不可相加解释为跨平台总量。",
+            "Platform volume is shown only in this detail view; Bilibili is real and Heybox is deterministic simulation.": "Bilibili counts comments while Heybox counts search-visible posts; do not interpret their sum as a cross-platform total.",
+        }
+        for old, new in sample_replacements.items():
+            source = source.replace(old, new)
+        source = source.replace("${displayPlatform(k)} ${k==='B站'?'· 真实':'· 模拟'}", "${displayPlatform(k)} ${k==='B站'?'· 真实':'· 真实样本'}")
+        source = source.replace("${displayPlatform(state.platform)} ${state.platform==='B站'?'· 真实':'· 模拟'}", "${displayPlatform(state.platform)} ${state.platform==='B站'?'· 真实':'· 真实样本'}")
+        source = source.replace("${state.platform==='B站'?'真实模型数据':'模拟测试数据'}", "${state.platform==='B站'?'真实模型数据':'真实公开搜索样本'}")
+        source = source.replace('k==="B站"?" · "+loc("真实","Real"):" · "+loc("模拟","Simulated")', 'k==="B站"?" · "+loc("真实","Real"):" · "+loc("真实样本","Real sample")')
+        source = source.replace("小黑盒已按固定种子生成模拟数据。", "小黑盒已接入真实公开搜索样本。")
+        source = source.replace("Heybox simulation was generated from a fixed seed.", "A real public-search Heybox sample was imported.")
     return source
 
 
 def main():
     if not REPO.exists(): raise SystemExit(f"GitHub repo not found: {REPO}")
     data = make_data(); html = patch_html(data); payload = json.dumps(data, ensure_ascii=False, indent=2); REPO_JSON.write_text(payload, encoding="utf-8"); REPO_HTML.write_text(html, encoding="utf-8"); DELIVERABLE_JSON.write_text(payload, encoding="utf-8"); DELIVERABLE_HTML.write_text(html, encoding="utf-8")
-    weeks = data["weeks"]; report = ["# W25—W28混合数据看板接入报告", "", "## 数据来源", "", "- B站：W25—W28真实BERTopic主题结果；文本量、视频数、作者数、关键词、主题链和代表文本来自真实B站结果，`metrics_source=bilibili_real_model_output`。", "- B站情感：SnowNLP对全部映射评论直接进行模型计算；本版本不读取人工标签、不使用人工校准、不使用人工训练的情感模型。", "- 小黑盒：仅用于平台切换和计算逻辑测试，基于同一主题B站核心指标按固定种子生成，`metrics_source=heybox_simulated_for_ui_test`，每条记录含`simulated=true`和`simulation_seed=2717`。", "- 综合：B站真实数据与小黑盒模拟数据合并，`metrics_source=mixed_real_and_simulated`，不属于正式统计口径。", "", "## 模型口径", "", "- 热议度、共识度和风险由看板公式基于模型输出的声量、覆盖与情感结果计算。", "- 负面率和情感结构为SnowNLP全量模型输出；不使用人工标签替换或平滑模型结果。", "- 2%—5%偏差目标不作未经独立基准支持的宣称；SnowNLP验证指标仅用于说明模型质量。", "", "## 接入周次", "", "| 周次 | B站主题数 | B站文本量 |", "|---|---:|---:|"]
-    for w in weeks: report.append(f"| {w['label']} | {len(w['topics'])} | {sum(t['platform_metrics']['B站']['count'] for t in w['topics'])} |")
+    weeks = data["weeks"]
+    heybox_real = data["meta"].get("platform_status", {}).get("小黑盒") == "real_public_search_sample"
+    heybox_source_line = "- 小黑盒：真实公开搜索可见帖子样本，`metrics_source=heybox_public_search_visible_sample`；仅保留搜索结果卡片字段，非平台全量，未采集评论正文。" if heybox_real else "- 小黑盒：仅用于平台切换和计算逻辑测试，基于同一主题B站核心指标按固定种子生成，`metrics_source=heybox_simulated_for_ui_test`。"
+    combined_source_line = "- 综合：B站评论数与小黑盒可见帖子数计量单位不同，仅用于界面探索，不得解释为跨平台总量。" if heybox_real else "- 综合：B站真实数据与小黑盒模拟数据合并，不属于正式统计口径。"
+    report = ["# W25—W28混合数据看板接入报告", "", "## 数据来源", "", "- B站：W25—W28真实BERTopic主题结果；文本量、视频数、作者数、关键词、主题链和代表文本来自真实B站结果，`metrics_source=bilibili_real_model_output`。", "- B站情感：SnowNLP对全部映射评论直接进行模型计算；本版本不读取人工标签、不使用人工校准、不使用人工训练的情感模型。", heybox_source_line, combined_source_line, "", "## 模型口径", "", "- 热议度、共识度和风险由看板公式基于模型输出的声量、覆盖与情感结果计算。", "- 小黑盒负面率为SnowNLP帖子级模型输出，样本量小且未经独立基准验证。", "- 2%—5%偏差目标不作未经独立基准支持的宣称。", "", "## 接入周次", "", "| 周次 | B站主题数 | B站文本量 | 小黑盒采集帖 | 小黑盒映射帖 |", "|---|---:|---:|---:|---:|"]
+    manifest = data["meta"].get("heybox_sample") or {}
+    for w in weeks:
+        week_key = w["week_id"].replace("-", "_")
+        report.append(f"| {w['label']} | {len(w['topics'])} | {sum(t['platform_metrics']['B站']['count'] for t in w['topics'])} | {manifest.get('weekly_rows', {}).get(week_key, 0)} | {manifest.get('mapped_weekly_rows', {}).get(week_key, 0)} |")
     snow_status = data["meta"].get("sentiment_status")
-    report += ["", "## 新增主题核对", "", "W25为基准周，不生成不存在的W24环比，因此新增主题数记为0并标记为baseline。W26—W28的13个有效canonical主题均已在W25首次出现，模型没有识别到新的canonical主题，所以后三周新增数为0。模型离群、删除或低置信度文本不会自动升级为新增主题；它们需要单独完成主题候选分析。", "", "## 情感与风险状态", "", "本版本对全部映射评论直接使用SnowNLP模型输出，再按主题和周次聚合；不读取人工标签、不使用人工校准或人工训练的情感模型。当前只完成模型输出覆盖性检查，尚未完成独立的正式统计基准验证，因此结果用于模型辅助看板，不单独作为最终舆情结论。", "", "## 已保留交互", "", "登录、账号管理、中英文切换、JSON导入、localStorage历史周、周次切换、平台切换、主题搜索、主题排序、主题详情、关键词、跨周演化和响应式布局均保留。", "", "## 禁止误读", "", "小黑盒和综合视图包含模拟数据；2%—5%偏差目标未完成独立基准验证；B站纯模型情感与风险不应单独作为最终舆情结论。"]
+    report += ["", "## 新增主题核对", "", "W25为基准周，不生成不存在的W24环比，因此新增主题数记为0并标记为baseline。后续周新增主题仍由canonical_topic_id首次出现规则判断。", "", "## 情感与风险状态", "", "本版本对映射文本使用SnowNLP模型输出并按主题和周次聚合；未完成独立正式统计基准验证，因此只用于探索性看板。", "", "## 已保留交互", "", "登录、账号管理、中英文切换、JSON导入、localStorage历史周、周次切换、平台切换、主题搜索、主题排序、主题详情、关键词、跨周演化和响应式布局均保留。", "", "## 禁止误读", "", "小黑盒为搜索可见样本且各周样本量不均；B站评论数与小黑盒帖子数不可直接相加比较；模型情感与风险不应单独作为最终舆情结论。" if heybox_real else "小黑盒和综合视图包含模拟数据；模型情感与风险不应单独作为最终舆情结论。"]
+    report += ["", "## 主题演化核对", "", "原始跨周演化记录按相邻完整周比较主题声量，状态包括上升、回落和稳定延续；相同主题名称是canonical_topic_id连续追踪的结果，不代表数据没有变化。看板持续主题链概览已改为按所选周重新计算活跃周数和累计声量，不再直接显示全周期注册表汇总。W25为基准周，尚无跨周持续主题。"]
     REPORT.write_text("\n".join(report) + "\n", encoding="utf-8")
     repo_report = REPO / "reports/dashboard_W25_W28_mixed_data_report.md"
     repo_report.parent.mkdir(parents=True, exist_ok=True)

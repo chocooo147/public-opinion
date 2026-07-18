@@ -8,7 +8,7 @@ import pickle
 import subprocess
 import sys
 import traceback
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -65,7 +65,12 @@ def predict_input(input_path: Path, output_path: Path, log_lines: list[str]):
     result = []
     for row, tid, prob in zip(rows, topics, probabilities):
         tid = int(tid); confidence = 0.0 if tid == -1 else float(prob or 0.0); m = mapping.get(tid, {})
-        result.append({"text_id": row.get("text_id", ""), "week_id": row.get("week_id", ""), "text": row.get("text", row.get("clean_text", "")), "model_topic_id": tid, "canonical_topic_id": m.get("canonical_topic_id", ""), "canonical_topic_name": m.get("canonical_topic_name", ""), "assignment_confidence": round(confidence, 6), "confidence_source": "BERTopic model.transform probabilities_ (HDBSCAN membership probability)", "is_outlier": int(tid == -1), "low_confidence_flag": int(confidence < 0.5), "new_topic_candidate": int(tid == -1 or not m.get("canonical_topic_id")), "scope_status": row.get("final_analysis_scope") or row.get("analysis_scope") or "needs_scope_review"})
+        week_id = row.get("week_id", "")
+        if not week_id and row.get("week_start"):
+            week_start = date.fromisoformat(row["week_start"])
+            iso_year, iso_week, _ = week_start.isocalendar()
+            week_id = f"{iso_year}_W{iso_week:02d}"
+        result.append({"text_id": row.get("text_id", ""), "week_id": week_id, "text": row.get("text", row.get("clean_text", "")), "model_topic_id": tid, "canonical_topic_id": m.get("canonical_topic_id", ""), "canonical_topic_name": m.get("canonical_topic_name", ""), "assignment_confidence": round(confidence, 6), "confidence_source": "BERTopic model.transform probabilities_ (HDBSCAN membership probability)", "is_outlier": int(tid == -1), "low_confidence_flag": int(confidence < 0.5), "new_topic_candidate": int(tid == -1 or not m.get("canonical_topic_id")), "scope_status": row.get("final_analysis_scope") or row.get("analysis_scope") or "needs_scope_review"})
     output_path.parent.mkdir(parents=True, exist_ok=True)
     with output_path.open("w", encoding="utf-8-sig", newline="") as f:
         w = csv.DictWriter(f, fieldnames=fields); w.writeheader(); w.writerows(result)
@@ -85,6 +90,7 @@ def validate_outputs():
     assert data["meta"]["sentiment_status"] == "model_only_full_coverage"
     assert data["meta"]["sentiment_model"] == "SnowNLP_model_only"
     assert data["meta"]["risk_status"] == "model_only_derived"
+    heybox_real_sample = data["meta"].get("platform_status", {}).get("小黑盒") == "real_public_search_sample"
     assert data["weeks"][0]["kpis"]["new_topic_status"] == "baseline_no_prior_week"
     for idx, week in enumerate(data["weeks"]):
         assert week["kpis"]["total_volume"] == sum(t["platform_metrics"]["B站"]["count"] for t in week["topics"])
@@ -93,8 +99,12 @@ def validate_outputs():
         for topic in week["topics"]:
             b = topic["platform_metrics"]["B站"]; h = topic["platform_metrics"]["小黑盒"]; c = topic["combined_metrics"]
             assert b["data_type"] == "real" and not b["simulated"] and b["metrics_source"] == "bilibili_real_model_output"
-            assert h["data_type"] == "simulated" and h["simulated"] and h["metrics_source"] == "heybox_simulated_for_ui_test"
-            assert c["metrics_source"] == "mixed_real_and_simulated" and c["simulated"]
+            if heybox_real_sample:
+                assert h["data_type"] == "real_sample" and not h["simulated"] and h["metrics_source"] == "heybox_public_search_visible_sample"
+                assert c["metrics_source"] == "mixed_real_and_real_sample_incomparable_units" and not c["simulated"] and c["sample_limited"]
+            else:
+                assert h["data_type"] == "simulated" and h["simulated"] and h["metrics_source"] == "heybox_simulated_for_ui_test"
+                assert c["metrics_source"] == "mixed_real_and_simulated" and c["simulated"]
             assert c["count"] == b["count"] + h["count"]
             assert b["sentiment_model"] == "SnowNLP"
             assert b["sentiment_status"] == "model_only_full_coverage"

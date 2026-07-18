@@ -1,0 +1,32 @@
+{
+  "generated_at": "2026-07-18T07:11:34.284160+00:00",
+  "raw_input": "data/raw/heybox/heybox_apex_2026_W25_W28_public_search_20260718.csv",
+  "raw_sha256": "a8f2dc0b966bc133cca160cfbdc9548c6669000e71172428ba03d5d691d933a2",
+  "predictions_input": "outputs/new_week_topic_predictions_20260718T071044Z.csv",
+  "predictions_sha256": "826a0c172c9dce47659070113c3da8c1c73d262697fc770d1778f28f9a1260fc",
+  "output": "outputs/heybox_apex_W25_W28_public_search_assignments.csv",
+  "row_count": 24,
+  "weekly_rows": {
+    "2026_W25": 3,
+    "2026_W26": 5,
+    "2026_W27": 6,
+    "2026_W28": 10
+  },
+  "mapped_weekly_rows": {
+    "2026_W25": 3,
+    "2026_W26": 4,
+    "2026_W27": 4,
+    "2026_W28": 6
+  },
+  "mapped_rows": 17,
+  "outlier_rows": 7,
+  "sentiment_counts": {
+    "positive": 8,
+    "negative": 13,
+    "neutral": 3
+  },
+  "missing_predictions": [],
+  "collection_scope": "Public search result cards visible in the logged-in Xiaoheihe web UI; not a platform-wide census.",
+  "comment_body_collection": false,
+  "formal_reporting_qualified": false
+}

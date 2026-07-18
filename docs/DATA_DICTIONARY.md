@@ -12,6 +12,6 @@
 ## 看板主题与平台
 
 - `platform_metrics.B站`：B站真实主题声量、独立视频、独立作者和评论计数；`data_type=real`、`simulated=false`。
-- `platform_metrics.小黑盒`：固定规则模拟；`data_type=simulated`、`metrics_source=heybox_simulated_for_ui_test`、`simulation_seed=2717`。
-- `combined_metrics`：B站＋小黑盒混合；`metrics_source=mixed_real_and_simulated`，不得当作正式统计。
+- `platform_metrics.小黑盒`：公开搜索可见帖子样本；`data_type=real_sample`、`metrics_source=heybox_public_search_visible_sample`、`sample_limited=true`。`count` 为可见帖子数，`comment_count` 为帖子卡片显示评论数之和。
+- `combined_metrics`：B站评论与小黑盒可见帖子单位不同；`metrics_source=mixed_real_and_real_sample_incomparable_units`，仅用于界面探索，不得解释为跨平台总量。
 - `heat_score`、`consensus_score`、`risk_score`：当前为测试估算；B站情感来自未通过正式校验的 SnowNLP 输出。
