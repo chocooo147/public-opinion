@@ -33,6 +33,110 @@ VIDEO_LINKS = REPO / "outputs/representative_video_links.json"
 if not VIDEO_LINKS.exists():
     VIDEO_LINKS = ROOT / "outputs/representative_video_links.json"
 WEEKS = ["2026_W25", "2026_W26", "2026_W27", "2026_W28"]
+KEYWORD_STOPWORDS = {
+    "apex", "游戏", "玩家", "视频", "这个", "那个", "这样", "一样", "不是", "就是", "可以", "还是",
+    "感觉", "真的", "因为", "所以", "但是", "然后", "已经", "现在", "没有", "什么", "怎么", "一个",
+    "一下", "自己", "我们", "你们", "他们", "时候", "这里", "那里", "可能", "应该", "比较", "非常",
+    "东西", "问题", "如果", "为了", "看到", "知道", "之前", "之后", "直接", "这么", "这种", "不会",
+    "不能", "一直", "最后", "开始", "结果", "好像", "不过", "基本", "两个", "一把", "不了", "所有",
+}
+_KEYWORD_JIEBA = None
+_KEYWORD_LEXICON = []
+
+
+def configure_keyword_extraction(registry):
+    global _KEYWORD_LEXICON
+    _KEYWORD_LEXICON = sorted({
+        term.strip().lower()
+        for row in registry.values()
+        for term in str(row.get("topic_keywords") or "").split("|")
+        if len(term.strip()) > 1
+    }, key=len, reverse=True)
+
+
+def tokenize_keyword_text(text):
+    global _KEYWORD_JIEBA
+    text = re.sub(r"https?://\S+|[\r\n\t]+", " ", str(text or ""))
+    if _KEYWORD_JIEBA is None:
+        try:
+            import jieba
+            jieba.setLogLevel(20)
+            for term in _KEYWORD_LEXICON:
+                jieba.add_word(term)
+            _KEYWORD_JIEBA = jieba
+        except ImportError:
+            _KEYWORD_JIEBA = False
+    if _KEYWORD_JIEBA:
+        tokens = _KEYWORD_JIEBA.lcut(text, HMM=False)
+    else:
+        tokens = []
+        index = 0
+        while index < len(text):
+            matched = next((term for term in _KEYWORD_LEXICON if text[index:index + len(term)].lower() == term), None)
+            if matched:
+                tokens.append(matched)
+                index += len(matched)
+                continue
+            latin = re.match(r"[A-Za-z0-9]+", text[index:])
+            if latin:
+                tokens.append(latin.group(0).lower())
+                index += len(latin.group(0))
+                continue
+            if "\u4e00" <= text[index] <= "\u9fff":
+                end = index
+                while end < len(text) and "\u4e00" <= text[end] <= "\u9fff":
+                    end += 1
+                segment = text[index:end]
+                tokens.extend(segment[pos:pos + 2] for pos in range(max(0, len(segment) - 1)))
+                index = end
+                continue
+            index += 1
+    return [
+        token.strip().lower()
+        for token in tokens
+        if len(token.strip()) > 1
+        and token.strip().lower() not in KEYWORD_STOPWORDS
+        and not token.strip().isdigit()
+        and not re.fullmatch(r"[\W_]+", token.strip())
+    ]
+
+
+def keyword_stats_from_texts(texts):
+    term_counts = Counter()
+    document_counts = Counter()
+    documents = [str(text or "").strip() for text in texts if str(text or "").strip()]
+    for text in documents:
+        tokens = tokenize_keyword_text(text)
+        term_counts.update(tokens)
+        document_counts.update(set(tokens))
+    document_total = len(documents)
+    rows = []
+    for keyword, occurrences in term_counts.items():
+        covered = document_counts[keyword]
+        rows.append({
+            "keyword": keyword,
+            "occurrences": occurrences,
+            "document_count": covered,
+            "document_coverage": round(covered / document_total, 6) if document_total else 0,
+            "score": round(occurrences * math.log((document_total + 1) / (covered + 1) + 1), 6),
+        })
+    rows.sort(key=lambda item: (-item["document_count"], -item["occurrences"], -item["score"], item["keyword"]))
+    return rows
+
+
+def merge_keyword_stats(groups, document_total):
+    merged = {}
+    for group in groups:
+        for item in group:
+            row = merged.setdefault(item["keyword"], {"keyword": item["keyword"], "occurrences": 0, "document_count": 0})
+            row["occurrences"] += int(item.get("occurrences") or 0)
+            row["document_count"] += int(item.get("document_count") or 0)
+    for row in merged.values():
+        row["document_coverage"] = round(row["document_count"] / document_total, 6) if document_total else 0
+        row["score"] = round(row["occurrences"] * math.log((document_total + 1) / (row["document_count"] + 1) + 1), 6) if document_total else 0
+    return sorted(merged.values(), key=lambda item: (-item["document_count"], -item["occurrences"], -item["score"], item["keyword"]))
+
+
 def clamp(v, lo=0, hi=100):
     return max(lo, min(hi, int(round(v))))
 
@@ -170,6 +274,7 @@ def build_metric(count, videos, creators, wow, heat, consensus, negative, trend,
 def make_data():
     weekly = json.loads(SOURCE.read_text(encoding="utf-8"))
     registry = {x["canonical_topic_id"]: x for x in json.loads(REGISTRY.read_text(encoding="utf-8"))}
+    configure_keyword_extraction(registry)
     snow_topic, snow_week, snow_validation = load_snownlp_results()
     representative_videos = load_representative_video_links()
     heybox_rows, heybox_manifest = load_heybox_sample_results()
@@ -212,7 +317,12 @@ def make_data():
             b["risk_status"] = "model_only_derived"
             b["risk_score_estimated"] = True
             b["risk_score"] = risk_score_from_model(b["negative"], wow, b["consensus_score"])
-            h = build_heybox_sample_metric(heybox_rows.get((w, cid), []), w, cid, heybox_rows)
+            b_keyword_stats = x.get("keyword_stats")
+            if not isinstance(b_keyword_stats, list):
+                raise ValueError(f"缺少B站按周真实关键词统计: {w}/{cid}")
+            current_heybox_rows = heybox_rows.get((w, cid), [])
+            h = build_heybox_sample_metric(current_heybox_rows, w, cid, heybox_rows)
+            h_keyword_stats = keyword_stats_from_texts(row.get("text", "") for row in current_heybox_rows)
             combined_count = b["count"] + h["count"]
             combined_videos = b["video_count"] + h["video_count"]
             combined_creators = b["creator_count"] + h["creator_count"]
@@ -221,9 +331,13 @@ def make_data():
                 return ((float(b[key]) * b["count"] + float(h[key]) * h["count"]) / combined_count) if combined_count else 0
             combined = build_metric(combined_count, combined_videos, combined_creators, wow, weighted_metric("heat_score"), weighted_metric("consensus_score"), weighted_metric("negative"), [a + c for a, c in zip(b["trend"], h["trend"])], combined_source, False, None)
             combined.update({"estimated": True, "sample_limited": True, "unit_warning": "B站为评论数，小黑盒为公开搜索可见帖子数；综合值仅用于界面探索，不可作为跨平台总量。"})
+            combined_keyword_stats = merge_keyword_stats([b_keyword_stats, h_keyword_stats], combined_count)
+            descriptor_keywords = x.get("descriptor_keywords") or [k.strip() for k in reg["topic_keywords"].split("|") if k.strip()][:15]
             topic = {
                 "id": cid, "chain": cid, "name": reg["canonical_topic_name"], "name_en": reg["canonical_topic_name"],
-                "keywords": [k.strip() for k in reg["topic_keywords"].split("|") if k.strip()][:15],
+                "keywords": [item["keyword"] for item in b_keyword_stats[:15]],
+                "descriptor_keywords": descriptor_keywords,
+                "platform_keyword_stats": {"B站": b_keyword_stats, "小黑盒": h_keyword_stats, "综合": combined_keyword_stats},
                 "status": status_cn(x.get("topic_status")), "count": b["count"], "wow": wow, "negative": b["negative"], "heat_score": b["heat_score"], "consensus_score": b["consensus_score"],
                 "share": round(percent(x.get("weekly_share")), 2), "sentiment": b["sentiment"], "trend": b["trend"],
                 "risk": "风险" if b["risk_score"] >= 60 else "机会", "first_seen": reg["first_seen_week"].replace("2026_W", "") if reg["first_seen_week"] else "",
@@ -243,14 +357,28 @@ def make_data():
         # canonical topics are therefore only counted from W26 onward.
         new_topics = [] if w == WEEKS[0] else [t for t in topics if t["id"] not in prev_topics]
         continuing_topics = [t for t in topics if t["id"] in prev_topics]
+        b_total = sum(t["platform_metrics"]["B站"]["count"] for t in topics)
+        h_total = sum(t["platform_metrics"]["小黑盒"]["count"] for t in topics)
+        keyword_stats = {
+            "B站": merge_keyword_stats([t["platform_keyword_stats"]["B站"] for t in topics], b_total),
+            "小黑盒": merge_keyword_stats([t["platform_keyword_stats"]["小黑盒"] for t in topics], h_total),
+            "综合": merge_keyword_stats(
+                [t["platform_keyword_stats"][platform] for t in topics for platform in ("B站", "小黑盒")],
+                b_total + h_total,
+            ),
+        }
         output_weeks.append({"week_id": w.replace("_", "-"), "label": week_label(w), "start": start, "end": end, "topics": topics,
                              "events": [{"date": start[5:], "title": t, "desc": "来源于真实B站主题事件标签；不代表正式事件结论。"} for t in sorted({registry[x["canonical_topic_id"]]["main_event_tag"] for x in rows if registry[x["canonical_topic_id"]]["main_event_tag"]})],
                              "kpis": {"total_volume": sum(t["platform_metrics"]["B站"]["count"] for t in topics), "topic_count": len(topics), "new_topic_count": len(new_topics), "new_topic_status": "baseline_no_prior_week" if w == WEEKS[0] else ("none_detected" if not new_topics else "detected"), "continuing_topic_count": len(continuing_topics), "new_topic_ids": [t["id"] for t in new_topics], "continuing_topic_ids": [t["id"] for t in continuing_topics], "total_video_count": sum(t["platform_metrics"]["B站"]["video_count"] for t in topics), "total_creator_count": sum(t["platform_metrics"]["B站"]["creator_count"] for t in topics), "sentiment_status": "model_only_full_coverage", "risk_status": "model_only_derived"},
                              "sentiment": {**snow_week.get(w, {"week_id": w, "text_count": 0, "positive_rate": 0.0, "neutral_rate": 0.0, "negative_rate": 0.0, "avg_sentiment_score": 0.5, "sentiment_model": "SnowNLP", "sentiment_version": "0.12.3"}), "sentiment_source": "SnowNLP_model_only", "sentiment_status": "model_only_full_coverage"}, "formal_sentiment_source": "model_only", "platforms": {"B站": 0, "小黑盒": 0},
+                             "keyword_stats": keyword_stats,
+                             "keyword_meta": {
+                                 "B站": {"document_total": b_total, "scope": "real_bilibili_mapped_comments"},
+                                 "小黑盒": {"document_total": h_total, "scope": "real_public_search_visible_posts_sample"},
+                                 "综合": {"document_total": b_total + h_total, "scope": "mixed_real_text_observations_sample_limited"},
+                             },
                              "data_provenance": {"B站": "real_model_output", "小黑盒": "public_search_visible_sample", "综合": "mixed_real_observations_incomparable_units"},
                              "evolution": [e for e in json.loads((ROOT / "outputs/apex_topic_evolution_W25_W28.json").read_text(encoding="utf-8")) if e["target_week"] == w or e["source_week"] == w]})
-        b_total = sum(t["platform_metrics"]["B站"]["count"] for t in topics)
-        h_total = sum(t["platform_metrics"]["小黑盒"]["count"] for t in topics)
         total_platform = b_total + h_total or 1
         output_weeks[-1]["platforms"] = {"B站": round(b_total / total_platform * 100, 2), "小黑盒": round(h_total / total_platform * 100, 2)}
     sentiment_status = "model_only_full_coverage"
@@ -483,6 +611,13 @@ function enrichWeekTopics(w){
     ui_js = ui_js.replace('var method=topics.querySelector(".method-grid")', 'var pageHead=overview.querySelector(".page-head"),kpiGrid=document.querySelector("#kpiGrid"),method=topics.querySelector(".method-grid")')
     ui_js = ui_js.replace('if(!method||!coreCard||!trend||!matrix||!chainCard)return;', 'if(!pageHead||!kpiGrid||!method||!coreCard||!trend||!matrix||!chainCard)return;')
     ui_js = ui_js.replace('order.append(method,coreCard,row,chainEventRow)', 'order.append(pageHead,kpiGrid,method,coreCard,row,chainEventRow)')
+    # The checked-in HTML is the canonical interaction template. Preserve its
+    # current adapter so regenerated pages cannot revive an older keyword
+    # implementation that weighted static descriptor words by topic volume.
+    current_adapter_start = source.find("function dashboardKeywordStats")
+    current_schema_start = source.find("const schemaExample = dashboardData;", current_adapter_start if current_adapter_start >= 0 else 0)
+    if current_adapter_start >= 0 and current_schema_start >= 0:
+        ui_js = source[current_adapter_start:current_schema_start].rstrip()
     # The generated page is also a valid future input template. Replace the
     # adapter as one bounded block, instead of prepending it repeatedly on
     # each run (which previously duplicated UI functions in the preview).
@@ -490,7 +625,7 @@ function enrichWeekTopics(w){
     schema_marker = "const schemaExample = dashboardData;"
     schema_start = source.find(schema_marker, adapter_start if adapter_start >= 0 else 0)
     if adapter_start >= 0 and schema_start >= 0:
-        source = source[:adapter_start] + ui_js.replace("\\n", "\n") + "\n" + source[schema_start:]
+        source = source[:adapter_start] + ui_js.replace("\\n", "\n") + "\n\n" + source[schema_start:]
     else:
         source = source.replace(schema_marker, ui_js.replace("\\n", "\n") + "\n" + schema_marker, 1)
     source = source.replace('$("#schemaBtn").onclick=openSchema; $("#jumpSchema").onclick=openSchema;', '$("#schemaBtn").onclick=openSchema; $("#jumpSchema")?.addEventListener("click",openSchema); $("#jumpSchemaSidebar")?.addEventListener("click",openSchema);')

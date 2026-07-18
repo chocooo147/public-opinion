@@ -81,6 +81,50 @@ class PlatformNewTopicTests(unittest.TestCase):
                 for token in forbidden:
                     self.assertNotIn(token, source)
 
+    def test_keyword_stats_are_observed_and_vary_by_week_and_platform(self):
+        counts = {platform: [] for platform in ("B站", "小黑盒", "综合")}
+        top_tens = {platform: [] for platform in counts}
+        for week in self.data["weeks"]:
+            for platform in counts:
+                stats = week["keyword_stats"][platform]
+                effective = [row for row in stats if row["document_coverage"] >= 0.02]
+                counts[platform].append(len(effective))
+                top_tens[platform].append(tuple(row["keyword"] for row in effective[:10]))
+                self.assertTrue(all(row["occurrences"] > 0 for row in stats))
+                self.assertTrue(all(row["document_count"] > 0 for row in stats))
+                self.assertTrue(all(0 < row["document_coverage"] <= 1 for row in stats))
+        for platform in counts:
+            with self.subTest(platform=platform):
+                self.assertGreater(len(set(counts[platform])), 1)
+                self.assertGreater(len(set(top_tens[platform])), 1)
+                self.assertNotIn(188, counts[platform])
+
+    def test_topic_keywords_use_platform_week_text_not_registry_descriptors(self):
+        by_topic = {}
+        for week in self.data["weeks"]:
+            for topic in week["topics"]:
+                by_topic.setdefault(topic["id"], []).append(
+                    tuple(row["keyword"] for row in topic["platform_keyword_stats"]["B站"][:15])
+                )
+                self.assertIn("descriptor_keywords", topic)
+        self.assertTrue(all(len(set(weekly_lists)) > 1 for weekly_lists in by_topic.values()))
+
+    def test_published_keyword_ui_uses_real_frequency(self):
+        forbidden = (
+            "freq[k]=(freq[k]||0)+(metricFor(t)?metricFor(t).count:0)",
+            "关键词按本周主题声量加权汇总",
+        )
+        for path in HTML_PATHS:
+            with self.subTest(path=path.name):
+                source = path.read_text(encoding="utf-8")
+                self.assertIn("const KEYWORD_MIN_DOCUMENT_COVERAGE=.02", source)
+                self.assertIn("有效关键词", source)
+                self.assertIn("实际出现次数", source)
+                self.assertIn("x.document_count", source)
+                self.assertEqual(source.count("function dashboardKeywordStats("), 1)
+                for token in forbidden:
+                    self.assertNotIn(token, source)
+
 
 if __name__ == "__main__":
     unittest.main()
