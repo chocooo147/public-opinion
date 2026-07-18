@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "week_id": "2026_W28",
+  "qualified_for_exploratory_bertopic": true,
+  "inclusion_key": {
+    "field": "manual_keep",
+    "include_value": "1"
+  },
+  "source_policy": {
+    "top_level_comment": "primary_corpus",
+    "video_title": "auxiliary_context_only",
+    "video_description": "exclude_from_training"
+  },
+  "opinion_policy": {
+    "field": "manual_user_opinion",
+    "blank_values_fixed": 2,
+    "blank_fix_value": "0",
+    "corrected_file": "outputs/manual_audit/bilibili_apex_2026_W28_round2_audit_training_ready.csv"
+  },
+  "event_policy": {
+    "retain_event_content": true,
+    "maximum_single_event_share": 0.4
+  },
+  "prohibited_actions": [
+    "formal_opinion_conclusion",
+    "snownlp",
+    "automatic_expansion"
+  ],
+  "qualified_for_historical_expansion": true,
+  "qualified_for_formal_reporting": false,
+  "training_include_expression": "manual_keep == 1 AND (manual_relevant == 1 OR approved_exception == 1)"
+}

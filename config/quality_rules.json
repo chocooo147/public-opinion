@@ -1,0 +1,14 @@
+{
+  "timezone": "Asia/Shanghai",
+  "short_text_min_chars": 10,
+  "random_seed": 20260714,
+  "random_sample_size_overall": 5,
+  "random_sample_size_per_week": 3,
+  "top_words_overall": 30,
+  "top_words_per_week": 15,
+  "stopwords": [
+    "的", "了", "是", "在", "和", "也", "有", "就", "都", "我", "你", "他", "她", "它",
+    "我们", "这个", "那个", "一个", "没有", "不是", "可以", "感觉", "真的", "还是", "因为",
+    "the", "a", "an", "and", "or", "to", "of", "in", "is", "it", "for", "on", "with"
+  ]
+}

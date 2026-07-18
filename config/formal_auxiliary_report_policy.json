@@ -1,0 +1,30 @@
+{
+  "policy_version": "formal_auxiliary_v1",
+  "purpose": "面向舆情专业人员复核的辅助报告与快速看板，不替代人工舆情研判",
+  "bertopic": {
+    "model_status": "frozen_exploratory_model",
+    "allowed_mode": "professional_assisted_auxiliary",
+    "primary_assignment_rule": "retain_and_confidence_ge_0.5",
+    "exclude_operations": ["outlier", "delete_topic", "unmapped"],
+    "low_confidence_action": "review_queue"
+  },
+  "sentiment": {
+    "formal_source": "human_validated_only",
+    "snownlp_status": "model_assisted_candidate_only",
+    "minimum_topic_week_labels": 5,
+    "unlabeled_action": "needs_human_review"
+  },
+  "metrics": {
+    "heat": "observed_relative_index_v1",
+    "consensus": "observed_cross_video_creator_breadth_proxy_v1",
+    "risk": "human_negative_rate_plus_observed_growth_v1",
+    "bias_target_percent": [2, 5],
+    "bias_claim_allowed": false,
+    "bias_gate": "requires_external_or_double_coded_benchmark"
+  },
+  "platforms": {
+    "B站": "real",
+    "小黑盒": "simulated_ui_test_only",
+    "综合": "mixed_real_and_simulated_not_for_formal_statistics"
+  }
+}

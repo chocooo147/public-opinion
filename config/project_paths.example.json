@@ -1,0 +1,10 @@
+{
+  "timezone": "Asia/Shanghai",
+  "model_path": "models/bertopic_apex_exploratory_v1/bertopic_model.pkl",
+  "model_manifest": "models/bertopic_apex_exploratory_v1/model_manifest.json",
+  "topic_registry": "models/bertopic_apex_exploratory_v1/topic_registry_exploratory.json",
+  "topic_mapping": "outputs/bertopic_topic_mapping_final.csv",
+  "frozen_corpus": "data/processed/bilibili_apex_W25_W28_bertopic_exploratory_corpus.csv",
+  "dashboard_json": "outputs/dashboard_data_apex_W25_W28.json",
+  "dashboard_html": "outputs/game_sentiment_dashboard_apex_W25_W28_mixed_test.html"
+}

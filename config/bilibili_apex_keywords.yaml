@@ -1,0 +1,29 @@
+{
+  "core_keywords": ["Apex英雄", "Apex Legends", "APEX", "apex手游"],
+  "experience_keywords": [
+    "Apex服务器", "Apex延迟", "Apex掉线", "Apex闪退", "Apex掉帧", "Apex优化",
+    "Apex外挂", "Apex反作弊", "Apex排位", "Apex匹配", "Apex猎杀", "Apex段位",
+    "Apex英雄强度", "Apex角色平衡", "Apex武器", "Apex武器平衡", "Apex版本更新", "Apex新赛季",
+    "Apex通行证", "Apex皮肤", "Apex活动", "Apex氪金", "Apex联动", "Apex赛博朋克",
+    "Apex赛事", "Apex ALGS", "Apex主播", "Apex玩家"
+  ],
+  "keyword_groups": {
+    "产品与技术": ["Apex服务器", "Apex延迟", "Apex掉线", "Apex闪退", "Apex掉帧", "Apex优化"],
+    "竞技环境": ["Apex外挂", "Apex反作弊", "Apex排位", "Apex匹配", "Apex猎杀", "Apex段位"],
+    "平衡与玩法": ["Apex英雄强度", "Apex角色平衡", "Apex武器", "Apex武器平衡", "Apex版本更新", "Apex新赛季"],
+    "运营与商业化": ["Apex通行证", "Apex皮肤", "Apex活动", "Apex氪金", "Apex联动", "Apex赛博朋克"],
+    "赛事与社区": ["Apex赛事", "Apex ALGS", "Apex主播", "Apex玩家"]
+  },
+  "mobile_keywords": ["apex手游"],
+  "exclude_terms": [
+    "Oracle APEX", "Salesforce Apex", "APEX编程", "APEX开发", "APEX数据库",
+    "丰田 APEX", "APEX轮毂", "APEX医疗", "APEX大学", "APEX公司"
+  ],
+  "paused_keywords": ["exact_p1_APEX设计师笔记"],
+  "rectification_exclude_terms": [
+    "守望先锋", "ApexClient", "EMPULSE", "泰坦陨落2精神续作",
+    "代练", "陪玩", "代肝", "价格表", "加V", "企鹅", "主页有联系方式",
+    "预售价", "安全高效", "24小时在线", "营销信息"
+  ],
+  "rectification_note": "不得单独以‘外挂’作为排除词；保留反外挂和反作弊舆情。"
+}
