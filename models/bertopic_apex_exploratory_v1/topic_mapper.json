@@ -1,0 +1,155 @@
+[
+  {
+    "model_id": "exp_a_balanced",
+    "model_topic_id": -1,
+    "canonical_topic_id": "",
+    "canonical_topic_name": "",
+    "operation": "outlier",
+    "manual_keep": "",
+    "notes": "按离群审核结果逐条处理；未映射的离群文本保留在离群记录中。"
+  },
+  {
+    "model_id": "exp_a_balanced",
+    "model_topic_id": 0,
+    "canonical_topic_id": "APEX-T001",
+    "canonical_topic_name": "排位与匹配",
+    "operation": "retain",
+    "manual_keep": 1,
+    "notes": "排位、单排、队友和匹配体验集中，具有明确玩家舆情价值。"
+  },
+  {
+    "model_id": "exp_a_balanced",
+    "model_topic_id": 1,
+    "canonical_topic_id": "",
+    "canonical_topic_name": "",
+    "operation": "delete",
+    "manual_keep": 0,
+    "notes": "人工审核不纳入主审核结论"
+  },
+  {
+    "model_id": "exp_a_balanced",
+    "model_topic_id": 2,
+    "canonical_topic_id": "APEX-T002",
+    "canonical_topic_name": "赛季更新与玩法机制",
+    "operation": "retain",
+    "manual_keep": 1,
+    "notes": "包含新赛季、更新、武器和玩法反馈，但语义较宽，建议后续敏感性测试关注。"
+  },
+  {
+    "model_id": "exp_a_balanced",
+    "model_topic_id": 3,
+    "canonical_topic_id": "APEX-T003",
+    "canonical_topic_name": "赛事与主播",
+    "operation": "retain",
+    "manual_keep": 1,
+    "notes": "围绕主播直播、赛事过程和观众互动，具备社区与赛事价值。"
+  },
+  {
+    "model_id": "exp_a_balanced",
+    "model_topic_id": 4,
+    "canonical_topic_id": "APEX-T004",
+    "canonical_topic_name": "英雄技能与武器平衡",
+    "operation": "retain",
+    "manual_keep": 1,
+    "notes": "集中讨论技能、伤害、弹道、冷却和版本改动。"
+  },
+  {
+    "model_id": "exp_a_balanced",
+    "model_topic_id": 5,
+    "canonical_topic_id": "APEX-T005",
+    "canonical_topic_name": "皮肤、外观与商业化",
+    "operation": "retain",
+    "manual_keep": 1,
+    "notes": "以皮肤、动作、跳伞、价格和外观评价为主，夹杂少量玩法短评。"
+  },
+  {
+    "model_id": "exp_a_balanced",
+    "model_topic_id": 6,
+    "canonical_topic_id": "",
+    "canonical_topic_name": "",
+    "operation": "delete",
+    "manual_keep": 0,
+    "notes": "人工审核不纳入主审核结论"
+  },
+  {
+    "model_id": "exp_a_balanced",
+    "model_topic_id": 7,
+    "canonical_topic_id": "APEX-T006",
+    "canonical_topic_name": "赛博朋克联动与手柄体验",
+    "operation": "retain",
+    "manual_keep": 1,
+    "notes": "包含联动评价和手柄/键鼠体验，事件驱动明显但仍有独立传播价值。 事件集中度较高，后续需做事件敏感性检查。"
+  },
+  {
+    "model_id": "exp_a_balanced",
+    "model_topic_id": 8,
+    "canonical_topic_id": "APEX-T007",
+    "canonical_topic_name": "UP主视频反馈与设置求助",
+    "operation": "retain",
+    "manual_keep": 1,
+    "notes": "同时包含UP主内容反馈、设置求助和‘修好了’技术反馈，内部语义不完全一致。 建议在后续细分中拆出技术求助，不直接用于产品故障结论。"
+  },
+  {
+    "model_id": "exp_a_balanced",
+    "model_topic_id": 9,
+    "canonical_topic_id": "APEX-T008",
+    "canonical_topic_name": "英雄与武器强度",
+    "operation": "retain",
+    "manual_keep": 1,
+    "notes": "机器人、莫桑比克等实体的加强、削弱和强度评价清晰。"
+  },
+  {
+    "model_id": "exp_a_balanced",
+    "model_topic_id": 10,
+    "canonical_topic_id": "APEX-T009",
+    "canonical_topic_name": "皮肤外观与操作体验混合",
+    "operation": "retain",
+    "manual_keep": 1,
+    "notes": "皮肤审美与灵敏度、技术表现混合，主题边界较弱。 建议拆分外观评价与操作/技术求助。"
+  },
+  {
+    "model_id": "exp_a_balanced",
+    "model_topic_id": 11,
+    "canonical_topic_id": "",
+    "canonical_topic_name": "",
+    "operation": "delete",
+    "manual_keep": 0,
+    "notes": "人工审核不纳入主审核结论"
+  },
+  {
+    "model_id": "exp_a_balanced",
+    "model_topic_id": 12,
+    "canonical_topic_id": "APEX-T010",
+    "canonical_topic_name": "赛事与主播竞技讨论",
+    "operation": "retain",
+    "manual_keep": 1,
+    "notes": "围绕主播、夺冠、选手表现和赛事规则，虽有口语化表达但主题明确。"
+  },
+  {
+    "model_id": "exp_a_balanced",
+    "model_topic_id": 13,
+    "canonical_topic_id": "APEX-T011",
+    "canonical_topic_name": "版本、排位与赛事混合",
+    "operation": "retain",
+    "manual_keep": 1,
+    "notes": "涉及赛季、排位、服务器、赛事和模型讨论，存在多个子议题。 建议后续拆分常态玩法与赛事/版本评论。"
+  },
+  {
+    "model_id": "exp_a_balanced",
+    "model_topic_id": 14,
+    "canonical_topic_id": "APEX-T012",
+    "canonical_topic_name": "皮肤审美与官方运营",
+    "operation": "retain",
+    "manual_keep": 1,
+    "notes": "围绕皮肤审美、版本爆料、官方运营和商业化反馈。"
+  },
+  {
+    "model_id": "exp_a_balanced",
+    "model_topic_id": 15,
+    "canonical_topic_id": "APEX-T013",
+    "canonical_topic_name": "武器与英雄强度",
+    "operation": "retain",
+    "manual_keep": 1,
+    "notes": "围绕CAR、平行、莫桑比克、复仇女神等武器/英雄强度和配装。"
+  }
+]

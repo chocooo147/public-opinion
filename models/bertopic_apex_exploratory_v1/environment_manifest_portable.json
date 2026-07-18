@@ -1,0 +1,22 @@
+{
+  "generated_at": "2026-07-18",
+  "python_version": "3.12.x",
+  "platform": "portable-runtime",
+  "bertopic_version": "0.16.4",
+  "sentence_transformers_version": "not installed; not used",
+  "umap_learn_version": "0.5.12",
+  "hdbscan_version": "0.8.44",
+  "scikit_learn_version": "1.9.0",
+  "embedding_model_name": "project-local sklearn lexical TF-IDF + TruncatedSVD (50 components)",
+  "embedding_model_source": "local pipeline; no pretrained sentence-transformer weights",
+  "calculate_probabilities": false,
+  "random_seed": 42,
+  "actual_bertopic": true,
+  "substitute_or_simulation": false,
+  "input_corpus": {
+    "path": "data/processed/bilibili_apex_W25_W28_bertopic_exploratory_corpus.csv",
+    "rows": 1052,
+    "sha256": "869c03d5dfe01cfadbfb8575d6c752e23e89438c02766e7b2834e840f03711c5"
+  },
+  "portable_path_policy": "paths are repository-relative; runtime resolves them from the project root"
+}

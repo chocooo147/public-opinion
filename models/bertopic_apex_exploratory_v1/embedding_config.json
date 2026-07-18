@@ -1,0 +1,6 @@
+{
+  "embedding_model_name": "project-local sklearn lexical TF-IDF + TruncatedSVD (50 components)",
+  "embedding_dimension": 50,
+  "source": "local pipeline",
+  "gpu_used": false
+}

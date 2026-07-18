@@ -1,0 +1,25 @@
+{
+  "model_status": "exploratory",
+  "qualified_for_formal_reporting": false,
+  "qualified_for_formal_auxiliary_reporting": true,
+  "formal_auxiliary_mode": "professional_assisted_auxiliary",
+  "formal_auxiliary_gates": "config/formal_auxiliary_report_policy.json",
+  "model_version": "apex_bilibili_bertopic_exploratory_v1",
+  "registry_version": "apex_topic_registry_exploratory_v1",
+  "data_version": "apex_bilibili_scope_final_v1",
+  "bertopic_model": "models/bertopic_apex_exploratory_v1/bertopic_model.pkl",
+  "model_sha256": "40f0c48d7dee49f2c3f804b3a5a896828c671503708a30f84be5812fc7e463a5",
+  "input_corpus": "data/processed/bilibili_apex_W25_W28_bertopic_exploratory_corpus.csv",
+  "input_corpus_sha256": "869c03d5dfe01cfadbfb8575d6c752e23e89438c02766e7b2834e840f03711c5",
+  "input_corpus_rows": 1052,
+  "final_training_rows": 668,
+  "manual_review_files": {
+    "outputs/topic_review_primary_exp_a_auto_reviewed.csv": "a11661a58f8e0d0676a53a112979518e30f635255f5443824785be9e32e39762",
+    "outputs/exp_b_split_candidates_auto_reviewed.csv": "22bd82b7dea4c463dec607cf36521e9e7f8a26df3d9dc2cab6acb27c369f6736",
+    "outputs/outlier_review_exp_a_80_auto_reviewed.csv": "37fc0d7ef692f343bf71ee21e95cfc4d167d1d6ff9160a5c8d3e3a05663e9a9a"
+  },
+  "environment_manifest": "models/bertopic_apex_exploratory_v1/environment_manifest_portable.json",
+  "canonical_topic_count": 13,
+  "deferred_split_operations": 14,
+  "generated_at": "2026-07-17T11:15:51.765549+00:00"
+}
