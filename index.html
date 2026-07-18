@@ -370,6 +370,9 @@
     .download-card strong { color:#fff; font-size:13px; }
     .download-card p { min-height:68px; margin:0; color:var(--muted); font-size:10px; line-height:1.65; }
     .download-card .btn { margin-top:auto; text-align:center; text-decoration:none; justify-content:center; }
+    .download-template-actions { margin-top:auto; display:grid; gap:8px; }
+    .download-template-actions .btn { margin-top:0; }
+    .download-template-actions .btn:not(.primary) { height:34px; font-size:10px; }
     .download-spec { margin-top:16px; padding-top:14px; border-top:1px solid var(--line); color:var(--muted); font-size:10px; line-height:1.7; }
     @media(max-width:760px){.download-grid{grid-template-columns:1fr}.download-card p{min-height:0}}
     pre { white-space:pre-wrap; background:#090909; color:#e0e0dc; border:1px solid var(--line); border-radius:12px; padding:14px; font-size:11px; line-height:1.65; overflow:auto; }
@@ -854,20 +857,23 @@
 
 <div class="drawer-mask" id="downloadMask" style="z-index:60"></div>
 <div class="modal download-modal" id="downloadModal" style="z-index:61">
-  <div class="modal-head"><strong>APAC 周报下载中心</strong><button class="drawer-close" id="downloadClose">×</button></div>
+  <div class="modal-head"><strong>APAC 中国区周报下载中心</strong><button class="drawer-close" id="downloadClose">×</button></div>
   <div class="modal-body">
-    <p class="download-intro">下载内容已按 APAC Weekly Community Sentiment Report Skill 整理。报告固定采用“概览 → 核心话题 → 情感历史 → UGC/直播观看 → 方法说明 → 数据质量检查”的顺序，并要求结论、归因、证据、对比和影响完整闭环。</p>
+    <p class="download-intro">下载内容已按中国地区周报导出规则整理，仅覆盖中国地区。报告固定采用“概览 → 核心话题 → 情感历史 → UGC/直播观看 → 方法说明 → 数据质量检查”的顺序，并要求结论、归因、证据、对比和影响完整闭环。</p>
     <div class="download-context" id="downloadContext"></div>
     <p class="download-warning" id="downloadWarning"></p>
     <div class="download-grid">
       <article class="download-card">
-        <strong>① APAC Markdown 报告模板</strong>
-        <p>用于撰写完整周报。已将执行摘要并入 Overview，将下周监测指标并入 Data Quality Check，保持 Skill 规定的顶层章节顺序。</p>
-        <a class="btn primary" id="downloadReportTemplate" href="templates/APAC_Weekly_Community_Sentiment_Report_Template.md" download>下载报告模板 .md</a>
+        <strong>① APAC 中国区报告模板</strong>
+        <p>Word 为正式主模板；Markdown 作为轻量辅助版本保留。两种格式均只覆盖中国地区，并保持相同章节顺序与质量检查规则。</p>
+        <div class="download-template-actions">
+          <a class="btn primary" id="downloadReportTemplateDocx" href="templates/APAC_Weekly_Community_Sentiment_Report_Template.docx" download>下载 Word 主模板 .docx</a>
+          <a class="btn" id="downloadReportTemplateMd" href="templates/APAC_Weekly_Community_Sentiment_Report_Template.md" download>保留 Markdown 版本 .md</a>
+        </div>
       </article>
       <article class="download-card">
         <strong>② 当前周报告输入包</strong>
-        <p>导出当前周、所选平台、上一周基准、主题指标、真实关键词与方法限制。该文件是报告输入，不会把缺失的日本或观看数据伪装成已完成报告。</p>
+        <p>导出中国地区当前周、所选平台、上一周基准、主题指标、真实关键词与方法限制。该文件不会把缺失的官方观看数据伪装成已完成报告。</p>
         <button class="btn primary" id="downloadReportInput" type="button">下载当前周输入包 .json</button>
       </article>
       <article class="download-card">
@@ -876,7 +882,7 @@
         <button class="btn" id="downloadFullDashboard" type="button">下载完整数据 .json</button>
       </article>
     </div>
-    <div class="download-spec">导出规则：自然周必须完整；经 Skill 要求，日本与中国均需出现；不同定义的地区或平台指标不得直接横向比较；Mixed 不得被强制写成 Neutral；未经验证的因果关系必须标记为假设。</div>
+    <div class="download-spec">导出规则：报告范围仅限中国地区；自然周必须完整；不同定义的平台指标不得直接横向比较或相加；Mixed 不得被强制写成 Neutral；缺失指标不得用讨论量替代；未经验证的因果关系必须标记为假设。</div>
   </div>
 </div>
 
@@ -1013,12 +1019,12 @@ const staticTranslations = new Map([
   ['主题排序方式','Topic sort order'],['覆盖视频/作者','Videos / creators'],['本周核心主题','Core Topics This Week'],
   ['APEX 舆情控制台','APEX Sentiment Console'],['授权账号访问','Authorized accounts only'],['账号','Username'],['密码','Password'],['登录并进入看板','Sign in to dashboard'],['账号由管理员统一配置。未授权用户无法查看看板或导入 JSON 数据。','Accounts are issued by an administrator. Unauthorized users cannot view the dashboard or import JSON data.'],
   ['账号管理','Account management'],['退出','Sign out'],['管理员可以创建账号、重置密码、停用或删除普通账号。管理员账号 choco 为系统保留账号。','Administrators can create accounts, reset passwords, disable accounts, or delete users. The choco administrator account is protected.'],['账号名称','Username'],['派发密码','Issued password'],['创建账号','Create account'],['账号名称至少 3 个字符，密码至少 6 个字符。','Usernames require at least 3 characters and passwords at least 6.'],['角色','Role'],['操作','Actions'],
-  ['APAC 周报下载中心','APAC Report Downloads'],['① APAC Markdown 报告模板','① APAC Markdown report template'],['下载报告模板 .md','Download report template .md'],['② 当前周报告输入包','② Current-week report input'],['下载当前周输入包 .json','Download current-week input .json'],['③ 完整看板数据','③ Full dashboard data'],['下载完整数据 .json','Download full data .json'],
-  ['下载内容已按 APAC Weekly Community Sentiment Report Skill 整理。报告固定采用“概览 → 核心话题 → 情感历史 → UGC/直播观看 → 方法说明 → 数据质量检查”的顺序，并要求结论、归因、证据、对比和影响完整闭环。','Downloads follow the APAC Weekly Community Sentiment Report Skill. The fixed order is Overview → Top Conversation Drivers → Sentiment History → UGC / Stream Viewership → Methodology Notes → Data Quality Check, using conclusion, attribution, evidence, comparison, and impact.'],
-  ['用于撰写完整周报。已将执行摘要并入 Overview，将下周监测指标并入 Data Quality Check，保持 Skill 规定的顶层章节顺序。','Use this to write the complete report. The executive summary is included in Overview and next-week monitoring is included in Data Quality Check, preserving the required top-level order.'],
-  ['导出当前周、所选平台、上一周基准、主题指标、真实关键词与方法限制。该文件是报告输入，不会把缺失的日本或观看数据伪装成已完成报告。','Exports the selected week and platform, previous-week baseline, topic metrics, observed keywords, and methodology limits. It is report input and does not present missing Japan or viewership data as complete.'],
+  ['APAC 中国区周报下载中心','APAC China Report Downloads'],['① APAC 中国区报告模板','① APAC China report templates'],['下载 Word 主模板 .docx','Download Word master template .docx'],['保留 Markdown 版本 .md','Download retained Markdown version .md'],['② 当前周报告输入包','② Current-week report input'],['下载当前周输入包 .json','Download current-week input .json'],['③ 完整看板数据','③ Full dashboard data'],['下载完整数据 .json','Download full data .json'],
+  ['下载内容已按中国地区周报导出规则整理，仅覆盖中国地区。报告固定采用“概览 → 核心话题 → 情感历史 → UGC/直播观看 → 方法说明 → 数据质量检查”的顺序，并要求结论、归因、证据、对比和影响完整闭环。','Downloads follow the China weekly-report export rules and cover China only. The fixed order is Overview → Top Conversation Drivers → Sentiment History → UGC / Stream Viewership → Methodology Notes → Data Quality Check, using conclusion, attribution, evidence, comparison, and impact.'],
+  ['Word 为正式主模板；Markdown 作为轻量辅助版本保留。两种格式均只覆盖中国地区，并保持相同章节顺序与质量检查规则。','Word is the official master template; Markdown remains as a lightweight companion. Both formats cover China only and use the same section order and quality rules.'],
+  ['导出中国地区当前周、所选平台、上一周基准、主题指标、真实关键词与方法限制。该文件不会把缺失的官方观看数据伪装成已完成报告。','Exports the China reporting week, selected platform, previous-week baseline, topic metrics, observed keywords, and methodology limits. It does not present missing official viewership metrics as complete.'],
   ['保留 W25—W28 全部周次、平台指标、主题链、关键词统计与溯源信息，供数据复核或后续重新生成报告。','Keeps all W25–W28 weeks, platform metrics, topic chains, keyword statistics, and provenance for review or later report regeneration.'],
-  ['导出规则：自然周必须完整；经 Skill 要求，日本与中国均需出现；不同定义的地区或平台指标不得直接横向比较；Mixed 不得被强制写成 Neutral；未经验证的因果关系必须标记为假设。','Export rules: use complete natural weeks; include both Japan and China; do not directly compare metrics with different definitions; do not force Mixed into Neutral; label unverified causal claims as hypotheses.']
+  ['导出规则：报告范围仅限中国地区；自然周必须完整；不同定义的平台指标不得直接横向比较或相加；Mixed 不得被强制写成 Neutral；缺失指标不得用讨论量替代；未经验证的因果关系必须标记为假设。','Export rules: cover China only; use complete natural weeks; do not directly compare or sum platform metrics with different definitions; do not force Mixed into Neutral; do not replace missing metrics with discussion volume; label unverified causal claims as hypotheses.']
 ]);
 const statusTranslations={'新生':'New','上升':'Rising','高位持续':'Sustained high','稳定延续':'Stable','回落':'Declining','复燃':'Resurgent'};
 const displayStatus=s=>state.lang==='zh'?s:(statusTranslations[s]||s);
@@ -1658,33 +1664,33 @@ function buildReportInputPackage(){
   const week=currentWeek(), previousWeek=state.weekIndex>0?dashboardData.weeks[state.weekIndex-1]:null, platform=state.platform;
   const currentSummary=reportWeekSummary(week,platform), previousSummary=reportWeekSummary(previousWeek,platform);
   const warnings=[
-    'Japan data is not present in the current APEX dashboard and must be supplied before the APAC report is complete.',
     'Official total views and watch-hours data are not present; do not infer viewership from discussion volume.',
     'SnowNLP sentiment and derived risk scores are exploratory model outputs and are not independently validated for formal reporting.',
     'Heybox coverage is a non-exhaustive public-search sample and does not include comment bodies.',
     'Bilibili counts mapped comment texts while Heybox counts search-visible posts; the units are not directly comparable.'
   ];
   return {
-    schema_version:'apac_weekly_sentiment_report_input_v2', generated_at:new Date().toISOString(),
-    export_status:'draft_input_only_not_a_complete_report', template_path:'templates/APAC_Weekly_Community_Sentiment_Report_Template.md',
-    report_rule:{section_order:['Overview','Top Conversation Drivers','Sentiment History','UGC / Stream Viewership','Methodology Notes','Data Quality Check'],narrative_sequence:['Conclusion','Attribution','Evidence','Comparison','Impact'],sentiment_order:['Positive','Neutral or Mixed','Negative']},
+    schema_version:'apac_china_weekly_sentiment_report_input_v3', generated_at:new Date().toISOString(),
+    export_status:'draft_input_only_not_a_complete_report',
+    template_paths:{word:'templates/APAC_Weekly_Community_Sentiment_Report_Template.docx',markdown:'templates/APAC_Weekly_Community_Sentiment_Report_Template.md'},
+    report_scope:{region:'China',reporting_owner:'China reporting team',regional_aggregation:'not_in_scope'},
+    report_rule:{section_order:['Overview','Top Conversation Drivers','Sentiment History','UGC / Stream Viewership','Methodology Notes','Data Quality Check'],narrative_sequence:['Conclusion','Attribution','Evidence','Comparison','Impact'],sentiment_order:['Positive','Neutral or Mixed','Negative'],natural_week_required:true,missing_metric_substitution_forbidden:true},
     reporting_period:{week_id:week.week_id,label:week.label,start:week.start,end:week.end,is_complete_natural_week:true},
     selection:{region:'China',platform_view:platform},
-    required_input_status:{japan:'missing',china:'available_with_exploratory_limitations',previous_week:previousWeek?'available':'missing',official_viewership:'missing',representative_heybox_text:'missing_from_dashboard_payload'},
+    required_input_status:{china:'available_with_exploratory_limitations',previous_week:previousWeek?'available':'missing',official_viewership:'missing',representative_heybox_text:'missing_from_dashboard_payload'},
     regions:{
-      japan:{status:'missing',required_fields:['overall sentiment','week-over-week trend','conversation drivers','representative feedback','UGC and viewership']},
       china:{status:'available_with_limitations',current_week:currentSummary,previous_week:previousSummary,conversation_drivers:reportTopicRows(week,previousWeek,platform),sentiment_history:dashboardData.weeks.slice(0,state.weekIndex+1).map(item=>reportWeekSummary(item,platform)),ugc_and_viewership:{status:'incomplete',total_views:null,watch_hours:null,popularity_or_heat:null,ugc_volume:null,active_creators:null,available_dashboard_coverage:{video_or_content_count:currentSummary.observed_video_or_content_count,creator_count:currentSummary.observed_creator_count},warning:'Dashboard coverage counts are not a substitute for official reach, watch-hours, popularity, or creator-activity metrics.'}}
     },
-    methodology:{topic_model:dashboardData.meta.model_version,topic_assignment:'single canonical topic per mapped text in this dashboard',sentiment_model:dashboardData.meta.sentiment_model,sentiment_scale:'0 to 1 SnowNLP model output; APAC report label thresholds require analyst confirmation',platform_scope:dashboardData.meta.platform_status,formal_reporting_qualified:Boolean(dashboardData.meta.qualified_for_formal_reporting),regional_comparability:'not available because Japan inputs are missing'},
+    methodology:{topic_model:dashboardData.meta.model_version,topic_assignment:'single canonical topic per mapped text in this dashboard',sentiment_model:dashboardData.meta.sentiment_model,sentiment_scale:'0 to 1 SnowNLP model output; report label thresholds require analyst confirmation',platform_scope:dashboardData.meta.platform_status,formal_reporting_qualified:Boolean(dashboardData.meta.qualified_for_formal_reporting),regional_comparability:'not_applicable_single_region_report',platform_unit_comparability:'Bilibili mapped comment texts and Heybox search-visible posts are not directly comparable or additive'},
     data_quality_warnings:warnings,
-    analyst_actions_required:['Add Japan inputs.','Add official UGC/viewership metrics for both regions.','Assign Positive, Neutral, Mixed, or Negative labels using one disclosed threshold system.','Review representative evidence and write each topic as reaction + reason + comparison + impact.','Confirm two or three next-week monitoring metrics.']
+    analyst_actions_required:['Add official China UGC/viewership metrics.','Assign Positive, Neutral, Mixed, or Negative labels using one disclosed threshold system.','Review representative evidence and write each topic as reaction + reason + comparison + impact.','Confirm two or three next-week monitoring metrics.']
   };
 }
 function openDownloadCenter(){
   if(!requireAuthenticated()) return;
   const week=currentWeek(), platform=displayPlatform(state.platform);
-  $('#downloadContext').innerHTML=`<span>${loc('报告周次','Reporting week')} · ${week.label}</span><span>${loc('平台视图','Platform view')} · ${platform}</span><span>${loc('模板版本','Template version')} · 2.0</span>`;
-  $('#downloadWarning').textContent=loc('完整 APAC 报告仍缺少日本数据与官方观看指标；当前导出的 JSON 是可追溯输入包，不是可直接发布的最终报告。','A complete APAC report still requires Japan data and official viewership metrics. The JSON export is a traceable input package, not a publish-ready final report.');
+  $('#downloadContext').innerHTML=`<span>${loc('报告范围','Report scope')} · ${loc('中国地区','China')}</span><span>${loc('报告周次','Reporting week')} · ${week.label}</span><span>${loc('平台视图','Platform view')} · ${platform}</span><span>${loc('模板版本','Template version')} · 3.0</span>`;
+  $('#downloadWarning').textContent=loc('本下载中心仅生成中国地区周报输入；官方观看指标仍缺失，当前导出的 JSON 是可追溯输入包，不是可直接发布的最终报告。','This download center produces China report input only. Official viewership metrics are still missing; the JSON export is a traceable input package, not a publish-ready final report.');
   $('#downloadMask').classList.add('show'); $('#downloadModal').classList.add('show');
 }
 function closeDownloadCenter(){ $('#downloadMask')?.classList.remove('show'); $('#downloadModal')?.classList.remove('show'); }
@@ -1759,7 +1765,7 @@ $("#schemaBtn").onclick=openSchema; $("#jumpSchema")?.addEventListener("click",o
 $("#downloadSchema").onclick=()=>downloadJSON(schemaExample,'game_sentiment_data_example.json');
 $("#downloadBtn").onclick=openDownloadCenter;
 $("#downloadClose").onclick=closeDownloadCenter; $("#downloadMask").onclick=closeDownloadCenter;
-$("#downloadReportInput").onclick=()=>{const payload=buildReportInputPackage(),safePlatform=state.platform==='综合'?'combined':state.platform==='B站'?'bilibili':'heybox';downloadJSON(payload,`apac_report_input_${currentWeek().week_id}_${safePlatform}.json`);};
+$("#downloadReportInput").onclick=()=>{const payload=buildReportInputPackage(),safePlatform=state.platform==='综合'?'combined':state.platform==='B站'?'bilibili':'heybox';downloadJSON(payload,`apac_china_report_input_${currentWeek().week_id}_${safePlatform}.json`);};
 $("#downloadFullDashboard").onclick=()=>downloadJSON(dashboardData,'apex_sentiment_dashboard_complete_data.json');
 $("#importBtn").onclick=()=>{if(requireAuthenticated())$("#fileInput").click();};
 $("#fileInput").addEventListener('change',e=>{
