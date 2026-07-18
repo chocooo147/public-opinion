@@ -521,10 +521,13 @@ function enrichWeekTopics(w){
     # File previews are often opened from a local file URL, where WebCrypto
     # may be unavailable. Keep SHA-256 when available and add a deterministic
     # offline verifier for the supplied standard account only.
-    source = source.replace("const USER_PASSWORD_HASH='397d1a8097452b158e449ce9104699854463d2b5893e8f4004abfa1db9d58aa0';", "const USER_PASSWORD_HASH='397d1a8097452b158e449ce9104699854463d2b5893e8f4004abfa1db9d58aa0';\nconst USER_PASSWORD_FALLBACK_FINGERPRINT='bdda2306';")
+    fallback_declaration = "const USER_PASSWORD_FALLBACK_FINGERPRINT='bdda2306';"
+    if fallback_declaration not in source:
+        source = source.replace("const USER_PASSWORD_HASH='397d1a8097452b158e449ce9104699854463d2b5893e8f4004abfa1db9d58aa0';", "const USER_PASSWORD_HASH='397d1a8097452b158e449ce9104699854463d2b5893e8f4004abfa1db9d58aa0';\n" + fallback_declaration)
     source = source.replace("async function hashPassword(value){\n  if(!window.crypto?.subtle) throw new Error(loc('当前浏览器不支持安全密码摘要，请使用最新版浏览器。','This browser does not support secure password hashing. Please use a current browser.'));\n  const bytes=new TextEncoder().encode(value);\n  const digest=await crypto.subtle.digest('SHA-256',bytes);\n  return [...new Uint8Array(digest)].map(b=>b.toString(16).padStart(2,'0')).join('');\n}", "function fallbackPasswordFingerprint(value){ let h=2166136261; for(const ch of String(value)){h^=ch.charCodeAt(0);h=Math.imul(h,16777619);} return (h>>>0).toString(16).padStart(8,'0'); }\nasync function hashPassword(value){\n  if(!window.crypto?.subtle) return 'fallback:'+fallbackPasswordFingerprint(value);\n  const bytes=new TextEncoder().encode(value);\n  const digest=await crypto.subtle.digest('SHA-256',bytes);\n  return [...new Uint8Array(digest)].map(b=>b.toString(16).padStart(2,'0')).join('');\n}")
     source = source.replace("function readAccounts(){\n  try { const parsed=JSON.parse(localStorage.getItem(AUTH_ACCOUNTS_KEY)||'[]'); return Array.isArray(parsed)?parsed:[]; }\n  catch(err){ return authMemoryAccounts; }\n}", "function readAccounts(){\n  try { const parsed=JSON.parse(localStorage.getItem(AUTH_ACCOUNTS_KEY)||'[]'); return (Array.isArray(parsed)?parsed:[]).filter(a=>a&&typeof a.username==='string'); }\n  catch(err){ return authMemoryAccounts.filter(a=>a&&typeof a.username==='string'); }\n}")
-    source = source.replace("if(!account||!account.active||account.passwordHash!==passwordHash) throw new Error(loc('账号或密码错误，或该账号已被停用。','Incorrect username or password, or the account is disabled.'));", "const localPreviewNick=username.toLowerCase()===USER_USERNAME && passwordHash==='fallback:'+USER_PASSWORD_FALLBACK_FINGERPRINT;\n    if(!account||!account.active||(account.passwordHash!==passwordHash&&!localPreviewNick)) throw new Error(loc('账号或密码错误，或该账号已被停用。','Incorrect username or password, or the account is disabled.'));")
+    if "const localPreviewNick=" not in source:
+        source = source.replace("if(!account||!account.active||account.passwordHash!==passwordHash) throw new Error(loc('账号或密码错误，或该账号已被停用。','Incorrect username or password, or the account is disabled.'));", "const localPreviewNick=username.toLowerCase()===USER_USERNAME && passwordHash==='fallback:'+USER_PASSWORD_FALLBACK_FINGERPRINT;\n    if(!account||!account.active||(account.passwordHash!==passwordHash&&!localPreviewNick)) throw new Error(loc('账号或密码错误，或该账号已被停用。','Incorrect username or password, or the account is disabled.'));")
     auth_bootstrap = 'arrangeDashboardOrder();\ninitializeAuth();'
     if re.search(r'(?:arrangeDashboardOrder\(\);\s*)+initializeAuth\(\);', source):
         source = re.sub(r'(?:arrangeDashboardOrder\(\);\s*)+initializeAuth\(\);', auth_bootstrap, source)
@@ -549,6 +552,22 @@ function enrichWeekTopics(w){
         source = source.replace('k==="B站"?" · "+loc("真实","Real"):" · "+loc("模拟","Simulated")', 'k==="B站"?" · "+loc("真实","Real"):" · "+loc("真实样本","Real sample")')
         source = source.replace("小黑盒已按固定种子生成模拟数据。", "小黑盒已接入真实公开搜索样本。")
         source = source.replace("Heybox simulation was generated from a fixed seed.", "A real public-search Heybox sample was imported.")
+    # Generated HTML is reused as the next run's template. Normalize old
+    # duplicate declarations and fail closed if authentication bootstrap is
+    # no longer singular.
+    source = re.sub(
+        r"(?:^const USER_PASSWORD_FALLBACK_FINGERPRINT='bdda2306';\s*)+",
+        fallback_declaration + "\n",
+        source,
+        flags=re.M,
+    )
+    auth_checks = {
+        "fallback password declaration": source.count(fallback_declaration),
+        "login submit handler": source.count("$('#loginForm').addEventListener('submit'"),
+    }
+    invalid = {name: count for name, count in auth_checks.items() if count != 1}
+    if invalid:
+        raise ValueError(f"generated authentication script is not singular: {invalid}")
     return source
 
 

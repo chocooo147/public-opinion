@@ -1,6 +1,7 @@
 {
   "required_files_missing": [],
   "absolute_path_manifest_issues": [],
+  "auth_script_issues": [],
   "sensitive_filename_policy": "raw/cookie/token/session files are excluded by .gitignore",
   "publish_ready": true
 }
