@@ -1,0 +1,10 @@
+{
+  "python": "3.12.13 (main, Mar  3 2026, 15:35:03) [Clang 21.1.4 ]",
+  "project_root": ".",
+  "required_files_missing": [],
+  "next": [
+    "python scripts/check_environment.py",
+    "python scripts/run_full_workflow.py"
+  ],
+  "raw_data_policy": "append_only; raw data and frozen model are never overwritten"
+}

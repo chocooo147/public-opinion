@@ -1,0 +1,1509 @@
+{
+  "reference_date": "2026-07-18",
+  "reference_timezone": "Asia/Shanghai",
+  "windows": {
+    "2026_W25": {
+      "start": "2026-06-15",
+      "end": "2026-06-21",
+      "status": "complete_historical"
+    },
+    "2026_W26": {
+      "start": "2026-06-22",
+      "end": "2026-06-28",
+      "status": "complete_historical"
+    },
+    "2026_W27": {
+      "start": "2026-06-29",
+      "end": "2026-07-05",
+      "status": "complete_historical"
+    },
+    "2026_W28": {
+      "start": "2026-07-06",
+      "end": "2026-07-12",
+      "status": "complete_historical"
+    },
+    "2026_W29": {
+      "start": "2026-07-13",
+      "end": "2026-07-19",
+      "status": "open_incomplete"
+    }
+  },
+  "latest_complete_week": "2026_W28",
+  "current_open_week": "2026_W29",
+  "current_open_week_status": "incomplete_as_of_2026-07-18",
+  "raw_declared_week_counts": {
+    "2026_W25": 620,
+    "2026_W26": 548,
+    "2026_W27": 510,
+    "2026_W28": 459
+  },
+  "raw_actual_week_counts": {
+    "2026_W25": 453,
+    "2026_W26": 563,
+    "2026_W28": 614,
+    "2026_W27": 455,
+    "2026_W29": 49,
+    "": 3
+  },
+  "raw_file_summary": {
+    "bilibili_apex_2026_W25.csv": {
+      "rows": 203,
+      "cross_week_rows": 39
+    },
+    "bilibili_apex_2026_W25_rectification_supplement.csv": {
+      "rows": 30
+    },
+    "bilibili_apex_2026_W25_rectification_supplement_round2.csv": {
+      "rows": 30
+    },
+    "bilibili_apex_2026_W25_supplement.csv": {
+      "rows": 212,
+      "cross_week_rows": 89
+    },
+    "bilibili_apex_2026_W25_supplement_round2.csv": {
+      "rows": 96,
+      "cross_week_rows": 29
+    },
+    "bilibili_apex_2026_W25_supplement_round3.csv": {
+      "rows": 49,
+      "cross_week_rows": 9
+    },
+    "bilibili_apex_2026_W26.csv": {
+      "rows": 426,
+      "cross_week_rows": 77
+    },
+    "bilibili_apex_2026_W26_rectification_v2_supplement.csv": {
+      "rows": 26
+    },
+    "bilibili_apex_2026_W26_scope_supplement.csv": {
+      "rows": 96
+    },
+    "bilibili_apex_2026_W27.csv": {
+      "rows": 330,
+      "cross_week_rows": 103
+    },
+    "bilibili_apex_2026_W27_supplement.csv": {
+      "rows": 180,
+      "cross_week_rows": 29
+    },
+    "bilibili_apex_2026_W28_2.csv": {
+      "rows": 182
+    },
+    "bilibili_apex_2026_W28_round2.csv": {
+      "rows": 277
+    }
+  },
+  "raw_cross_week_sample_count": 200,
+  "raw_cross_week_samples": [
+    {
+      "file": "bilibili_apex_2026_W25.csv",
+      "text_id": "bilibili:311e65b5938c1f4418a1f9245c86aa25a4efe379977f80ecbf84f57822ade156",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-23 11:14:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25.csv",
+      "text_id": "bilibili:6b5534d511d96e90897e70f658197d45584f62dc3d6d276c6ff9e00f65e6592a",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-25 10:56:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25.csv",
+      "text_id": "bilibili:5d80f67c0878a6d50d850b977503375ae2e7505e92489eca555ec56026a04d6e",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W28",
+      "publish_time": "2026-07-10 20:48:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25.csv",
+      "text_id": "bilibili:da39f279aeceae25ba578d83259573a8ce608f0a399ef04ce4ed57d73f4fd582",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W28",
+      "publish_time": "2026-07-08 13:03:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25.csv",
+      "text_id": "bilibili:788381202446c903d248d9b9aa8bcab257d25ad9c615765fd5c4b11d2766c359",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-22 02:05:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25.csv",
+      "text_id": "bilibili:a93deab98c315be8524a73c2d8001ad5a39af86b8a6ef20b924978b1593521cf",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W27",
+      "publish_time": "2026-07-03 19:05:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25.csv",
+      "text_id": "bilibili:9a33f211a410923d3b88591c2117e1f6889a63892cab48bcd7b66272cca7c38f",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-25 11:09:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25.csv",
+      "text_id": "bilibili:b8657662f491da6ffb102dc6f83f0cffd9d1c085086385f17b4e0228e8b64757",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-24 03:43:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25.csv",
+      "text_id": "bilibili:4541beb7a0253897ba0664c2cb22495488e56fa17df49c049004be8869332c6c",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-24 01:50:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25.csv",
+      "text_id": "bilibili:4f8bca0a5c7ac0d5338f3781a38e72dbbb9800bc7c5ebb9beeb9f04e88085f0e",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-26 02:45:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25.csv",
+      "text_id": "bilibili:3d6491027c7d82791108f7ff31de3a698f00e668274984ebf19fcdfb8878b248",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-23 07:52:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25.csv",
+      "text_id": "bilibili:75e4ad9e9b06d4bd90dbcb12312994bf291d3560d8a9052275c831474b2d5fca",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-24 18:36:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25.csv",
+      "text_id": "bilibili:39abcc67471906315f84b05d988c0cf5db3164c7ecd6f9863fc46f14b2fdae6c",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-26 14:05:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25.csv",
+      "text_id": "bilibili:81c6603e69ebcf62d17fe5d6228be07148697e676e235c19a3dd9d17658c296f",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-27 11:35:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25.csv",
+      "text_id": "bilibili:0025635f473e6ae4cd39302f50d93aac010ea2bb8b22789b5649e795dd2fd4a5",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-24 11:40:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25.csv",
+      "text_id": "bilibili:4caf3fc4c11821e45865ba4a7a67c3077175633e3919e947b72bcee629c30604",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-25 15:36:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25.csv",
+      "text_id": "bilibili:a15da56e296290028bfadf9f8376982ca2735bbea9ec75980365d882becaff44",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-25 00:32:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25.csv",
+      "text_id": "bilibili:c99c811a1bac55f2db9df126ca157c1646385b301ada168c7b96d1ad3254fd18",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-23 13:27:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25.csv",
+      "text_id": "bilibili:c9a308413bef15e31ff52a35586e1c0ca1b890b99d4127b9264e95b452a16f7d",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W28",
+      "publish_time": "2026-07-09 19:11:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25.csv",
+      "text_id": "bilibili:acf2e161a3246c646ac810ab375b47528d721176bfb59945618dbe9dd61f3de1",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W28",
+      "publish_time": "2026-07-11 21:36:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25.csv",
+      "text_id": "bilibili:653fe6928d27c0bca7343d9c9b0a57fd452d0ff8a822045bb0d1ac30c717323f",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W28",
+      "publish_time": "2026-07-10 17:28:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25.csv",
+      "text_id": "bilibili:16a55cac20908616ae3a51852c298098b46411f7edec251520f560aa8c8bd147",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W28",
+      "publish_time": "2026-07-10 11:18:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25.csv",
+      "text_id": "bilibili:c97726f2e21a6d704fe74ab25aef6555416d8680fe5101b37db0c10cfd2b8829",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W29",
+      "publish_time": "2026-07-13 15:24:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25.csv",
+      "text_id": "bilibili:48c1d8ec1bf9a87785fa238ea47a7b60fd913b1bd922693fc8c10864c37a49e3",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W28",
+      "publish_time": "2026-07-06 22:42:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25.csv",
+      "text_id": "bilibili:c67999bfaafa3ede2939ac1d1de24f3d3b3c0ca34bb05fa28181566d00ddea6f",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W28",
+      "publish_time": "2026-07-11 17:09:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25.csv",
+      "text_id": "bilibili:d43543e5621e178910eb7baa30934adb8745127c2adde0d81c02b91a159bba8d",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-22 19:34:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25.csv",
+      "text_id": "bilibili:d760e31d54b1aa6cd677bed5b24d7bfe08ce0634e55b79d30372327d6a4a4a39",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W27",
+      "publish_time": "2026-07-05 17:05:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25.csv",
+      "text_id": "bilibili:69efec788f01ee47f13f86e667630f01e9059adeea77d7b3365460fcb712dc87",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W29",
+      "publish_time": "2026-07-13 23:00:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25.csv",
+      "text_id": "bilibili:1e0657ac2b0a4840f8353a8401c2775ebd561b92b064b37f7b36696a1c83280d",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W27",
+      "publish_time": "2026-07-05 23:29:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25.csv",
+      "text_id": "bilibili:6f68820e4e31730b4dddf96fdc141dd2ecce11288846d071c32e22e10067f424",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W27",
+      "publish_time": "2026-07-05 23:57:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25.csv",
+      "text_id": "bilibili:f0c3b16fc9d948cc680d46b994b1c2b982f7524a6f22ee1ac3b91d83bd15f3ea",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-22 17:14:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25.csv",
+      "text_id": "bilibili:225e08fa6a3f68449b60181cdec08303be1c261a612757ceeea3d764efbae93f",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W27",
+      "publish_time": "2026-07-02 11:18:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25.csv",
+      "text_id": "bilibili:59cae73d0c6bf67bdd3e742b0bd2651ed9aff1f7475b8ad2d3f12d06027aea7a",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-24 10:27:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25.csv",
+      "text_id": "bilibili:2513a2c26f1a9bf07dc81715f37a460b3f0b2dd053ab71b8a58a46fa9bf8afea",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W28",
+      "publish_time": "2026-07-12 20:40:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25.csv",
+      "text_id": "bilibili:381c8bf576f6fcdef277e5f375b2ecfcdb6cae70166fefb55901b1dd28132721",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-26 18:37:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25.csv",
+      "text_id": "bilibili:6e4d6afe9970d9b3fff34a6fb0eb5df533fd1ef99af030de9faf3580479c6161",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W28",
+      "publish_time": "2026-07-10 16:57:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25.csv",
+      "text_id": "bilibili:53f41f1f01443adcb4894f52c9c0ded16706cdf88c0d8c0319e42c991d8f8259",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-27 12:21:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25.csv",
+      "text_id": "bilibili:8f852f093c730d9c9aefcc83a8a0609d170a4206fe46f437ff7319ccc84a7829",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-24 14:19:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25.csv",
+      "text_id": "bilibili:4215b8b6d6839e981f6700dd9a561480a78731884d09e640e25e0801ae64bab3",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-22 08:30:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement.csv",
+      "text_id": "bilibili:b3010893772a09b8b67a56b92654125dccbe186aa5c3e1ab767620847153c6f2",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-23 13:27:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement.csv",
+      "text_id": "bilibili:55f0c5446809c6c93b8bf4c30ebdca13f840bd0ece0f98bdddd371c38df37c92",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-22 10:23:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement.csv",
+      "text_id": "bilibili:6c9243e349ecbefddab48fb128e0127278b4f8b89afec5e2e6d16108519bd589",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-23 03:59:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement.csv",
+      "text_id": "bilibili:40352df0e88cede3ff4ee4b9dbe090b55869b2f30b8513ad6dae78ba40eae28e",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-22 17:41:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement.csv",
+      "text_id": "bilibili:a558588279b9abd283bf41790f894e4ef21e10c42e1dd160b6ef54a87ff3684d",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W29",
+      "publish_time": "2026-07-14 23:02:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement.csv",
+      "text_id": "bilibili:3526889de831786d57d22649dfca9a632408fba48cdd1fc5688bb525d37d731e",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W29",
+      "publish_time": "2026-07-13 20:01:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement.csv",
+      "text_id": "bilibili:9ba92b1bb349bbf0d1b29f94f039556e040fd3adb15cf8e2049b9c383b7cd0fb",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-22 21:12:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement.csv",
+      "text_id": "bilibili:41404a6645129bcfae3a704a03fd81f651e12db4252a9f72925cd5d4427c33ed",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W29",
+      "publish_time": "2026-07-13 04:57:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement.csv",
+      "text_id": "bilibili:077b17ae5f73a570894df0c3acd52542ea06d409bc1da60d1c48273f3fe12ecf",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W28",
+      "publish_time": "2026-07-07 23:56:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement.csv",
+      "text_id": "bilibili:a58a1f926c9bc983d8a10ffbba15c7e1898f87793d0eda56fded11242a6939f2",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W28",
+      "publish_time": "2026-07-12 14:27:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement.csv",
+      "text_id": "bilibili:9dac5136911adbcac2539d571fe5a2356e1d58969550565743f64f9e19c76e5d",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W29",
+      "publish_time": "2026-07-13 22:38:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement.csv",
+      "text_id": "bilibili:6ef6818211026b62d67f7fa5da3ce65b8ed72b97ae0627ac54bf80cef4e11319",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-23 02:28:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement.csv",
+      "text_id": "bilibili:b003b6a4daf7ca6648a2d0474feb391e9dc5947a2ce6796266e43eff2dc8b57b",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W28",
+      "publish_time": "2026-07-09 11:34:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement.csv",
+      "text_id": "bilibili:2ee7d4751c798dbc01e99a5f4168af5229f39aabcbdfb1c7a273393efe7864c7",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-25 18:31:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement.csv",
+      "text_id": "bilibili:70f8cac5a287705a6cbcfa81ecc2ac482a8d3eb37dff14889159793eb03e52ba",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-22 02:32:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement.csv",
+      "text_id": "bilibili:2626d02ac53d561851249dee1791f005b6de9a4af98c117b0bbb281920ecd163",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-22 11:28:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement.csv",
+      "text_id": "bilibili:96383c23b2633b5ef16b4b0647f56c2bc0a0b9f7bb1a341f47c5100c4bca2ab8",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-23 00:31:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement.csv",
+      "text_id": "bilibili:1a621cb7c717790c5ccd76438d45925ab0cadb24024fde89331e28cbc0459927",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-22 02:31:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement.csv",
+      "text_id": "bilibili:bcb90f8f6ffac60c00ea2223277279e57042538624855d4faff307643087ebba",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-23 00:29:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement.csv",
+      "text_id": "bilibili:2167fbc737c8e3c6409f6725e7ef08b56b1185d1ea8b57f74c48961a5a40d3eb",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-22 02:34:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement.csv",
+      "text_id": "bilibili:168fa36744c0b52b52f358c948175e1bf120ecd2640cd56927edb871f7f5aece",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-22 02:29:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement.csv",
+      "text_id": "bilibili:c7112fc072ad5a49ed9877f542384508e4fdaaab166841655e0c60d344b690f2",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W29",
+      "publish_time": "2026-07-13 18:50:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement.csv",
+      "text_id": "bilibili:cbbb8771d18d8cd2bde569fdfcfd8da6710923f30cc78b90e394ddb6cbe77aee",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W28",
+      "publish_time": "2026-07-07 01:36:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement.csv",
+      "text_id": "bilibili:9d6147a2947e66685c093df335b387c9e0c49b73c6ade9715b27c94519f444c0",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W29",
+      "publish_time": "2026-07-13 02:45:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement.csv",
+      "text_id": "bilibili:10bc6e00cf679e51c57408fe02964403569eda78f5433de3da66508193bed187",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W28",
+      "publish_time": "2026-07-10 13:45:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement.csv",
+      "text_id": "bilibili:fc4153be1bf822aacb6162e9d5a8444ec839168574bf054436e3bef16de88f8d",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W29",
+      "publish_time": "2026-07-14 09:46:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement.csv",
+      "text_id": "bilibili:2dcad7f77b279b49868b86f14e8cae91415f96d623d979909b5e128c50b99da3",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W29",
+      "publish_time": "2026-07-14 05:31:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement.csv",
+      "text_id": "bilibili:875a51a0f2319686f2b44ff36ea1b3d31cc4ed9d19764773d6160ccebdcf2c82",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-22 02:58:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement.csv",
+      "text_id": "bilibili:0e0496a5787cdb24868879c3dd3140349b0eb2b72581b368fbd031c3a531c136",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-23 10:03:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement.csv",
+      "text_id": "bilibili:e1c37c0175dd69127ca47d9006a8528cd1e2e1f1058a06c9c4ed609f124695fd",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W27",
+      "publish_time": "2026-07-03 15:37:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement.csv",
+      "text_id": "bilibili:b97a11079d936037cd9e45fd49881d18717c3c8131109524c712ccd660bd7127",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W28",
+      "publish_time": "2026-07-10 06:56:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement.csv",
+      "text_id": "bilibili:a69d4e9c0f04af555fb83b131d2751c86642df39f7f4f77508ad78f0bba6fd26",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W28",
+      "publish_time": "2026-07-07 00:42:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement.csv",
+      "text_id": "bilibili:4c95d91d5dcc3fd940c5f578dc83d3882be333c04701add0dc1a30aa22743614",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W29",
+      "publish_time": "2026-07-13 01:22:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement.csv",
+      "text_id": "bilibili:ff0e3e8968bf7972310e352c3898c02f5509a2bbb0819d0d41c888b6b99fb571",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-22 17:58:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement.csv",
+      "text_id": "bilibili:76a6f669225e3cdcf6c8bbf02de44ee24c432ba38ee38bb2dd4d09f32625a983",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W28",
+      "publish_time": "2026-07-06 10:20:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement.csv",
+      "text_id": "bilibili:d25671b07dd44d4551422e1ec2d751b062926727e4dc0c9a71aa611e3d8d1073",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-23 08:21:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement.csv",
+      "text_id": "bilibili:d78f6f6c495d94f8dbf45d517d58f96548372fb6a79075324760b7a3c7f29799",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-27 09:41:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement.csv",
+      "text_id": "bilibili:39b8545d754d85c5109d6f4283909216028c1014f926650bde422c0c77559b02",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-23 08:33:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement.csv",
+      "text_id": "bilibili:82c6d24b02f9520c9088495d0c16126810f6d6a83e5ac41a455e9ef9aa661492",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-22 12:42:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement.csv",
+      "text_id": "bilibili:6f264a9f2ea60495e8b672dfdb1ba81ee419222e51ee9c096b86cfa976b0eab9",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-23 21:01:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement.csv",
+      "text_id": "bilibili:1bf2da72034b1e9332c9013df759cdd9ef6a2593f8b6345cb19297d4462d5fad",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-27 07:23:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement.csv",
+      "text_id": "bilibili:440a3dfbec74a0bc009e1bf5471b01d180ba779c88378864734fa255d3a0f5e7",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W28",
+      "publish_time": "2026-07-11 18:12:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement.csv",
+      "text_id": "bilibili:c6227675a64a2c30b86c497a9b8975fa9405da4090b9518ee3908f8695bf0fd8",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W27",
+      "publish_time": "2026-06-29 20:31:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement.csv",
+      "text_id": "bilibili:38c282016a9e96afc41bd7104d6173e8eeb96640ed63fc98db6dcc7722237b0a",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-28 23:55:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement.csv",
+      "text_id": "bilibili:fa7bc343ee39b2d4e1397c303e2970eb159cecd34e73204be359aedcdea1b392",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W27",
+      "publish_time": "2026-07-03 04:08:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement.csv",
+      "text_id": "bilibili:90d93d3542bc460b13ebb55c1026068b206e3b455ba3e54518de65d10f1cf072",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W27",
+      "publish_time": "2026-07-03 12:48:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement.csv",
+      "text_id": "bilibili:6b33941ea531938bd18ec476aefc93352ecf7726c34045f3fdbd9afe6e3b7253",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W27",
+      "publish_time": "2026-06-30 17:17:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement.csv",
+      "text_id": "bilibili:76becfd3c339b113c6d1ea3fd45ec5a64efab6b2959f2ab5eee854c10b46bc64",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W27",
+      "publish_time": "2026-06-30 18:28:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement.csv",
+      "text_id": "bilibili:46f60861188ff1d1dea1eb16f09e454aa8b27f7689a5da025cb9eda1ed7edace",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W27",
+      "publish_time": "2026-07-01 06:29:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement.csv",
+      "text_id": "bilibili:290c504932b3536fc1559f2693dea44090ab327d7aaa7fed336c946613eb3411",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W27",
+      "publish_time": "2026-06-30 00:49:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement.csv",
+      "text_id": "bilibili:6e7c47938a653fa862438e44752f521d69bca53576a90caae7e0466c13f9efe1",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W27",
+      "publish_time": "2026-06-30 10:10:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement.csv",
+      "text_id": "bilibili:8f8057f8051c0528949f9b2c75e2d75eaa49ffb6d5b4dc21b78b49b34d3620f8",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W27",
+      "publish_time": "2026-06-30 23:46:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement.csv",
+      "text_id": "bilibili:ef914cddd4eb8c5ea3564faa3bd1518e45694afe11d5e5368fdd1adf10e6ed63",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-23 00:55:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement.csv",
+      "text_id": "bilibili:4e6f593f5bbc5e18e06ec2de0e6c7d5361cafc10efb9cf40047e5e618e96f4b7",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W27",
+      "publish_time": "2026-06-29 12:28:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement.csv",
+      "text_id": "bilibili:4c0880fafcbf49e429792d8220c2474d5251186b12a8be28f5549976040eacc8",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-28 22:40:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement.csv",
+      "text_id": "bilibili:1696ea79d2a1fb82103acfe5f6838979968cfd944ac98919dfe0ca7608131cd2",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-23 06:50:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement.csv",
+      "text_id": "bilibili:bb22a76d20fc3f9d22c1701ea524705a33ba95a90947eb03cc301b6d7d224aac",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W27",
+      "publish_time": "2026-06-30 04:36:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement.csv",
+      "text_id": "bilibili:2f7d9dd5826fd275d357fd0daef1c3019ce7e3d3d3c70a0989ccfe2ff2fa2b7b",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-23 20:33:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement.csv",
+      "text_id": "bilibili:a515b5bb79d794e3efdb8d905324a98b2571adfcbd2032e248a0fb8b1e59d136",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-22 15:43:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement.csv",
+      "text_id": "bilibili:5f42bf320fea2d5b9b7deb2736a66f12dfc25c303747c305845b2311e6e947b5",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W28",
+      "publish_time": "2026-07-07 12:56:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement.csv",
+      "text_id": "bilibili:e7ea154d53c58401cf61afbfd421d8ded386537c3e999b8e55902cc88dc983da",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W29",
+      "publish_time": "2026-07-13 22:50:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement.csv",
+      "text_id": "bilibili:74c28eb902877939371dea0fe2ee1ffbb21a11457c97b4c0ee30f2b9fa2f2d6b",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-24 00:07:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement.csv",
+      "text_id": "bilibili:5038b3dd58a7640484e577b0e13adc2f591bb321c89ddc325f22c136e1c2a7dd",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W28",
+      "publish_time": "2026-07-08 03:18:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement.csv",
+      "text_id": "bilibili:afa97768f3f55fa9f99a75b9270858b4f1af295b7139e0060fa76da78f84e211",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-23 21:28:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement.csv",
+      "text_id": "bilibili:08f1ce4544f09b3f3aae0240899b242cd45679f9929959269bde9cccc715df91",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W27",
+      "publish_time": "2026-07-03 14:56:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement.csv",
+      "text_id": "bilibili:0087d8a987a7bc7a476701e201b906216aeac65c7c29f579ab0681497e9ed7c4",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-28 00:03:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement.csv",
+      "text_id": "bilibili:dc761e37d7684b52fe094eeca364e77d25d59ffa3e7e52fec6869f275f1efe69",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W27",
+      "publish_time": "2026-07-05 23:40:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement.csv",
+      "text_id": "bilibili:38d5540c5167701c50220b2903d96adfe4b063b9376624a718a69edd42252944",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W27",
+      "publish_time": "2026-07-01 18:47:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement.csv",
+      "text_id": "bilibili:ab7170808a5fc34daf44e5580f94a80f5d1b9060f23c7d2bd9771c9063ebb455",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-26 11:04:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement.csv",
+      "text_id": "bilibili:8c707b60d337440a74ebf3484ddd14e524a057a6955bb61a48251138b691f015",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-22 04:01:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement.csv",
+      "text_id": "bilibili:1e4caec78fe0295dd81c9d1729f29aebdea2145ccd40f4c13cf15d15a15aa2d5",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-25 15:29:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement.csv",
+      "text_id": "bilibili:6b78e0bbff16b76414565f61a428f14cdcbe4c7129413761282f2610603ccb58",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-25 20:25:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement.csv",
+      "text_id": "bilibili:a6b21ebad8aa25f9a1c9b84459e7365b3501dfc0f209f1216488f430d7adac6c",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W27",
+      "publish_time": "2026-06-30 00:38:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement.csv",
+      "text_id": "bilibili:1b0faec95534e6c42445111096535f4791594e9065327479aab8991d1d18ac32",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-22 02:03:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement.csv",
+      "text_id": "bilibili:a325dccabbf47a2bd78676adf9cd20f2e91a7410634b389cb5cfdba635041c06",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-22 18:01:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement.csv",
+      "text_id": "bilibili:1810effb4ddc2b0bff534fa49d3033ef838fe40f8cfb1dd685b0ffc69943b0d9",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-24 18:08:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement.csv",
+      "text_id": "bilibili:fd7129e2878b2998b9364b53920777f3305e33f1fd41a646ad5d0d4295d0d405",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-27 03:47:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement.csv",
+      "text_id": "bilibili:8bddb5bf3d9756ab4c832aec2e9f257b3c07a4d91c86f523d1abcfc2528e3c44",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W27",
+      "publish_time": "2026-07-01 15:17:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement.csv",
+      "text_id": "bilibili:9b1ddadf09e7acd42f4a43bfcd60653ef1d432b0e81a8aa75c4d898a2ed2a5db",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W28",
+      "publish_time": "2026-07-09 14:11:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement.csv",
+      "text_id": "bilibili:89e47835a24fa696a22f6784759eff84aa197bc2c05fa5974fda3b0138bb44f7",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W28",
+      "publish_time": "2026-07-08 02:42:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement.csv",
+      "text_id": "bilibili:768da1d58403e226927e0199228cdb216b6d2f9e707abbbf93a01081da0e6e29",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-28 13:47:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement.csv",
+      "text_id": "bilibili:2f9ad2d65320eb402c045025d0cb9aa3f34087cc523347b44506c9aaafd297ed",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W27",
+      "publish_time": "2026-06-29 12:18:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement.csv",
+      "text_id": "bilibili:8dcb50c54570b881e9aa8f1572bb4edb27fe92ed28a2192bed344152bd01c46b",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W28",
+      "publish_time": "2026-07-08 03:36:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement.csv",
+      "text_id": "bilibili:c86a4be86346e30ce7d334ee20a9fb5bbcb6433f347f82287fff0fbdfaaac9a5",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W28",
+      "publish_time": "2026-07-08 01:44:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement.csv",
+      "text_id": "bilibili:de58fd4232e7be78303d5159e39d7d8f3cd9cc820637f87fda879aaaa630fecf",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W27",
+      "publish_time": "2026-07-02 22:56:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement.csv",
+      "text_id": "bilibili:6ef87468edc8c447b0cbface6dd281cd953728069b6c5be646e552caa3369669",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-25 03:47:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement.csv",
+      "text_id": "bilibili:f7103faa77721ab04294742c1c5b2eb2903f04b3d28aa319475cff2f6751f196",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W29",
+      "publish_time": "2026-07-14 22:08:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement.csv",
+      "text_id": "bilibili:9007d69712b0c432da1a331982459ae9ab0255952d24efcd976f70a8b03477b4",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W29",
+      "publish_time": "2026-07-14 20:27:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement.csv",
+      "text_id": "bilibili:b697e4470a0f0457dced77c1d404583a134be383346ce957e84466ab521ba14e",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W27",
+      "publish_time": "2026-06-30 14:10:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement_round2.csv",
+      "text_id": "bilibili:b2c0bd72e095918d43b9bf529dc545899329cda5397638fcc6399abc59f9bc1e",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-22 11:34:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement_round2.csv",
+      "text_id": "bilibili:5f846763da15a8ae1a210eabf288ee16b45a78edbede9c05ffd73e59c932610f",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-22 02:09:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement_round2.csv",
+      "text_id": "bilibili:c8eb19f76b19072e0ea520ed9cdd962c39ca5f98a04637fa81913db85748cfd6",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-25 01:02:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement_round2.csv",
+      "text_id": "bilibili:584340bf24956e1ca49b29164678666cf51fb39ddaf8d905c7e9a2243cdcd76f",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W29",
+      "publish_time": "2026-07-14 04:41:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement_round2.csv",
+      "text_id": "bilibili:7e6fe5a9f1e89087a1436282ddcad8f1ae6554f6c852d1f98778476feb473784",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-26 22:39:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement_round2.csv",
+      "text_id": "bilibili:8962491fc5e988dd758a1979f0e086a05c2e786db7f8b9808978a51edd061267",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-23 04:34:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement_round2.csv",
+      "text_id": "bilibili:8c21add7eed3695fca47008f34e1e352e1499e072eee54b413aa2876dec83312",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-26 14:09:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement_round2.csv",
+      "text_id": "bilibili:f76eda0fa9d5e0890b134cbe879c7b70311b95e8893598af7f1971837545475b",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-23 09:12:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement_round2.csv",
+      "text_id": "bilibili:161fda2797ba5210efadb8ee7ed2225de7ff108c392a3633d874c12f9b84921d",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-23 02:58:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement_round2.csv",
+      "text_id": "bilibili:6a1a8cb05c3917763340ec905bc61bcbb4a2a3c4183f6b6f5a5c829dd5b8ae14",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-28 09:52:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement_round2.csv",
+      "text_id": "bilibili:ed609113202cc961733ffcbc38840c2b2716d0e4fb1c7996bcf4c3d7deca3d3a",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W27",
+      "publish_time": "2026-06-29 21:57:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement_round2.csv",
+      "text_id": "bilibili:fb4e5763196cdeab8c948e915eb93ebe12acdf34b09bf0e7df91ed1f978c92ba",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-25 18:56:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement_round2.csv",
+      "text_id": "bilibili:3291e3c44a3f3ce782f017e44573b35181fcac4c8fd8e272ed746003c4b4e21e",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-28 19:25:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement_round2.csv",
+      "text_id": "bilibili:621b9fdac16487578c3b603dd58428de4365baa2d7b6c702d62cdadef3681bc6",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-24 02:15:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement_round2.csv",
+      "text_id": "bilibili:3fb223cafb2318dcd003c796f750821956a0b498df2180b803c8c5e5919b3f0b",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-23 12:25:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement_round2.csv",
+      "text_id": "bilibili:a4b72953b2c7c9c05ca5680fa07412bcb98914e9c5c97f6592c88bd6a5bd2abd",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-22 23:42:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement_round2.csv",
+      "text_id": "bilibili:806c6671f0088489f77b761145abe8747abe32fd6224c2828fbed27962330216",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-26 01:32:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement_round2.csv",
+      "text_id": "bilibili:b54397c8ef03431142c671d05e6acf9e90a5cf68e106a4c86201d1c0770cbc20",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-22 15:01:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement_round2.csv",
+      "text_id": "bilibili:055b0c6caedbbc8ac7a1d8804fd1d54aa1e2182c9ef52640f4c9a7462e89d467",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-22 10:40:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement_round2.csv",
+      "text_id": "bilibili:2b52b0d6fab2b538fd2be4e079b1432242cd0f934d4e6e306ec2f4d205771df2",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-22 02:36:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement_round2.csv",
+      "text_id": "bilibili:e573f258289ca9270f88187fc12073eed47d4a817216caf2373e15fffa14c764",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W28",
+      "publish_time": "2026-07-10 18:09:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement_round2.csv",
+      "text_id": "bilibili:c04c1a8746cf0f4734e07c053ba637c472e4c6efaf0b071893379a4ad2da8a4c",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W29",
+      "publish_time": "2026-07-14 07:14:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement_round2.csv",
+      "text_id": "bilibili:331ee3a72990929f3c9f616a50149d54075a7fbe330aa9a567db3b765cae3421",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-22 22:29:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement_round2.csv",
+      "text_id": "bilibili:8ad9ea83353b8de9aab44839b9f1cf06a12708f3968bdf294157d2d358ebe20a",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W27",
+      "publish_time": "2026-07-03 13:02:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement_round2.csv",
+      "text_id": "bilibili:3ed3dcc4d107d37fefaa43a66afca21532b086f869c1420467a88947cbf64e8f",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W28",
+      "publish_time": "2026-07-10 10:55:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement_round2.csv",
+      "text_id": "bilibili:c39548a4b4634db2d32a52813a7802c69d3ae3e2c532d73f4a0333a4c84f33a4",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-23 22:18:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement_round2.csv",
+      "text_id": "bilibili:9f1445eb46793ffd3aa3509cd42557550ae638593c3b3e17f226e048f1c29fdc",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W27",
+      "publish_time": "2026-07-03 20:21:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement_round2.csv",
+      "text_id": "bilibili:3abadda6141d4bdbbfd60b43496141c7e16ae410c825e64ffe560ec5000d2804",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-22 20:53:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement_round2.csv",
+      "text_id": "bilibili:7b7df64d510a6f3302379ab38621931966aea3d92bc0054cb381c63656138ef1",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-23 11:21:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement_round3.csv",
+      "text_id": "bilibili:d87fcede61c2d99d3a6277c85cbef33be34d63a0e64af80f425f4f33f23829b1",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W28",
+      "publish_time": "2026-07-06 20:47:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement_round3.csv",
+      "text_id": "bilibili:e8051d94339bc6a8b54e891f9964013c3ac9dc306630858165bc8246f4fa2867",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-22 18:28:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement_round3.csv",
+      "text_id": "bilibili:ea1a9e0b54dc99dd19da0e30908dbf925d67c4a2a87297eaae6fe38f65bd9a36",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-23 00:22:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement_round3.csv",
+      "text_id": "bilibili:fc6c86a83eca4c79f0101736a267183c97cdc19ba06766fe628b6ff2ee31b4dd",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-24 01:49:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement_round3.csv",
+      "text_id": "bilibili:98521a0f8f7f861ae6523603eed8198a53af23eb3f53f7a1b8ab043879f4fc2e",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-22 11:49:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement_round3.csv",
+      "text_id": "bilibili:4acf862d5f750d32b32aa5874049367ef1915a931997928185e3f37284a86919",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-27 20:07:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement_round3.csv",
+      "text_id": "bilibili:02b2eaa38175a376098d3548d231341301c4b14c3a38f9c22bdc72fd7dbd082c",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W27",
+      "publish_time": "2026-06-29 22:45:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement_round3.csv",
+      "text_id": "bilibili:cc84ead35e25ef83f44d7ed9559f04ae899917127cc6c2cd879f069bcb107dda",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W26",
+      "publish_time": "2026-06-28 23:29:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W25_supplement_round3.csv",
+      "text_id": "bilibili:90ee337b192a967694adfd9a4dec34661539faf878faf4aa1b395d1396cd562e",
+      "declared_week": "2026_W25",
+      "actual_week": "2026_W27",
+      "publish_time": "2026-07-01 02:10:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W26.csv",
+      "text_id": "bilibili:e5ade8f30f8390c4f9e1a2a796d793e01a63235e0fcd08d2f28d7b99faa40e01",
+      "declared_week": "2026_W26",
+      "actual_week": "2026_W27",
+      "publish_time": "2026-07-01 02:30:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W26.csv",
+      "text_id": "bilibili:bbca61ed9c9f9b5eb9f8497ac49b59a8684fca3b0294482ed63cf07810f364c9",
+      "declared_week": "2026_W26",
+      "actual_week": "2026_W27",
+      "publish_time": "2026-07-05 21:59:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W26.csv",
+      "text_id": "bilibili:c0e41ca2b2896fb6c5e96670312b9f37f58844b003803e6bc7c65e506845e149",
+      "declared_week": "2026_W26",
+      "actual_week": "2026_W28",
+      "publish_time": "2026-07-11 21:31:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W26.csv",
+      "text_id": "bilibili:3acc4ba0bc98d4924197a96f2865f443c19468506df353208ef281fcbc8f3735",
+      "declared_week": "2026_W26",
+      "actual_week": "2026_W29",
+      "publish_time": "2026-07-14 14:31:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W26.csv",
+      "text_id": "bilibili:1111178ea7cb3b42b9801de7c5dd1d4418670e8e9ea7d9d5c657462535d96eeb",
+      "declared_week": "2026_W26",
+      "actual_week": "2026_W29",
+      "publish_time": "2026-07-14 22:59:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W26.csv",
+      "text_id": "bilibili:80f48bbd29c018260ff5ade735eb9fc6c75f541cbbfaa1c62838b10f67a23986",
+      "declared_week": "2026_W26",
+      "actual_week": "2026_W29",
+      "publish_time": "2026-07-14 15:39:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W26.csv",
+      "text_id": "bilibili:5df3c6a54a25145821852918659df8531df2d31837383cb050e242cf95a5299e",
+      "declared_week": "2026_W26",
+      "actual_week": "2026_W29",
+      "publish_time": "2026-07-14 03:22:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W26.csv",
+      "text_id": "bilibili:d5d1aeed986c7c87c8af169706022234acd56743007b3143e893d76c7ac77659",
+      "declared_week": "2026_W26",
+      "actual_week": "2026_W28",
+      "publish_time": "2026-07-12 13:22:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W26.csv",
+      "text_id": "bilibili:d4e7df1313a80476687fd92943df015b503a66b94d685093dff1652bc1e69043",
+      "declared_week": "2026_W26",
+      "actual_week": "2026_W27",
+      "publish_time": "2026-06-30 14:59:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W26.csv",
+      "text_id": "bilibili:bf3ba5482221ac1be72c6885efd78ff80012b776a0962c6d671b38974c136ec8",
+      "declared_week": "2026_W26",
+      "actual_week": "2026_W28",
+      "publish_time": "2026-07-06 02:14:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W26.csv",
+      "text_id": "bilibili:859785b46508f6c7a277193390d209352c6d2d98aa2a84541b741c6ac869da36",
+      "declared_week": "2026_W26",
+      "actual_week": "2026_W27",
+      "publish_time": "2026-07-01 11:21:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W26.csv",
+      "text_id": "bilibili:f6c443cf29d2e5738e04e594efb880b30ab5315ddcd8c1d8bbd2d56799c26c2c",
+      "declared_week": "2026_W26",
+      "actual_week": "2026_W28",
+      "publish_time": "2026-07-08 01:07:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W26.csv",
+      "text_id": "bilibili:9b0fd69dae8028f95b6bff2bd706b8a1cef12a6242649b13eacc56b32e575344",
+      "declared_week": "2026_W26",
+      "actual_week": "2026_W27",
+      "publish_time": "2026-06-29 01:39:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W26.csv",
+      "text_id": "bilibili:691525467db05e952ffa854f2d41b532fedd57305ecc08c80df8ee239552af3b",
+      "declared_week": "2026_W26",
+      "actual_week": "2026_W27",
+      "publish_time": "2026-07-03 09:12:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W26.csv",
+      "text_id": "bilibili:0e905d4bb8abc99a11c0412ddfd65921c8711dae6c563f0a8729b811ab242da5",
+      "declared_week": "2026_W26",
+      "actual_week": "2026_W28",
+      "publish_time": "2026-07-06 19:21:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W26.csv",
+      "text_id": "bilibili:27aabfd239279f42f3ebbf2f92691d37842483e1880358771cef00c2a507b233",
+      "declared_week": "2026_W26",
+      "actual_week": "2026_W27",
+      "publish_time": "2026-06-29 21:43:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W26.csv",
+      "text_id": "bilibili:c7d35f3aa336f5e2c60896057ae262d4755843df38a423fd4a2b7708490a491a",
+      "declared_week": "2026_W26",
+      "actual_week": "2026_W28",
+      "publish_time": "2026-07-06 09:59:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W26.csv",
+      "text_id": "bilibili:4ded1fc199a2bb334d74e334c3eeb42c6104f9648c2b5518e76385e0b5352291",
+      "declared_week": "2026_W26",
+      "actual_week": "2026_W27",
+      "publish_time": "2026-07-03 22:07:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W26.csv",
+      "text_id": "bilibili:9e941fac2aca0b14d77e37f5981f76992bca25912c9479589e169c4a7e208c06",
+      "declared_week": "2026_W26",
+      "actual_week": "2026_W27",
+      "publish_time": "2026-06-30 05:11:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W26.csv",
+      "text_id": "bilibili:0b7f63f2382e3390f70b6e2a0b9c8805121795407e33c15ab04c6249d29a309b",
+      "declared_week": "2026_W26",
+      "actual_week": "2026_W27",
+      "publish_time": "2026-06-29 10:03:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W26.csv",
+      "text_id": "bilibili:a455bdfac323fbc6d8b6db2610ceedc911b53faddfe88ea00d390df601e612f1",
+      "declared_week": "2026_W26",
+      "actual_week": "2026_W29",
+      "publish_time": "2026-07-13 03:06:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W26.csv",
+      "text_id": "bilibili:b12fdfe556b1a4f63640b52fbf603206c1f9fb8b3c71f432d15e9c261183a843",
+      "declared_week": "2026_W26",
+      "actual_week": "2026_W27",
+      "publish_time": "2026-06-29 20:35:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W26.csv",
+      "text_id": "bilibili:c358150f36b0f927d510412aa13ef64d40a7d639a6cd9b9805d2245599883fdf",
+      "declared_week": "2026_W26",
+      "actual_week": "2026_W27",
+      "publish_time": "2026-06-29 19:23:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W26.csv",
+      "text_id": "bilibili:33b2fa23a0c460fd85e3e0a1fe80ff775cc4d81215bdce190dd2092f3469181a",
+      "declared_week": "2026_W26",
+      "actual_week": "2026_W27",
+      "publish_time": "2026-07-03 12:22:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W26.csv",
+      "text_id": "bilibili:664b34ed57ff61274a3706b1b4fe5efde0ddfa391d34fa4431390739744838ce",
+      "declared_week": "2026_W26",
+      "actual_week": "2026_W27",
+      "publish_time": "2026-06-29 15:34:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W26.csv",
+      "text_id": "bilibili:9f932c0e7426f1955b5634314be992ed3a08f1eb3aed7cae4819540c706444fa",
+      "declared_week": "2026_W26",
+      "actual_week": "2026_W27",
+      "publish_time": "2026-07-01 11:01:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W26.csv",
+      "text_id": "bilibili:0366d354842c5a4a88c5b6c8c2dcf326e6673092586d350193d34612070a19c7",
+      "declared_week": "2026_W26",
+      "actual_week": "2026_W27",
+      "publish_time": "2026-07-01 16:07:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W26.csv",
+      "text_id": "bilibili:99d7c4c5c662b396250157b7e1949d07f4bbe85b916c379f32055e725bdb30c5",
+      "declared_week": "2026_W26",
+      "actual_week": "2026_W28",
+      "publish_time": "2026-07-07 05:20:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W26.csv",
+      "text_id": "bilibili:c80eec2b1c6e9ffb6a7c06df477acbe816b9ecc8293ead286cda2b008b644574",
+      "declared_week": "2026_W26",
+      "actual_week": "2026_W27",
+      "publish_time": "2026-07-05 22:24:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W26.csv",
+      "text_id": "bilibili:5ba33f8de749be2fb226267cfa9312c52e80e87e9bd612ca4c8bc346dd1664ad",
+      "declared_week": "2026_W26",
+      "actual_week": "2026_W27",
+      "publish_time": "2026-06-29 10:59:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W26.csv",
+      "text_id": "bilibili:c18353f9090801ba70e6d193e627856087960fb9877d7480e80ac66c4046f827",
+      "declared_week": "2026_W26",
+      "actual_week": "2026_W27",
+      "publish_time": "2026-07-03 10:27:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W26.csv",
+      "text_id": "bilibili:89e0bd12b35a33d7836afdba2e553c2fc34d08a353295c0a8eb85bbdf1ff0487",
+      "declared_week": "2026_W26",
+      "actual_week": "2026_W27",
+      "publish_time": "2026-07-02 04:54:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W26.csv",
+      "text_id": "bilibili:2a6466d821371410ca1a2d9f44623dd9651268d5e9cbb1177bc0d53289c48774",
+      "declared_week": "2026_W26",
+      "actual_week": "2026_W28",
+      "publish_time": "2026-07-09 18:57:00"
+    },
+    {
+      "file": "bilibili_apex_2026_W26.csv",
+      "text_id": "bilibili:966b1be1f18c38d791cf951deba266dbf43afff5c7a30f0eec757f33fedeb419",
+      "declared_week": "2026_W26",
+      "actual_week": "2026_W29",
+      "publish_time": "2026-07-14 09:51:00"
+    }
+  ],
+  "frozen_corpus_counts": {
+    "2026_W25": 265,
+    "2026_W26": 265,
+    "2026_W27": 268,
+    "2026_W28": 254
+  },
+  "frozen_corpus_mismatch_count": 0,
+  "w29_raw_capture_rows": 49,
+  "w29_capture_status": "rows_present_but_open_week",
+  "w28_w29_boundary_correct": true
+}

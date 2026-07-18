@@ -1,0 +1,5 @@
+﻿week_id,text_count,positive_count,neutral_count,negative_count,positive_rate,neutral_rate,negative_rate,avg_sentiment_score,sentiment_model,sentiment_version,threshold_low,threshold_high
+2026_W25,157,62,37,58,0.394904,0.235669,0.369427,0.522438,SnowNLP,0.12.3,0.35,0.65
+2026_W26,183,80,40,63,0.437158,0.218579,0.344262,0.545798,SnowNLP,0.12.3,0.35,0.65
+2026_W27,169,64,42,63,0.378698,0.248521,0.372781,0.501301,SnowNLP,0.12.3,0.35,0.65
+2026_W28,159,67,27,65,0.421384,0.169811,0.408805,0.512996,SnowNLP,0.12.3,0.35,0.65

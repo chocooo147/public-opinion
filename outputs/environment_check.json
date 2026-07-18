@@ -1,0 +1,50 @@
+{
+  "python": "3.12.13 (main, Mar  3 2026, 15:35:03) [Clang 21.1.4 ]",
+  "platform": "macOS-15.5-arm64-arm-64bit",
+  "project_root": ".",
+  "packages": {
+    "bertopic": "0.16.4",
+    "umap-learn": "0.5.12",
+    "hdbscan": "0.8.44",
+    "scikit-learn": "1.9.0",
+    "numpy": "2.3.5",
+    "pandas": "2.2.3",
+    "jieba": "0.42.1",
+    "snownlp": "0.12.3"
+  },
+  "checks": {
+    "bertopic": {
+      "import_ok": true
+    },
+    "umap": {
+      "import_ok": true
+    },
+    "hdbscan": {
+      "import_ok": true
+    },
+    "sklearn": {
+      "import_ok": true
+    },
+    "numpy": {
+      "import_ok": true
+    },
+    "pandas": {
+      "import_ok": true
+    },
+    "jieba": {
+      "import_ok": true
+    },
+    "saved_model": {
+      "load_ok": true,
+      "class": "bertopic._bertopic.BERTopic",
+      "calculate_probabilities": false,
+      "embedding_model": "SklearnEmbedder"
+    }
+  },
+  "paths": {
+    "model": "models/bertopic_apex_exploratory_v1/bertopic_model.pkl",
+    "registry": "models/bertopic_apex_exploratory_v1/topic_registry_exploratory.json",
+    "corpus": "data/processed/bilibili_apex_W25_W28_bertopic_exploratory_corpus.csv"
+  },
+  "portable_path_policy": "all runtime paths are resolved relative to the repository root; no account, token, cookie, or personal absolute path is required"
+}

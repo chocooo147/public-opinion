@@ -1,0 +1,18 @@
+﻿model_id,model_topic_id,canonical_topic_id,canonical_topic_name,operation,manual_keep,notes
+exp_a_balanced,-1,,,outlier,,按离群审核结果逐条处理；未映射的离群文本保留在离群记录中。
+exp_a_balanced,0,APEX-T001,排位与匹配,retain,1,排位、单排、队友和匹配体验集中，具有明确玩家舆情价值。
+exp_a_balanced,1,,,delete,0,人工审核不纳入主审核结论
+exp_a_balanced,2,APEX-T002,赛季更新与玩法机制,retain,1,包含新赛季、更新、武器和玩法反馈，但语义较宽，建议后续敏感性测试关注。
+exp_a_balanced,3,APEX-T003,赛事与主播,retain,1,围绕主播直播、赛事过程和观众互动，具备社区与赛事价值。
+exp_a_balanced,4,APEX-T004,英雄技能与武器平衡,retain,1,集中讨论技能、伤害、弹道、冷却和版本改动。
+exp_a_balanced,5,APEX-T005,皮肤、外观与商业化,retain,1,以皮肤、动作、跳伞、价格和外观评价为主，夹杂少量玩法短评。
+exp_a_balanced,6,,,delete,0,人工审核不纳入主审核结论
+exp_a_balanced,7,APEX-T006,赛博朋克联动与手柄体验,retain,1,包含联动评价和手柄/键鼠体验，事件驱动明显但仍有独立传播价值。 事件集中度较高，后续需做事件敏感性检查。
+exp_a_balanced,8,APEX-T007,UP主视频反馈与设置求助,retain,1,同时包含UP主内容反馈、设置求助和‘修好了’技术反馈，内部语义不完全一致。 建议在后续细分中拆出技术求助，不直接用于产品故障结论。
+exp_a_balanced,9,APEX-T008,英雄与武器强度,retain,1,机器人、莫桑比克等实体的加强、削弱和强度评价清晰。
+exp_a_balanced,10,APEX-T009,皮肤外观与操作体验混合,retain,1,皮肤审美与灵敏度、技术表现混合，主题边界较弱。 建议拆分外观评价与操作/技术求助。
+exp_a_balanced,11,,,delete,0,人工审核不纳入主审核结论
+exp_a_balanced,12,APEX-T010,赛事与主播竞技讨论,retain,1,围绕主播、夺冠、选手表现和赛事规则，虽有口语化表达但主题明确。
+exp_a_balanced,13,APEX-T011,版本、排位与赛事混合,retain,1,涉及赛季、排位、服务器、赛事和模型讨论，存在多个子议题。 建议后续拆分常态玩法与赛事/版本评论。
+exp_a_balanced,14,APEX-T012,皮肤审美与官方运营,retain,1,围绕皮肤审美、版本爆料、官方运营和商业化反馈。
+exp_a_balanced,15,APEX-T013,武器与英雄强度,retain,1,围绕CAR、平行、莫桑比克、复仇女神等武器/英雄强度和配装。

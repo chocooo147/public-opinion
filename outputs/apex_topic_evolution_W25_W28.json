@@ -1,0 +1,353 @@
+[
+  {
+    "source_week": "2026_W25",
+    "target_week": "2026_W26",
+    "canonical_topic_id": "APEX-T001",
+    "source_count": 18,
+    "target_count": 20,
+    "change_rate": 0.1111,
+    "evolution_status": "rising"
+  },
+  {
+    "source_week": "2026_W26",
+    "target_week": "2026_W27",
+    "canonical_topic_id": "APEX-T001",
+    "source_count": 20,
+    "target_count": 27,
+    "change_rate": 0.35,
+    "evolution_status": "rising"
+  },
+  {
+    "source_week": "2026_W27",
+    "target_week": "2026_W28",
+    "canonical_topic_id": "APEX-T001",
+    "source_count": 27,
+    "target_count": 32,
+    "change_rate": 0.1852,
+    "evolution_status": "rising"
+  },
+  {
+    "source_week": "2026_W25",
+    "target_week": "2026_W26",
+    "canonical_topic_id": "APEX-T002",
+    "source_count": 15,
+    "target_count": 26,
+    "change_rate": 0.7333,
+    "evolution_status": "rising"
+  },
+  {
+    "source_week": "2026_W26",
+    "target_week": "2026_W27",
+    "canonical_topic_id": "APEX-T002",
+    "source_count": 26,
+    "target_count": 19,
+    "change_rate": -0.2692,
+    "evolution_status": "declining"
+  },
+  {
+    "source_week": "2026_W27",
+    "target_week": "2026_W28",
+    "canonical_topic_id": "APEX-T002",
+    "source_count": 19,
+    "target_count": 15,
+    "change_rate": -0.2105,
+    "evolution_status": "declining"
+  },
+  {
+    "source_week": "2026_W25",
+    "target_week": "2026_W26",
+    "canonical_topic_id": "APEX-T003",
+    "source_count": 16,
+    "target_count": 18,
+    "change_rate": 0.125,
+    "evolution_status": "rising"
+  },
+  {
+    "source_week": "2026_W26",
+    "target_week": "2026_W27",
+    "canonical_topic_id": "APEX-T003",
+    "source_count": 18,
+    "target_count": 20,
+    "change_rate": 0.1111,
+    "evolution_status": "rising"
+  },
+  {
+    "source_week": "2026_W27",
+    "target_week": "2026_W28",
+    "canonical_topic_id": "APEX-T003",
+    "source_count": 20,
+    "target_count": 23,
+    "change_rate": 0.15,
+    "evolution_status": "rising"
+  },
+  {
+    "source_week": "2026_W25",
+    "target_week": "2026_W26",
+    "canonical_topic_id": "APEX-T004",
+    "source_count": 28,
+    "target_count": 11,
+    "change_rate": -0.6071,
+    "evolution_status": "declining"
+  },
+  {
+    "source_week": "2026_W26",
+    "target_week": "2026_W27",
+    "canonical_topic_id": "APEX-T004",
+    "source_count": 11,
+    "target_count": 22,
+    "change_rate": 1.0,
+    "evolution_status": "rising"
+  },
+  {
+    "source_week": "2026_W27",
+    "target_week": "2026_W28",
+    "canonical_topic_id": "APEX-T004",
+    "source_count": 22,
+    "target_count": 5,
+    "change_rate": -0.7727,
+    "evolution_status": "declining"
+  },
+  {
+    "source_week": "2026_W25",
+    "target_week": "2026_W26",
+    "canonical_topic_id": "APEX-T005",
+    "source_count": 13,
+    "target_count": 31,
+    "change_rate": 1.3846,
+    "evolution_status": "rising"
+  },
+  {
+    "source_week": "2026_W26",
+    "target_week": "2026_W27",
+    "canonical_topic_id": "APEX-T005",
+    "source_count": 31,
+    "target_count": 13,
+    "change_rate": -0.5806,
+    "evolution_status": "declining"
+  },
+  {
+    "source_week": "2026_W27",
+    "target_week": "2026_W28",
+    "canonical_topic_id": "APEX-T005",
+    "source_count": 13,
+    "target_count": 8,
+    "change_rate": -0.3846,
+    "evolution_status": "declining"
+  },
+  {
+    "source_week": "2026_W25",
+    "target_week": "2026_W26",
+    "canonical_topic_id": "APEX-T006",
+    "source_count": 8,
+    "target_count": 14,
+    "change_rate": 0.75,
+    "evolution_status": "rising"
+  },
+  {
+    "source_week": "2026_W26",
+    "target_week": "2026_W27",
+    "canonical_topic_id": "APEX-T006",
+    "source_count": 14,
+    "target_count": 2,
+    "change_rate": -0.8571,
+    "evolution_status": "declining"
+  },
+  {
+    "source_week": "2026_W27",
+    "target_week": "2026_W28",
+    "canonical_topic_id": "APEX-T006",
+    "source_count": 2,
+    "target_count": 17,
+    "change_rate": 7.5,
+    "evolution_status": "rising"
+  },
+  {
+    "source_week": "2026_W25",
+    "target_week": "2026_W26",
+    "canonical_topic_id": "APEX-T007",
+    "source_count": 7,
+    "target_count": 7,
+    "change_rate": 0.0,
+    "evolution_status": "persistent"
+  },
+  {
+    "source_week": "2026_W26",
+    "target_week": "2026_W27",
+    "canonical_topic_id": "APEX-T007",
+    "source_count": 7,
+    "target_count": 13,
+    "change_rate": 0.8571,
+    "evolution_status": "rising"
+  },
+  {
+    "source_week": "2026_W27",
+    "target_week": "2026_W28",
+    "canonical_topic_id": "APEX-T007",
+    "source_count": 13,
+    "target_count": 12,
+    "change_rate": -0.0769,
+    "evolution_status": "declining"
+  },
+  {
+    "source_week": "2026_W25",
+    "target_week": "2026_W26",
+    "canonical_topic_id": "APEX-T008",
+    "source_count": 19,
+    "target_count": 13,
+    "change_rate": -0.3158,
+    "evolution_status": "declining"
+  },
+  {
+    "source_week": "2026_W26",
+    "target_week": "2026_W27",
+    "canonical_topic_id": "APEX-T008",
+    "source_count": 13,
+    "target_count": 8,
+    "change_rate": -0.3846,
+    "evolution_status": "declining"
+  },
+  {
+    "source_week": "2026_W27",
+    "target_week": "2026_W28",
+    "canonical_topic_id": "APEX-T008",
+    "source_count": 8,
+    "target_count": 6,
+    "change_rate": -0.25,
+    "evolution_status": "declining"
+  },
+  {
+    "source_week": "2026_W25",
+    "target_week": "2026_W26",
+    "canonical_topic_id": "APEX-T009",
+    "source_count": 5,
+    "target_count": 13,
+    "change_rate": 1.6,
+    "evolution_status": "rising"
+  },
+  {
+    "source_week": "2026_W26",
+    "target_week": "2026_W27",
+    "canonical_topic_id": "APEX-T009",
+    "source_count": 13,
+    "target_count": 15,
+    "change_rate": 0.1538,
+    "evolution_status": "rising"
+  },
+  {
+    "source_week": "2026_W27",
+    "target_week": "2026_W28",
+    "canonical_topic_id": "APEX-T009",
+    "source_count": 15,
+    "target_count": 3,
+    "change_rate": -0.8,
+    "evolution_status": "declining"
+  },
+  {
+    "source_week": "2026_W25",
+    "target_week": "2026_W26",
+    "canonical_topic_id": "APEX-T010",
+    "source_count": 2,
+    "target_count": 9,
+    "change_rate": 3.5,
+    "evolution_status": "rising"
+  },
+  {
+    "source_week": "2026_W26",
+    "target_week": "2026_W27",
+    "canonical_topic_id": "APEX-T010",
+    "source_count": 9,
+    "target_count": 12,
+    "change_rate": 0.3333,
+    "evolution_status": "rising"
+  },
+  {
+    "source_week": "2026_W27",
+    "target_week": "2026_W28",
+    "canonical_topic_id": "APEX-T010",
+    "source_count": 12,
+    "target_count": 10,
+    "change_rate": -0.1667,
+    "evolution_status": "declining"
+  },
+  {
+    "source_week": "2026_W25",
+    "target_week": "2026_W26",
+    "canonical_topic_id": "APEX-T011",
+    "source_count": 13,
+    "target_count": 3,
+    "change_rate": -0.7692,
+    "evolution_status": "declining"
+  },
+  {
+    "source_week": "2026_W26",
+    "target_week": "2026_W27",
+    "canonical_topic_id": "APEX-T011",
+    "source_count": 3,
+    "target_count": 6,
+    "change_rate": 1.0,
+    "evolution_status": "rising"
+  },
+  {
+    "source_week": "2026_W27",
+    "target_week": "2026_W28",
+    "canonical_topic_id": "APEX-T011",
+    "source_count": 6,
+    "target_count": 10,
+    "change_rate": 0.6667,
+    "evolution_status": "rising"
+  },
+  {
+    "source_week": "2026_W25",
+    "target_week": "2026_W26",
+    "canonical_topic_id": "APEX-T012",
+    "source_count": 10,
+    "target_count": 11,
+    "change_rate": 0.1,
+    "evolution_status": "rising"
+  },
+  {
+    "source_week": "2026_W26",
+    "target_week": "2026_W27",
+    "canonical_topic_id": "APEX-T012",
+    "source_count": 11,
+    "target_count": 6,
+    "change_rate": -0.4545,
+    "evolution_status": "declining"
+  },
+  {
+    "source_week": "2026_W27",
+    "target_week": "2026_W28",
+    "canonical_topic_id": "APEX-T012",
+    "source_count": 6,
+    "target_count": 4,
+    "change_rate": -0.3333,
+    "evolution_status": "declining"
+  },
+  {
+    "source_week": "2026_W25",
+    "target_week": "2026_W26",
+    "canonical_topic_id": "APEX-T013",
+    "source_count": 3,
+    "target_count": 7,
+    "change_rate": 1.3333,
+    "evolution_status": "rising"
+  },
+  {
+    "source_week": "2026_W26",
+    "target_week": "2026_W27",
+    "canonical_topic_id": "APEX-T013",
+    "source_count": 7,
+    "target_count": 6,
+    "change_rate": -0.1429,
+    "evolution_status": "declining"
+  },
+  {
+    "source_week": "2026_W27",
+    "target_week": "2026_W28",
+    "canonical_topic_id": "APEX-T013",
+    "source_count": 6,
+    "target_count": 14,
+    "change_rate": 1.3333,
+    "evolution_status": "rising"
+  }
+]

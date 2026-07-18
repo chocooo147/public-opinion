@@ -1,0 +1,45 @@
+{
+  "python_executable": "/Users/choco/Documents/APEX/.venv-bertopic/bin/python",
+  "python_version": "3.12.13 (main, Mar  3 2026, 15:35:03) [Clang 21.1.4 ]",
+  "venv_path": "/Users/choco/Documents/APEX/work/public-opinion/.venv-bertopic",
+  "platform": "macOS-15.5-arm64-arm-64bit",
+  "packages": {
+    "bertopic": "0.16.4",
+    "sentence-transformers": "not installed",
+    "umap-learn": "0.5.12",
+    "hdbscan": "0.8.44",
+    "scikit-learn": "1.9.0",
+    "numpy": "2.3.5",
+    "pandas": "2.2.3",
+    "jieba": "0.42.1"
+  },
+  "required_import_checks": {
+    "bertopic": {
+      "import_ok": true,
+      "version": "0.16.4"
+    },
+    "sentence-transformers": {
+      "import_ok": false,
+      "version": "not installed",
+      "error": "ModuleNotFoundError: No module named 'sentence_transformers'"
+    },
+    "umap-learn": {
+      "import_ok": true,
+      "version": "0.5.12"
+    },
+    "hdbscan": {
+      "import_ok": true,
+      "version": "0.8.44"
+    }
+  },
+  "model_load_checks": {},
+  "embedding_model": {
+    "name": "project-local sklearn lexical TF-IDF + TruncatedSVD (50 components)",
+    "source": "local pipeline; no sentence-transformer model",
+    "sentence_transformers_used": false,
+    "gpu_used": false
+  },
+  "all_required_core_imports_ok": true,
+  "actual_bertopic": true,
+  "substitute_or_simulation": false
+}

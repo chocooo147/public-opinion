@@ -1,0 +1,20 @@
+{
+  "generated_at": "2026-07-18T04:43:06.484050+00:00",
+  "model_path": "models/bertopic_apex_exploratory_v1/bertopic_model.pkl",
+  "model_sha256": "40f0c48d7dee49f2c3f804b3a5a896828c671503708a30f84be5812fc7e463a5",
+  "corpus_path": "data/processed/bilibili_apex_W25_W28_bertopic_exploratory_corpus.csv",
+  "corpus_rows": 1052,
+  "confidence_source": "BERTopic model.probabilities_ (HDBSCAN membership probability)",
+  "confidence_method": "training-set membership probability; topic=-1 is forced to 0.0; no synthetic normalization",
+  "low_confidence_threshold": 0.5,
+  "review_threshold": 0.7,
+  "counts": {
+    "retained": 646,
+    "outliers": 245,
+    "low_confidence": 305,
+    "possible_misclassification": 19,
+    "deleted": 161,
+    "deleted_assignments": 161,
+    "unmapped": 0
+  }
+}
