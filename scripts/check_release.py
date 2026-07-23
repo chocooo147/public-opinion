@@ -41,6 +41,8 @@ def main() -> int:
         checks = {
             "fallback password declaration": text.count("const USER_PASSWORD_FALLBACK_FINGERPRINT='bdda2306';"),
             "login submit handler": text.count("$('#loginForm').addEventListener('submit'"),
+            "apex viewer declaration": text.count("const VIEWER_USERNAME='apex';"),
+            "viewer permission guard": text.count("function requireContentManager()"),
         }
         for label, count in checks.items():
             if count != 1:
