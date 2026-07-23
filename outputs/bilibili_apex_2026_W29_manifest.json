@@ -1,0 +1,37 @@
+{
+  "generated_at": "2026-07-23T07:00:54.965721+00:00",
+  "week_id": "2026_W29",
+  "date_range": [
+    "2026-07-13",
+    "2026-07-19"
+  ],
+  "raw_input": "data/raw/bilibili/bilibili_apex_2026_W29_consolidated_20260723.jsonl",
+  "raw_sha256": "32e040c1d251ae2085610df92f14277e384e69b8d56d8eb0ac775ae0dc3314ad",
+  "raw_rows": 186,
+  "mapped_rows": 105,
+  "outlier_rows": 44,
+  "low_confidence_rows": 66,
+  "possible_misclassification_rows": 3,
+  "daily_rows": {
+    "2026-07-13": 91,
+    "2026-07-14": 71,
+    "2026-07-17": 8,
+    "2026-07-18": 9,
+    "2026-07-19": 7
+  },
+  "source_counts": {
+    "comments_2026_W25.jsonl": 2,
+    "comments_2026_W25_supplement.jsonl": 12,
+    "comments_2026_W25_supplement_round2.jsonl": 2,
+    "comments_2026_W26.jsonl": 9,
+    "comments_2026_W27.jsonl": 17,
+    "comments_2026_W27_supplement.jsonl": 7,
+    "comments_2026_W28_round2.jsonl": 113,
+    "logged_in_visible_top_level_browser_capture": 24
+  },
+  "model_sha256": "40f0c48d7dee49f2c3f804b3a5a896828c671503708a30f84be5812fc7e463a5",
+  "confidence_semantics": "HDBSCAN membership probability; topic -1 forced to 0.0.",
+  "collection_scope": "Existing local raw records whose actual publish_time falls in W29 plus logged-in visible top-level comments collected on 2026-07-23.",
+  "formal_reporting_qualified": false,
+  "sample_limited": true
+}
