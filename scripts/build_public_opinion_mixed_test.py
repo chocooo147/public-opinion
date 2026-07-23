@@ -5,6 +5,7 @@ import csv
 import json
 import math
 import re
+import shutil
 from collections import Counter, defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
@@ -23,6 +24,8 @@ REPO_HTML = REPO / "game_sentiment_dashboard_apex_W25_W28_mixed_test.html"
 DELIVERABLE_JSON = ROOT / "outputs/dashboard_data_apex_W25_W28.json"
 DELIVERABLE_HTML = ROOT / "outputs/game_sentiment_dashboard_apex_W25_W28_mixed_test.html"
 REPORT = ROOT / "reports/dashboard_W25_W28_mixed_data_report.md"
+NARRATIVE_RULE_NAME = "Community_Topic_Driver_Narrative_Rules.md"
+NARRATIVE_RULE_DEST = REPO / "templates" / NARRATIVE_RULE_NAME
 SNOW_TOPIC_JSON = ROOT / "outputs/bilibili_apex_W25_W28_snownlp_topic_weekly.json"
 SNOW_WEEKLY_CSV = ROOT / "outputs/bilibili_apex_W25_W28_snownlp_weekly.csv"
 SNOW_VALIDATION = ROOT / "outputs/bilibili_apex_W25_W28_snownlp_validation.json"
@@ -506,7 +509,7 @@ function enrichWeekTopics(w){
         start = source.index("$(\"#fileInput\").addEventListener('change',e=>{")
         end = source.index("$$('.nav-item[data-anchor]')", start)
         importer = r'''$("#fileInput").addEventListener('change',e=>{
-  if(!requireAuthenticated()) return;
+  if(!requireContentManager()) return;
   const file=e.target.files[0]; if(!file) return; const reader=new FileReader();
   reader.onload=()=>{ try{
     const obj=JSON.parse(reader.result); if(!obj.weeks||!Array.isArray(obj.weeks)||!obj.weeks.length) throw new Error(loc('缺少有效的 weeks 数组','Missing a valid weeks array'));
@@ -666,7 +669,7 @@ function newVisibleTopicIds(w=currentWeek(),platform=state.platform){
         source = source.replace("const USER_PASSWORD_HASH='397d1a8097452b158e449ce9104699854463d2b5893e8f4004abfa1db9d58aa0';", "const USER_PASSWORD_HASH='397d1a8097452b158e449ce9104699854463d2b5893e8f4004abfa1db9d58aa0';\n" + fallback_declaration)
     source = source.replace("async function hashPassword(value){\n  if(!window.crypto?.subtle) throw new Error(loc('当前浏览器不支持安全密码摘要，请使用最新版浏览器。','This browser does not support secure password hashing. Please use a current browser.'));\n  const bytes=new TextEncoder().encode(value);\n  const digest=await crypto.subtle.digest('SHA-256',bytes);\n  return [...new Uint8Array(digest)].map(b=>b.toString(16).padStart(2,'0')).join('');\n}", "function fallbackPasswordFingerprint(value){ let h=2166136261; for(const ch of String(value)){h^=ch.charCodeAt(0);h=Math.imul(h,16777619);} return (h>>>0).toString(16).padStart(8,'0'); }\nasync function hashPassword(value){\n  if(!window.crypto?.subtle) return 'fallback:'+fallbackPasswordFingerprint(value);\n  const bytes=new TextEncoder().encode(value);\n  const digest=await crypto.subtle.digest('SHA-256',bytes);\n  return [...new Uint8Array(digest)].map(b=>b.toString(16).padStart(2,'0')).join('');\n}")
     source = source.replace("function readAccounts(){\n  try { const parsed=JSON.parse(localStorage.getItem(AUTH_ACCOUNTS_KEY)||'[]'); return Array.isArray(parsed)?parsed:[]; }\n  catch(err){ return authMemoryAccounts; }\n}", "function readAccounts(){\n  try { const parsed=JSON.parse(localStorage.getItem(AUTH_ACCOUNTS_KEY)||'[]'); return (Array.isArray(parsed)?parsed:[]).filter(a=>a&&typeof a.username==='string'); }\n  catch(err){ return authMemoryAccounts.filter(a=>a&&typeof a.username==='string'); }\n}")
-    if "const localPreviewNick=" not in source:
+    if "const localPreviewMatch=" not in source and "const localPreviewNick=" not in source:
         source = source.replace("if(!account||!account.active||account.passwordHash!==passwordHash) throw new Error(loc('账号或密码错误，或该账号已被停用。','Incorrect username or password, or the account is disabled.'));", "const localPreviewNick=username.toLowerCase()===USER_USERNAME && passwordHash==='fallback:'+USER_PASSWORD_FALLBACK_FINGERPRINT;\n    if(!account||!account.active||(account.passwordHash!==passwordHash&&!localPreviewNick)) throw new Error(loc('账号或密码错误，或该账号已被停用。','Incorrect username or password, or the account is disabled.'));")
     auth_bootstrap = 'arrangeDashboardOrder();\ninitializeAuth();'
     if re.search(r'(?:arrangeDashboardOrder\(\);\s*)+initializeAuth\(\);', source):
@@ -710,6 +713,8 @@ function newVisibleTopicIds(w=currentWeek(),platform=state.platform){
     auth_checks = {
         "fallback password declaration": source.count(fallback_declaration),
         "login submit handler": source.count("$('#loginForm').addEventListener('submit'"),
+        "viewer account declaration": source.count("const VIEWER_USERNAME='apex';"),
+        "viewer permission guard": source.count("function requireContentManager()"),
     }
     invalid = {name: count for name, count in auth_checks.items() if count != 1}
     if invalid:
@@ -730,7 +735,33 @@ function newVisibleTopicIds(w=currentWeek(),platform=state.platform){
 
 def main():
     if not REPO.exists(): raise SystemExit(f"GitHub repo not found: {REPO}")
-    data = make_data(); html = patch_html(data); payload = json.dumps(data, ensure_ascii=False, indent=2); REPO_JSON.write_text(payload, encoding="utf-8"); REPO_HTML.write_text(html, encoding="utf-8"); DELIVERABLE_JSON.write_text(payload, encoding="utf-8"); DELIVERABLE_HTML.write_text(html, encoding="utf-8")
+    narrative_candidates = [
+        ROOT / "社区话题驱动因素表单叙述规则.md",
+        ROOT.parents[1] / "社区话题驱动因素表单叙述规则.md",
+        NARRATIVE_RULE_DEST,
+    ]
+    narrative_source = next((path for path in narrative_candidates if path.exists()), None)
+    if narrative_source is None:
+        raise ValueError("缺少社区话题驱动因素表单叙述规则")
+    NARRATIVE_RULE_DEST.parent.mkdir(parents=True, exist_ok=True)
+    if narrative_source.resolve() != NARRATIVE_RULE_DEST.resolve():
+        shutil.copyfile(narrative_source, NARRATIVE_RULE_DEST)
+    data = make_data()
+    html = patch_html(data)
+    payload = json.dumps(data, ensure_ascii=False, indent=2)
+    REPO_JSON.write_text(payload, encoding="utf-8")
+    DELIVERABLE_JSON.write_text(payload, encoding="utf-8")
+    html_targets = {
+        REPO / "index.html",
+        REPO / "game_sentiment_dashboard_v3.html",
+        REPO / "game_sentiment_dashboard_v5.html",
+        REPO_HTML,
+        REPO / "outputs/game_sentiment_dashboard_apex_W25_W28_mixed_test.html",
+        DELIVERABLE_HTML,
+    }
+    for target in html_targets:
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(html, encoding="utf-8")
     weeks = data["weeks"]
     heybox_source_line = "- 小黑盒：真实公开搜索可见帖子样本，`metrics_source=heybox_public_search_visible_sample`；仅保留搜索结果卡片字段，非平台全量，未采集评论正文。"
     combined_source_line = "- 综合：B站评论数与小黑盒可见帖子数计量单位不同，仅用于界面探索，不得解释为跨平台总量。"

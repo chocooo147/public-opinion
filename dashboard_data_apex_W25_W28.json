@@ -2,7 +2,7 @@
   "meta": {
     "game_name": "Apex Legends",
     "platform": "B站",
-    "generated_at": "2026-07-18T09:08:02.638279+00:00",
+    "generated_at": "2026-07-23T06:21:46.556210+00:00",
     "model_status": "frozen_exploratory_model_only",
     "model_version": "apex_bilibili_bertopic_exploratory_v1",
     "data_version": "apex_bilibili_scope_final_v1",
