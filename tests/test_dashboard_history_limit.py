@@ -15,6 +15,7 @@ class DashboardHistoryLimitTests(unittest.TestCase):
             source = path.read_text(encoding="utf-8")
             with self.subTest(path=path.name):
                 self.assertIn("const DASHBOARD_HISTORY_LIMIT=5;", source)
+                self.assertIn('id="historyLabel">历史记录 · 最近 5 周</span>', source)
                 self.assertIn(".slice(-DASHBOARD_HISTORY_LIMIT);", source)
                 self.assertIn(
                     "const normalizedWeeks=mergeDashboardWeeks([],weeks);",
