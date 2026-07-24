@@ -5,6 +5,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 GUIDE = ROOT / "templates/APEX_Dashboard_Data_and_Narrative_Guide.md"
 PDF = ROOT / "reports/APEX_W29_Combined_Dashboard_Landscape.pdf"
+LONG_CAPTURE = ROOT / "reports/APEX_W29_Combined_Dashboard_Long_Capture.png"
 EXCEL = ROOT / "reports/APEX_CHINA_W29_Weekly_Community_Report.xlsx"
 NARRATIVE_RULES = ROOT / "templates/Community_Topic_Driver_Narrative_Rules.md"
 HTML_PATHS = [
@@ -17,6 +18,7 @@ class ReportDownloadTests(unittest.TestCase):
     def test_current_artifacts_exist(self):
         self.assertTrue(EXCEL.is_file())
         self.assertTrue(PDF.is_file())
+        self.assertTrue(LONG_CAPTURE.is_file())
         self.assertTrue(GUIDE.is_file())
 
     def test_download_center_replaces_direct_schema_download(self):
@@ -28,6 +30,7 @@ class ReportDownloadTests(unittest.TestCase):
                 self.assertEqual(source.count("function openDownloadCenter()"), 1)
                 self.assertNotIn("APAC_Weekly_Community_Sentiment_Report_Template", source)
                 self.assertIn("templates/APEX_Dashboard_Data_and_Narrative_Guide.md", source)
+                self.assertIn("reports/APEX_W29_Combined_Dashboard_Long_Capture.png", source)
                 self.assertIn("reports/APEX_W29_Combined_Dashboard_Landscape.pdf", source)
                 self.assertIn("apac_china_weekly_sentiment_report_input_v3", source)
                 self.assertIn("export_status:'draft_input_only_not_a_complete_report'", source)
@@ -48,6 +51,7 @@ class ReportDownloadTests(unittest.TestCase):
             "downloadW29Report",
             "downloadReportInput",
             "downloadFullDashboard",
+            "downloadDashboardLongCapture",
             "downloadDashboardPdf",
             "downloadDashboardGuide",
         ):

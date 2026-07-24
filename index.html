@@ -904,7 +904,7 @@
 <div class="modal download-modal" id="downloadModal" style="z-index:61">
   <div class="modal-head"><strong>APAC 中国区周报下载中心</strong><button class="drawer-close" id="downloadClose">×</button></div>
   <div class="modal-body">
-    <p class="download-intro">下载内容仅覆盖中国地区。W29 样本周报仅提供 Excel；综合看板横版 PDF 按“概览 → 趋势 → 主题 → 风险 → 证据 → 方法边界”分页展示。</p>
+    <p class="download-intro">下载内容仅覆盖中国地区。W29 样本周报仅提供 Excel；综合看板按网站“综合”页面原样捕获，提供完整长图与连续分页 PDF，不重新组织内容。</p>
     <div class="download-context" id="downloadContext"></div>
     <p class="download-warning" id="downloadWarning"></p>
     <div class="download-grid">
@@ -924,10 +924,11 @@
       </article>
       <article class="download-card">
         <strong>③ 完整看板数据</strong>
-        <p>下载 W25—W29 综合看板数据、横版分页 PDF，以及唯一的数据口径与叙述规则说明。</p>
+        <p>下载 W25—W29 综合看板数据、网站“综合”页面原样长图与连续分页 PDF，以及唯一的数据口径与叙述规则说明。</p>
         <div class="download-actions">
           <button class="btn primary" id="downloadFullDashboard" type="button">下载综合看板数据 .json</button>
-          <a class="btn" id="downloadDashboardPdf" href="reports/APEX_W29_Combined_Dashboard_Landscape.pdf" download>下载综合看板横版 PDF</a>
+          <a class="btn" id="downloadDashboardLongCapture" href="reports/APEX_W29_Combined_Dashboard_Long_Capture.png" download>下载综合看板完整长图 .png</a>
+          <a class="btn" id="downloadDashboardPdf" href="reports/APEX_W29_Combined_Dashboard_Landscape.pdf" download>下载综合看板分页 PDF</a>
           <a class="btn" id="downloadDashboardGuide" href="templates/APEX_Dashboard_Data_and_Narrative_Guide.md" download>下载数据口径与叙述规则 .md</a>
         </div>
       </article>
@@ -1070,9 +1071,9 @@ const staticTranslations = new Map([
   ['APEX 舆情控制台','APEX Sentiment Console'],['授权账号访问','Authorized accounts only'],['账号','Username'],['密码','Password'],['登录并进入看板','Sign in to dashboard'],['账号由管理员统一配置。未授权用户无法查看看板或导入 JSON 数据。','Accounts are issued by an administrator. Unauthorized users cannot view the dashboard or import JSON data.'],
   ['账号管理','Account management'],['退出','Sign out'],['管理员可以创建账号、重置密码、停用或删除普通账号。choco 管理员与 apex 只读账号为系统预设账号。','Administrators can create, reset, disable, or delete regular accounts. The choco administrator and apex read-only viewer are protected system accounts.'],['账号名称','Username'],['派发密码','Issued password'],['创建账号','Create account'],['账号名称至少 3 个字符，密码至少 6 个字符。','Usernames require at least 3 characters and passwords at least 6.'],['角色','Role'],['操作','Actions'],
   ['APAC 中国区周报下载中心','APAC China Report Downloads'],['① W29 中国区样本周报','① W29 China sample weekly report'],['② 当前周报告输入包','② Current-week report input'],['下载当前周输入包 .json','Download current-week input .json'],['③ 完整看板数据','③ Full dashboard data'],['下载综合看板数据 .json','Download combined dashboard data .json'],
-  ['下载内容仅覆盖中国地区。W29 样本周报仅提供 Excel；综合看板横版 PDF 按“概览 → 趋势 → 主题 → 风险 → 证据 → 方法边界”分页展示。','Downloads cover China only. The W29 sample weekly report is Excel-only; the landscape dashboard PDF is paginated as Overview → Trends → Topics → Risks → Evidence → Method boundaries.'],
+  ['下载内容仅覆盖中国地区。W29 样本周报仅提供 Excel；综合看板按网站“综合”页面原样捕获，提供完整长图与连续分页 PDF，不重新组织内容。','Downloads cover China only. The W29 sample weekly report is Excel-only; the Combined webpage is captured as-is and provided as both a full-length image and a sequential landscape PDF without restructuring.'],
   ['导出中国地区当前周、所选平台、上一周基准、主题指标、真实关键词与方法限制。该文件不会把缺失的官方观看数据伪装成已完成报告。','Exports the China reporting week, selected platform, previous-week baseline, topic metrics, observed keywords, and methodology limits. It does not present missing official viewership metrics as complete.'],
-  ['下载 W25—W29 综合看板数据、横版分页 PDF，以及唯一的数据口径与叙述规则说明。','Download W25–W29 combined dashboard data, the paginated landscape PDF, and the single data-and-narrative guide.'],
+  ['下载 W25—W29 综合看板数据、网站“综合”页面原样长图与连续分页 PDF，以及唯一的数据口径与叙述规则说明。','Download W25–W29 combined dashboard data, a full-length capture of the Combined webpage, its sequential landscape PDF, and the single data-and-narrative guide.'],
   ['导出规则：报告范围仅限中国地区；自然周必须完整；不同定义的平台指标不得直接横向比较或相加；Mixed 不得被强制写成 Neutral；缺失指标不得用讨论量替代；未经验证的因果关系必须标记为假设。','Export rules: cover China only; use complete natural weeks; do not directly compare or sum platform metrics with different definitions; do not force Mixed into Neutral; do not replace missing metrics with discussion volume; label unverified causal claims as hypotheses.']
 ]);
 const statusTranslations={'新生':'New','上升':'Rising','高位持续':'Sustained high','稳定延续':'Stable','回落':'Declining','复燃':'Resurgent'};
@@ -1891,7 +1892,7 @@ function buildReportInputPackage(){
   return {
     schema_version:'apac_china_weekly_sentiment_report_input_v3', generated_at:new Date().toISOString(),
     export_status:'draft_input_only_not_a_complete_report',
-    download_paths:{dashboard_pdf:'reports/APEX_W29_Combined_Dashboard_Landscape.pdf',data_and_narrative_guide:'templates/APEX_Dashboard_Data_and_Narrative_Guide.md'},
+    download_paths:{dashboard_long_capture:'reports/APEX_W29_Combined_Dashboard_Long_Capture.png',dashboard_pdf:'reports/APEX_W29_Combined_Dashboard_Landscape.pdf',data_and_narrative_guide:'templates/APEX_Dashboard_Data_and_Narrative_Guide.md'},
     report_scope:{region:'China',reporting_owner:'China reporting team',regional_aggregation:'not_in_scope'},
     report_rule:{section_order:['Overview','Top Conversation Drivers','Sentiment History','UGC / Stream Viewership','Methodology Notes','Data Quality Check'],narrative_sequence:['Conclusion','Attribution','Evidence','Comparison','Impact'],sentiment_order:['Positive','Neutral or Mixed','Negative'],natural_week_required:true,missing_metric_substitution_forbidden:true},
     reporting_period:{week_id:week.week_id,label:week.label,start:week.start,end:week.end,is_complete_natural_week:true},
