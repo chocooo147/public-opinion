@@ -500,8 +500,12 @@ function enrichWeekTopics(w){
     source = source.replace("<div class=\"panel-head\"><div><h3 class=\"panel-title\">平台声量分布", "<div class=\"panel-head\"><div><h3 class=\"panel-title\">平台声量分布")
     # Keep historical localStorage, but never merge old PROJECT A/demo history.
     old = "if(storedDashboardHistory?.weeks?.length){\n  dashboardData.meta={...dashboardData.meta,...(storedDashboardHistory.meta||{})};\n  dashboardData.weeks=mergeDashboardWeeks([],storedDashboardHistory.weeks);\n}"
-    new = "if(storedDashboardHistory?.weeks?.length && storedDashboardHistory.meta?.data_version==='apex_bilibili_scope_final_v1'){\n  dashboardData.meta={...dashboardData.meta,...(storedDashboardHistory.meta||{})};\n  dashboardData.weeks=mergeDashboardWeeks([],storedDashboardHistory.weeks);\n}else if(storedDashboardHistory){ try{ localStorage.removeItem(DASHBOARD_HISTORY_KEY); }catch(err){} }"
+    new = "if(storedDashboardHistory?.weeks?.length && storedDashboardHistory.meta?.data_version==='apex_bilibili_scope_final_v1'){\n  dashboardData.meta={...dashboardData.meta,...(storedDashboardHistory.meta||{})};\n  dashboardData.weeks=mergeDashboardWeeks(dashboardData.weeks,storedDashboardHistory.weeks);\n  writeDashboardHistory(dashboardData.meta,dashboardData.weeks);\n}else if(storedDashboardHistory){ try{ localStorage.removeItem(DASHBOARD_HISTORY_KEY); }catch(err){} }"
     source = source.replace(old, new)
+    source = source.replace(
+        "localStorage.setItem(DASHBOARD_HISTORY_KEY,JSON.stringify({version:1,saved_at:new Date().toISOString(),meta,weeks}));",
+        "const normalizedWeeks=mergeDashboardWeeks([],weeks); localStorage.setItem(DASHBOARD_HISTORY_KEY,JSON.stringify({version:1,saved_at:new Date().toISOString(),meta,weeks:normalizedWeeks}));",
+    )
     # Keep W28 as the current/latest default while preserving an explicit week selector.
     source = source.replace("let state = { weekIndex: dashboardData.weeks.length - 1, platform: \"综合\", search: \"\", sort: \"risk\", lang: \"zh\" };", "let state = { weekIndex: dashboardData.weeks.findIndex(w=>w.week_id==='2026-W28')>=0?dashboardData.weeks.findIndex(w=>w.week_id==='2026-W28'):dashboardData.weeks.length-1, platform: \"综合\", search: \"\", sort: \"risk\", lang: \"zh\" };")
     # Imported data must contain real metrics for both platforms; fail closed.
