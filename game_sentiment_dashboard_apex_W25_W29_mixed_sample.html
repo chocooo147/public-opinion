@@ -834,7 +834,7 @@
             <div class="panel-head">
               <div>
                 <h3 class="panel-title">跨周主题演化关系</h3>
-                <p class="panel-desc">展示截至本周的最近3个自然周；同一 topic_chain_id 以连线持续追踪，避免周报切断长期话题。</p>
+                <p class="panel-desc">展示截至所选周的最近5个自然周；同一 topic_chain_id 以连线持续追踪，避免周报切断长期话题。</p>
               </div>
               <div class="legend"><span><i class="l1"></i>延续</span><span><i class="l2"></i>风险分支</span><span><i class="l3"></i>机会分支</span></div>
             </div>
@@ -1064,7 +1064,7 @@ const staticTranslations = new Map([
   ['单视频语料占比建议 ≤ 5%','Recommended single-video corpus share ≤ 5%'],['单视频影响贡献建议 ≤ 20%','Recommended single-video influence contribution ≤ 20%'],['爆发事件需单独标记','Flag breakout events separately'],['所有分项统一归一化为 0—100，避免播放量直接支配结果。','Normalize every component to 0–100 so views do not dominate the result.'],
   ['覆盖 35%','Coverage 35%'],['讨论 25%','Discussion 25%'],['影响 20%','Influence 20%'],['互动 10%','Engagement 10%'],['增长 10%','Growth 10%'],['热议度','Heat score'],['= 35% × 讨论覆盖度 + 25% × 文本讨论量 + 20% × 视频影响力 + 10% × 互动强度 + 10% × 增长速度','= 35% × discussion coverage + 25% × text volume + 20% × video influence + 10% × engagement + 10% × growth'],['视频覆盖 60%','Video coverage 60%'],['作者覆盖 40%','Creator coverage 40%'],['跨视频共识度','Cross-video consensus'],['= 60% × 覆盖视频得分 + 40% × 覆盖作者得分','= 60% × video coverage score + 40% × creator coverage score'],
   ['平台声量分布','Platform Volume Distribution'],['用于判断话题是圈层扩散还是全平台外溢。','Shows whether a topic is limited to one community or spreading across platforms.'],['本周关键事件','Key Events This Week'],
-  ['展示截至本周的最近3个自然周；同一 topic_chain_id 以连线持续追踪，避免周报切断长期话题。','Shows the latest three calendar weeks. The same topic_chain_id remains connected so weekly reports do not break long-running topics.'],['延续','Continuation'],['风险分支','Risk branch'],['机会分支','Opportunity branch'],['提示：可左右滑动查看完整主题链；当前卡片已修正为全宽显示。','Tip: swipe horizontally to view the complete topic chain.'],
+  ['展示截至所选周的最近5个自然周；同一 topic_chain_id 以连线持续追踪，避免周报切断长期话题。','Shows up to the latest five calendar weeks ending at the selected week. The same topic_chain_id remains connected so weekly reports do not break long-running topics.'],['延续','Continuation'],['风险分支','Risk branch'],['机会分支','Opportunity branch'],['提示：可左右滑动查看完整主题链；当前卡片已修正为全宽显示。','Tip: swipe horizontally to view the complete topic chain.'],
   ['横轴为模型计算的主题声量占比，纵轴为模型负面概率。','The matrix uses model-computed volume share and model-computed negative rate.'],['高声量 / 高负面','High volume / high negative'],['低声量 / 高负面','Low volume / high negative'],['低声量 / 低负面','Low volume / low negative'],['高声量 / 低负面','High volume / low negative'],['将分析结果转化为产品、社区和传播动作。','Translate analysis into product, community, and communications actions.'],
   ['用于辅助人工命名主题与识别新词。','Supports manual topic naming and emerging-term discovery.'],['按所选周累计活跃周数与声量，显示当前可追踪的连续主题。','Accumulate active weeks and volume through the selected week for continuously traceable topics.'],['主题链','Topic chain'],['首次出现','First seen'],['活跃','Active'],['累计观察量','Cumulative observations'],['当前状态','Current status'],
   ['BERTopic 模型接入字段','BERTopic Integration Schema'],['模型每周输出一个 JSON 对象。页面按','The model outputs one JSON object per week. The dashboard uses'],['建立周报，通过','to build weekly reports and'],['追踪跨周主题，并校验覆盖视频、覆盖作者及热议度五项分值，避免将单个热门视频误判为全周共同热点。','to track cross-week topics. It validates video coverage, creator coverage, and the five heat-score components so one popular video is not mistaken for a weekly consensus topic.'],['下载示例 JSON','Download sample JSON'],
@@ -1462,13 +1462,15 @@ function renderEvents(){
 function renderFlow(){
   const svg=$("#flowChart");
   const end=state.weekIndex+1;
-  const start=Math.max(0,end-3);
+  const start=Math.max(0,end-DASHBOARD_HISTORY_LIMIT);
   const shownWeeks=dashboardData.weeks.slice(start,end);
   const colCount=shownWeeks.length;
-  const W=980, nodeW=246, nodeH=46, gapY=12, topY=58;
+  const minW=980, compactColumns=colCount>=4, nodeW=compactColumns?200:246, colGap=compactColumns?30:68, sidePad=compactColumns?24:30, nodeH=46, gapY=12, topY=58;
+  const W=Math.max(minW,sidePad*2+colCount*nodeW+Math.max(0,colCount-1)*colGap);
   const maxTopics=Math.max(1,...shownWeeks.map(w=>Math.min(6,w.topics.length)));
   const H=Math.max(390, topY + maxTopics*(nodeH+gapY) + 22);
-  const xPositions=colCount===1 ? [367] : colCount===2 ? [90,644] : [30,367,704];
+  const colStep=colCount>1?(W-sidePad*2-nodeW)/(colCount-1):0;
+  const xPositions=colCount===1?[(W-nodeW)/2]:Array.from({length:colCount},(_,i)=>sidePad+i*colStep);
   const currentLocalIndex=colCount-1;
 
   // 以本周主题顺序作为主序，降低跨周连线交叉；历史独有主题排在其后。
@@ -1539,8 +1541,15 @@ function renderFlow(){
   }
 
   svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+  const renderedWidth=Math.max(W,$("#flowWrap").clientWidth||0);
+  svg.style.width=renderedWidth+'px';
+  svg.style.minWidth=W+'px';
   svg.style.height=H+'px';
   svg.innerHTML=defs+lanes+links+nodes;
+  requestAnimationFrame(()=>{
+    const flowWrap=$("#flowWrap");
+    flowWrap.scrollLeft=Math.max(0,flowWrap.scrollWidth-flowWrap.clientWidth);
+  });
   svg.querySelectorAll('.flow-topic').forEach(g=>g.addEventListener('click',()=>openTopic(g.dataset.topic)));
 }
 

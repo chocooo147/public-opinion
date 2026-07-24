@@ -499,6 +499,31 @@ function enrichWeekTopics(w){
     source = source.replace("  dashboardData.weeks.forEach(w=>{const found=w.topics.find(x=>x.id===id); if(found){t=found;wFound=w;}});\n  if(!t) return;", "  const selectedWeek=currentWeek(); const selectedTopic=selectedWeek.topics.find(x=>x.id===id); if(selectedTopic){t=selectedTopic;wFound=selectedWeek;} else { dashboardData.weeks.forEach(w=>{const found=w.topics.find(x=>x.id===id); if(found && !t){t=found;wFound=w;}}); }\n  if(!t) return;")
     source = source.replace("<div class=\"panel-head\"><div><h3 class=\"panel-title\">平台声量分布", "<div class=\"panel-head\"><div><h3 class=\"panel-title\">平台声量分布")
     source = source.replace("历史记录 · 最近 4 周", "历史记录 · 最近 5 周")
+    source = source.replace(
+        "展示截至本周的最近3个自然周；同一 topic_chain_id 以连线持续追踪，避免周报切断长期话题。",
+        "展示截至所选周的最近5个自然周；同一 topic_chain_id 以连线持续追踪，避免周报切断长期话题。",
+    )
+    source = source.replace(
+        "Shows the latest three calendar weeks. The same topic_chain_id remains connected so weekly reports do not break long-running topics.",
+        "Shows up to the latest five calendar weeks ending at the selected week. The same topic_chain_id remains connected so weekly reports do not break long-running topics.",
+    )
+    source = source.replace("const start=Math.max(0,end-3);", "const start=Math.max(0,end-DASHBOARD_HISTORY_LIMIT);")
+    source = source.replace(
+        "const W=980, nodeW=246, nodeH=46, gapY=12, topY=58;",
+        "const minW=980, compactColumns=colCount>=4, nodeW=compactColumns?200:246, colGap=compactColumns?30:68, sidePad=compactColumns?24:30, nodeH=46, gapY=12, topY=58;\n  const W=Math.max(minW,sidePad*2+colCount*nodeW+Math.max(0,colCount-1)*colGap);",
+    )
+    source = source.replace(
+        "const xPositions=colCount===1 ? [367] : colCount===2 ? [90,644] : [30,367,704];",
+        "const colStep=colCount>1?(W-sidePad*2-nodeW)/(colCount-1):0;\n  const xPositions=colCount===1?[(W-nodeW)/2]:Array.from({length:colCount},(_,i)=>sidePad+i*colStep);",
+    )
+    source = source.replace(
+        "svg.setAttribute('viewBox',`0 0 ${W} ${H}`);\n  svg.style.height=H+'px';",
+        "svg.setAttribute('viewBox',`0 0 ${W} ${H}`);\n  const renderedWidth=Math.max(W,$(\"#flowWrap\").clientWidth||0);\n  svg.style.width=renderedWidth+'px';\n  svg.style.minWidth=W+'px';\n  svg.style.height=H+'px';",
+    )
+    source = source.replace(
+        "svg.innerHTML=defs+lanes+links+nodes;\n  svg.querySelectorAll('.flow-topic')",
+        "svg.innerHTML=defs+lanes+links+nodes;\n  requestAnimationFrame(()=>{\n    const flowWrap=$(\"#flowWrap\");\n    flowWrap.scrollLeft=Math.max(0,flowWrap.scrollWidth-flowWrap.clientWidth);\n  });\n  svg.querySelectorAll('.flow-topic')",
+    )
     # Keep historical localStorage, but never merge old PROJECT A/demo history.
     old = "if(storedDashboardHistory?.weeks?.length){\n  dashboardData.meta={...dashboardData.meta,...(storedDashboardHistory.meta||{})};\n  dashboardData.weeks=mergeDashboardWeeks([],storedDashboardHistory.weeks);\n}"
     new = "if(storedDashboardHistory?.weeks?.length && storedDashboardHistory.meta?.data_version==='apex_bilibili_scope_final_v1'){\n  dashboardData.meta={...dashboardData.meta,...(storedDashboardHistory.meta||{})};\n  dashboardData.weeks=mergeDashboardWeeks(dashboardData.weeks,storedDashboardHistory.weeks);\n  writeDashboardHistory(dashboardData.meta,dashboardData.weeks);\n}else if(storedDashboardHistory){ try{ localStorage.removeItem(DASHBOARD_HISTORY_KEY); }catch(err){} }"
