@@ -1,66 +1,23 @@
-import re
 import unittest
-import zipfile
 from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-TEMPLATE_MD = ROOT / "templates/APAC_Weekly_Community_Sentiment_Report_Template.md"
-TEMPLATE_DOCX = ROOT / "templates/APAC_Weekly_Community_Sentiment_Report_Template.docx"
+GUIDE = ROOT / "templates/APEX_Dashboard_Data_and_Narrative_Guide.md"
+PDF = ROOT / "reports/APEX_W29_Combined_Dashboard_Landscape.pdf"
+EXCEL = ROOT / "reports/APEX_CHINA_W29_Weekly_Community_Report.xlsx"
 NARRATIVE_RULES = ROOT / "templates/Community_Topic_Driver_Narrative_Rules.md"
 HTML_PATHS = [
     ROOT / "index.html",
-    ROOT / "game_sentiment_dashboard_v3.html",
-    ROOT / "game_sentiment_dashboard_v5.html",
-    ROOT / "game_sentiment_dashboard_apex_W25_W28_mixed_test.html",
-    ROOT / "outputs/game_sentiment_dashboard_apex_W25_W28_mixed_test.html",
+    ROOT / "game_sentiment_dashboard_apex_W25_W29_mixed_sample.html",
 ]
 
 
 class ReportDownloadTests(unittest.TestCase):
-    def test_template_uses_skill_section_order(self):
-        source = TEMPLATE_MD.read_text(encoding="utf-8")
-        headings = re.findall(r"^## (\d+)\. (.+)$", source, flags=re.MULTILINE)
-        self.assertEqual(
-            headings,
-            [
-                ("1", "OVERVIEW"),
-                ("2", "TOP CONVERSATION DRIVERS"),
-                ("3", "SENTIMENT HISTORY"),
-                ("4", "UGC / STREAM VIEWERSHIP"),
-                ("5", "METHODOLOGY NOTES"),
-                ("6", "DATA QUALITY CHECK"),
-            ],
-        )
-
-    def test_template_contains_every_required_output(self):
-        source = TEMPLATE_MD.read_text(encoding="utf-8")
-        required = (
-            "### Executive Summary",
-            "### China",
-            "Positive / Neutral / Mixed / Negative",
-            "### Data-Quality Warnings",
-            "### Next-Week Watchlist",
-            "Conclusion → Attribution → Evidence → Comparison → Impact",
-            "China only",
-        )
-        for token in required:
-            with self.subTest(token=token):
-                self.assertIn(token, source)
-        self.assertNotIn("## 7.", source)
-        self.assertNotIn("## 8.", source)
-        self.assertNotIn("Japan", source)
-        self.assertNotIn("日本", source)
-        self.assertNotIn("Regional Comparison", source)
-
-    def test_word_is_primary_china_only_template(self):
-        self.assertTrue(TEMPLATE_DOCX.is_file())
-        with zipfile.ZipFile(TEMPLATE_DOCX) as archive:
-            document_xml = archive.read("word/document.xml").decode("utf-8")
-        self.assertIn("CHINA WEEKLY", document_xml)
-        self.assertIn("China only", document_xml)
-        self.assertNotIn("Japan", document_xml)
-        self.assertNotIn("日本", document_xml)
+    def test_current_artifacts_exist(self):
+        self.assertTrue(EXCEL.is_file())
+        self.assertTrue(PDF.is_file())
+        self.assertTrue(GUIDE.is_file())
 
     def test_download_center_replaces_direct_schema_download(self):
         for path in HTML_PATHS:
@@ -69,8 +26,9 @@ class ReportDownloadTests(unittest.TestCase):
                 self.assertEqual(source.count('id="downloadModal"'), 1)
                 self.assertEqual(source.count("function buildReportInputPackage()"), 1)
                 self.assertEqual(source.count("function openDownloadCenter()"), 1)
-                self.assertIn("templates/APAC_Weekly_Community_Sentiment_Report_Template.docx", source)
-                self.assertIn("templates/Community_Topic_Driver_Narrative_Rules.md", source)
+                self.assertNotIn("APAC_Weekly_Community_Sentiment_Report_Template", source)
+                self.assertIn("templates/APEX_Dashboard_Data_and_Narrative_Guide.md", source)
+                self.assertIn("reports/APEX_W29_Combined_Dashboard_Landscape.pdf", source)
                 self.assertIn("apac_china_weekly_sentiment_report_input_v3", source)
                 self.assertIn("export_status:'draft_input_only_not_a_complete_report'", source)
                 self.assertIn("report_scope:{region:'China'", source)
@@ -84,21 +42,21 @@ class ReportDownloadTests(unittest.TestCase):
                     '$("#downloadBtn").onclick=()=>downloadJSON(schemaExample', source
                 )
 
-    def test_download_center_exposes_word_rules_and_data_artifacts(self):
+    def test_download_center_exposes_excel_pdf_guide_and_combined_data(self):
         source = (ROOT / "index.html").read_text(encoding="utf-8")
         for element_id in (
-            "downloadReportTemplateDocx",
+            "downloadW29Report",
             "downloadReportInput",
             "downloadFullDashboard",
-            "downloadNarrativeRules",
+            "downloadDashboardPdf",
+            "downloadDashboardGuide",
         ):
             with self.subTest(element_id=element_id):
                 self.assertEqual(source.count(f'id="{element_id}"'), 1)
-        self.assertLess(
-            source.index('id="downloadFullDashboard"'),
-            source.index('id="downloadNarrativeRules"'),
-        )
-        self.assertNotIn('id="downloadReportTemplateMd"', source)
+        self.assertNotIn("Word", source[source.index('<div class="download-grid">'):source.index('<div class="download-spec">')])
+        self.assertNotIn("bilibili_apex_2026_W29.json", source[source.index('<div class="download-grid">'):source.index('<div class="download-spec">')])
+        self.assertNotIn("heybox_apex_2026_W29_public_search.json", source[source.index('<div class="download-grid">'):source.index('<div class="download-spec">')])
+        self.assertEqual(source.count('id="downloadDashboardGuide"'), 1)
         self.assertIn("download-actions", source)
 
     def test_narrative_rules_are_packaged_without_content_changes(self):
