@@ -1,4 +1,6 @@
 import unittest
+import xml.etree.ElementTree as ET
+from zipfile import ZipFile
 from pathlib import Path
 
 
@@ -71,6 +73,60 @@ class ReportDownloadTests(unittest.TestCase):
         self.assertIsNotNone(source_rules)
         self.assertTrue(NARRATIVE_RULES.is_file())
         self.assertEqual(NARRATIVE_RULES.read_bytes(), source_rules.read_bytes())
+
+    def test_w30_report_uses_bilingual_driver_form_with_evidence_comments(self):
+        with ZipFile(EXCEL) as archive:
+            shared_root = ET.fromstring(archive.read("xl/sharedStrings.xml"))
+            shared_strings = [
+                "".join(node.itertext())
+                for node in shared_root
+                if node.tag.endswith("}si")
+            ]
+            sheet_root = ET.fromstring(archive.read("xl/worksheets/sheet1.xml"))
+            cells = {}
+            for node in sheet_root.iter():
+                if not node.tag.endswith("}c"):
+                    continue
+                value = next(
+                    (child for child in node if child.tag.endswith("}v")),
+                    None,
+                )
+                if value is None:
+                    continue
+                cells[node.attrib["r"]] = (
+                    shared_strings[int(value.text)]
+                    if node.attrib.get("t") == "s"
+                    else value.text
+                )
+
+            self.assertEqual(cells["A1"], "CHINA · W30")
+            self.assertEqual(cells["D1"], "中国 · W30")
+            self.assertEqual(cells["B4"], "Positive")
+            self.assertEqual(cells["B6"], "Neutral")
+            self.assertEqual(cells["B8"], "Negative")
+            self.assertEqual(cells["A4"], "PLQ Explainer Content")
+            self.assertEqual(cells["A6"], "Season 30 Outlook")
+            self.assertEqual(cells["A8"], "Ranked Server Stability")
+            self.assertEqual(cells["D4"], "PLQ赛制科普内容")
+            self.assertIn(
+                "xl/threadedcomments/threadedcomment.xml",
+                archive.namelist(),
+            )
+            thread_root = ET.fromstring(
+                archive.read("xl/threadedcomments/threadedcomment.xml")
+            )
+            comments = [
+                node for node in thread_root.iter()
+                if node.tag.endswith("}threadedComment")
+            ]
+            self.assertEqual(len(comments), 9)
+
+        narrative = (
+            ROOT / "reports/APEX_CHINA_W30_Weekly_Community_Report.md"
+        ).read_text(encoding="utf-8")
+        self.assertIn("玩家范围 → 评价对象 → 直接反应 → 具体原因 → 结果影响", narrative)
+        self.assertIn("本周共有 8 个独立驱动因素通过证据检查", narrative)
+        self.assertNotIn("| 赛博朋克联动与手柄体验 | 1 | 2 | 100.0% |", narrative)
 
 
 if __name__ == "__main__":
