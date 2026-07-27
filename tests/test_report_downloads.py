@@ -5,11 +5,11 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 GUIDE = ROOT / "templates/APEX_Dashboard_Data_and_Narrative_Guide.md"
 LONG_CAPTURE = ROOT / "reports/APEX_W29_Combined_Dashboard_Long_Capture.png"
-EXCEL = ROOT / "reports/APEX_CHINA_W29_Weekly_Community_Report.xlsx"
+EXCEL = ROOT / "reports/APEX_CHINA_W30_Weekly_Community_Report.xlsx"
 NARRATIVE_RULES = ROOT / "templates/Community_Topic_Driver_Narrative_Rules.md"
 HTML_PATHS = [
     ROOT / "index.html",
-    ROOT / "game_sentiment_dashboard_apex_W25_W29_mixed_sample.html",
+    ROOT / "game_sentiment_dashboard_apex_W25_W30_mixed_sample.html",
 ]
 
 
@@ -46,7 +46,7 @@ class ReportDownloadTests(unittest.TestCase):
     def test_download_center_exposes_excel_png_guide_and_combined_data(self):
         source = (ROOT / "index.html").read_text(encoding="utf-8")
         for element_id in (
-            "downloadW29Report",
+            "downloadW30Report",
             "downloadReportInput",
             "downloadFullDashboard",
             "downloadDashboardLongCapture",
@@ -55,8 +55,9 @@ class ReportDownloadTests(unittest.TestCase):
             with self.subTest(element_id=element_id):
                 self.assertEqual(source.count(f'id="{element_id}"'), 1)
         self.assertNotIn("Word", source[source.index('<div class="download-grid">'):source.index('<div class="download-spec">')])
-        self.assertNotIn("bilibili_apex_2026_W29.json", source[source.index('<div class="download-grid">'):source.index('<div class="download-spec">')])
-        self.assertNotIn("heybox_apex_2026_W29_public_search.json", source[source.index('<div class="download-grid">'):source.index('<div class="download-spec">')])
+        download_grid = source[source.index('<div class="download-grid">'):source.index('<div class="download-spec">')]
+        self.assertIn("bilibili_apex_2026_W30.json", download_grid)
+        self.assertIn("heybox_apex_2026_W30_public_search.json", download_grid)
         self.assertEqual(source.count('id="downloadDashboardGuide"'), 1)
         self.assertNotIn('id="downloadDashboardPdf"', source)
         self.assertIn("download-actions", source)

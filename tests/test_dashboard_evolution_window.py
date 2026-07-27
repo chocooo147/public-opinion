@@ -5,7 +5,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 HTML_PATHS = [
     ROOT / "index.html",
-    ROOT / "game_sentiment_dashboard_apex_W25_W29_mixed_sample.html",
+    ROOT / "game_sentiment_dashboard_apex_W25_W30_mixed_sample.html",
 ]
 
 
