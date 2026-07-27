@@ -1262,15 +1262,18 @@ const statusClass = s => ({"新生":"s-new","上升":"s-up","高位持续":"s-hi
 
 function populateWeekSelect(){
   const sel = $("#weekSelect");
-  const count=dashboardData.weeks.length;
+  const firstIndex=Math.max(0,dashboardData.weeks.length-DASHBOARD_HISTORY_LIMIT);
+  const visibleWeeks=dashboardData.weeks.slice(firstIndex);
+  const count=visibleWeeks.length;
   const historyLabel=$("#historyLabel");
   if(historyLabel) historyLabel.textContent=loc(`历史记录 · 最近 ${count} 周`,`History · Last ${count} weeks`);
   sel.setAttribute('aria-label',loc('最近五周历史记录','Recent five-week history'));
   sel.replaceChildren();
-  dashboardData.weeks.forEach((w,i)=>{
+  visibleWeeks.forEach((w,offset)=>{
+    const i=firstIndex+offset;
     const option=document.createElement('option');
     option.value=String(i);
-    option.textContent=i===count-1?`${w.label} · ${loc('最新','Latest')}`:w.label;
+    option.textContent=offset===count-1?`${w.label} · ${loc('最新','Latest')}`:w.label;
     option.selected=i===state.weekIndex;
     sel.appendChild(option);
   });

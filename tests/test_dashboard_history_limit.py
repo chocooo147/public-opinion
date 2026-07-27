@@ -47,6 +47,25 @@ class DashboardHistoryLimitTests(unittest.TestCase):
             source,
         )
 
+    def test_week_selector_shows_only_latest_five_with_real_week_indices(self):
+        for path in HTML_PATHS:
+            source = path.read_text(encoding="utf-8")
+            with self.subTest(path=path.name):
+                self.assertIn(
+                    "const firstIndex=Math.max(0,dashboardData.weeks.length-DASHBOARD_HISTORY_LIMIT);",
+                    source,
+                )
+                self.assertIn(
+                    "const visibleWeeks=dashboardData.weeks.slice(firstIndex);",
+                    source,
+                )
+                self.assertIn("visibleWeeks.forEach((w,offset)=>{", source)
+                self.assertIn("const i=firstIndex+offset;", source)
+                self.assertIn(
+                    "option.textContent=offset===count-1?",
+                    source,
+                )
+
 
 if __name__ == "__main__":
     unittest.main()

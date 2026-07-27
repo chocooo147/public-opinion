@@ -500,6 +500,41 @@ function enrichWeekTopics(w){
     source = source.replace("<div class=\"panel-head\"><div><h3 class=\"panel-title\">平台声量分布", "<div class=\"panel-head\"><div><h3 class=\"panel-title\">平台声量分布")
     source = source.replace("历史记录 · 最近 4 周", "历史记录 · 最近 5 周")
     source = source.replace(
+        """function populateWeekSelect(){
+  const sel = $("#weekSelect");
+  const count=dashboardData.weeks.length;
+  const historyLabel=$("#historyLabel");
+  if(historyLabel) historyLabel.textContent=loc(`历史记录 · 最近 ${count} 周`,`History · Last ${count} weeks`);
+  sel.setAttribute('aria-label',loc('最近五周历史记录','Recent five-week history'));
+  sel.replaceChildren();
+  dashboardData.weeks.forEach((w,i)=>{
+    const option=document.createElement('option');
+    option.value=String(i);
+    option.textContent=i===count-1?`${w.label} · ${loc('最新','Latest')}`:w.label;
+    option.selected=i===state.weekIndex;
+    sel.appendChild(option);
+  });
+}""",
+        """function populateWeekSelect(){
+  const sel = $("#weekSelect");
+  const firstIndex=Math.max(0,dashboardData.weeks.length-DASHBOARD_HISTORY_LIMIT);
+  const visibleWeeks=dashboardData.weeks.slice(firstIndex);
+  const count=visibleWeeks.length;
+  const historyLabel=$("#historyLabel");
+  if(historyLabel) historyLabel.textContent=loc(`历史记录 · 最近 ${count} 周`,`History · Last ${count} weeks`);
+  sel.setAttribute('aria-label',loc('最近五周历史记录','Recent five-week history'));
+  sel.replaceChildren();
+  visibleWeeks.forEach((w,offset)=>{
+    const i=firstIndex+offset;
+    const option=document.createElement('option');
+    option.value=String(i);
+    option.textContent=offset===count-1?`${w.label} · ${loc('最新','Latest')}`:w.label;
+    option.selected=i===state.weekIndex;
+    sel.appendChild(option);
+  });
+}""",
+    )
+    source = source.replace(
         "展示截至本周的最近3个自然周；同一 topic_chain_id 以连线持续追踪，避免周报切断长期话题。",
         "展示截至所选周的最近5个自然周；同一 topic_chain_id 以连线持续追踪，避免周报切断长期话题。",
     )
