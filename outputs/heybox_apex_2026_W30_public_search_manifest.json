@@ -1,0 +1,28 @@
+{
+  "generated_at": "2026-07-27T01:30:38.686642+00:00",
+  "week_id": "2026_W30",
+  "date_range": [
+    "2026-07-20",
+    "2026-07-26"
+  ],
+  "raw_input": "data/raw/heybox/heybox_apex_2026_W30_public_search_20260727.csv",
+  "raw_sha256": "baaf8379ebc18390b8c47f1e18aed5ee029a98f70e9e1783ebd2fc76bf38ce02",
+  "raw_rows": 19,
+  "mapped_rows": 12,
+  "outlier_rows": 6,
+  "low_confidence_rows": 6,
+  "possible_misclassification_rows": 0,
+  "daily_rows": {
+    "2026-07-20": 1,
+    "2026-07-22": 2,
+    "2026-07-23": 4,
+    "2026-07-24": 4,
+    "2026-07-25": 3,
+    "2026-07-26": 5
+  },
+  "model_sha256": "40f0c48d7dee49f2c3f804b3a5a896828c671503708a30f84be5812fc7e463a5",
+  "collection_scope": "Logged-in Xiaoheihe public-search visible post cards; not a platform-wide census.",
+  "comment_body_collection": false,
+  "formal_reporting_qualified": false,
+  "sample_limited": true
+}
