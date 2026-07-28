@@ -1,6 +1,6 @@
 # APEX 游戏舆情分析：冻结模型、历史看板与可复现流程
 
-本仓库在不覆盖原始数据、原始模型和原始 HTML 的前提下，提供冻结的探索性 BERTopic 模型、B站 W25—W28 历史看板、小黑盒公开搜索可见帖子样本，以及一键审计与看板生成流程。当前看板的情感与风险采用纯模型输出；BERTopic、SnowNLP、热议度、共识度和风险均不作为未经独立基准验证的正式统计真值。
+本仓库在不覆盖原始数据、原始模型和原始 HTML 的前提下，提供冻结的探索性 BERTopic 模型、B站 W25—W30 历史看板、小黑盒公开搜索可见帖子样本，以及一键审计与看板生成流程。当前看板的情感与风险采用纯模型输出；BERTopic、SnowNLP、热议度、共识度和风险均不作为未经独立基准验证的正式统计真值。
 
 ## 目录
 
@@ -31,7 +31,7 @@ tests/                   基础规则测试
 - 评论分配置信度使用模型保存的 `probabilities_`（HDBSCAN membership probability）。离群文本强制记为 0.0；由于训练时 `calculate_probabilities=False`，不能解释为完整多主题概率分布。
 - B站主题声量、评论数、视频数、作者数、关键词和代表文本来自真实模型输出；热议度和共识度为可复算观测指数，风险由模型负面率、趋势和共识度公式派生。2%—5%偏差目标需独立基准，当前不宣称已达标。
 - 当前看板情感只使用 SnowNLP 全量模型输出，不读取人工标签、不使用人工校准或人工训练的情感模型；`qualified_for_formal_auxiliary_reporting=false`。
-- 小黑盒使用 W25—W28 公开搜索可见帖子样本，`metrics_source=heybox_public_search_visible_sample`；样本非平台全量且未采集评论正文。B站计数单位为评论，小黑盒为可见帖子，综合视图只用于探索，不能解释为跨平台总量。
+- 小黑盒使用 W25—W30 公开搜索可见帖子样本，`metrics_source=heybox_public_search_visible_sample`；样本非平台全量且未采集评论正文。B站计数单位为评论，小黑盒为可见帖子，综合视图显示“样本观察量（不可比）”，不能解释为跨平台总量。
 
 ## 自然周规则
 
@@ -49,7 +49,7 @@ GitHub Pages 入口为 <https://chocooo147.github.io/public-opinion/>。当前�
 - “本周核心主题”用于查看当前周主题快照；“持续主题链概览”用于查看生命周期、连续周数、逐周平台轨迹、关键词迁移和按周证据。
 - 持续主题抽屉遵循当前平台筛选：综合视图展示两条平台轨迹，单平台视图只展示本平台内容；小黑盒缺少帖子正文时明确留空，不使用B站文本补位。
 - 近5周总声量使用随数据范围变化的刻度与加粗折线，避免小幅波动被固定大刻度压成近似直线。
-- 下载中心提供中国区 Word 主模板、当前周输入包、完整看板 JSON 和叙述规则；叙述规则与完整看板数据位于同一栏。仓库同时保留已核对的 W28 Excel 周报样例。
+- 下载中心提供 W30 与 W29 双语 Excel 周报、两周的 B站/小黑盒 JSON、当前周输入包、完整看板 JSON 和叙述规则。W28 及更早周报不在网站下载中心展示。
 
 预设只读演示账号为 `apex / 09876`。该账号只能浏览看板，不显示报告下载和 JSON 导入入口。管理员账号仍可执行内容管理操作。
 
@@ -101,16 +101,16 @@ python3 scripts/run_full_workflow.py --input data/raw/apex_raw_YYYYMMDD.csv
 - `outputs/bertopic_comment_topic_assignments.csv`：逐评论主题、canonical 映射、真实分配置信度；
 - `outputs/bertopic_topic_confidence_distribution.csv`：每个主题的均值、中位数、P10/P90 和低置信度比例；
 - `outputs/bertopic_low_confidence_comments.csv`、`bertopic_outlier_comments.csv`、`bertopic_possible_misclassifications.csv`：人工复核清单；
-- `outputs/dashboard_data_apex_W25_W28.json`、`outputs/game_sentiment_dashboard_apex_W25_W28_mixed_test.html`：四周看板交付副本；
+- `dashboard_data_apex_W25_W30.json`、`game_sentiment_dashboard_apex_W25_W30_mixed_sample.html`：W25—W30 看板交付副本；
 - `outputs/formal_sentiment_assignments.csv`、`outputs/formal_sentiment_review_queue.csv`、`outputs/formal_sentiment_validation.json`：历史人工审计留档，不被当前纯模型看板读取；
 - `outputs/formal_auxiliary_metrics.json`、`reports/formal_auxiliary_metric_calibration.md`：历史口径留档，不被当前纯模型看板读取；
 - 若要验证2%—5%偏差，准备独立/双人复核基准后运行 `python3 scripts/evaluate_metric_bias.py --benchmark data/example/metric_benchmark.csv`；没有基准时脚本明确返回 blocked，不会伪造达标。
-- `outputs/week_boundary_audit.json`、`reports/week_boundary_audit_2026_W25_W29.md`：W25—W29自然周边界审计；W29截至2026-07-18仍未完成。
-- `logs/workflow_<run_id>.log`、`outputs/workflow_last_run.json`：运行日志、版本和错误状态。
+- `outputs/week_boundary_audit.json`、`reports/week_boundary_audit_2026_W25_W29.md`：历史自然周边界审计证据；其中“W29 未完成”是 2026-07-18 的审计时点记录，不代表当前发布状态。
+- `logs/workflow_<run_id>.log`、`outputs/workflow_last_run.json`（若在本地运行生成）：运行日志、版本和错误状态，不作为当前 Pages 发布状态。
 
 评论审核清单含原始评论文本与作者字段，仅保留在本地受控目录，不随公开仓库发布；公开仓库发布的是脱敏主题/看板结果、模型清单和可复现脚本。
 
-W25 是基准周，数据中不会生成不存在的 W24 环比；W28 保留为当前测试/最新周。历史周切换、主题详情、关键词、代表文本、主题演化、平台切换、登录和中英文界面均保留在生成 HTML 中；JSON 导入和报告下载仅对内容管理账号显示。
+W25 是基准周，数据中不会生成不存在的 W24 环比；W30 是当前最新完整周，W31 为开放周。历史周下拉栏和主题演化均只显示截至所选周的最近 5 周；主题详情、关键词、代表文本、平台切换、登录和中英文界面均保留在生成 HTML 中；JSON 导入和报告下载仅对内容管理账号显示。
 
 ## 新电脑部署
 
