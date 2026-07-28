@@ -780,6 +780,9 @@ function newVisibleTopicIds(w=currentWeek(),platform=state.platform){
         "login submit handler": source.count("$('#loginForm').addEventListener('submit'"),
         "viewer account declaration": source.count("const VIEWER_USERNAME='apex';"),
         "viewer permission guard": source.count("function requireContentManager()"),
+        "assignable account role": source.count('id="accountRole"'),
+        "content permission helper": source.count("function canManageContent(account)"),
+        "English canonical topic map": source.count("const canonicalTopicTranslations="),
     }
     invalid = {name: count for name, count in auth_checks.items() if count != 1}
     if invalid:

@@ -438,8 +438,8 @@
     .login-brand p { margin:5px 0 0; color:var(--muted); font-size:11px; }
     .auth-field { display:grid; gap:7px; margin-top:15px; }
     .auth-field label { color:#c7c7c2; font-size:11px; }
-    .auth-field input { width:100%; height:44px; padding:0 13px; color:#fff; background:#090909; border:1px solid var(--line); outline:none; border-radius:0; }
-    .auth-field input:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(242,31,43,.11); }
+    .auth-field input, .auth-field select { width:100%; height:44px; padding:0 13px; color:#fff; background:#090909; border:1px solid var(--line); outline:none; border-radius:0; }
+    .auth-field input:focus, .auth-field select:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(242,31,43,.11); }
     .auth-submit { width:100%; height:44px; margin-top:20px; }
     .auth-error { min-height:18px; margin:12px 0 0; color:#ff7a83; font-size:11px; line-height:1.5; }
     .auth-note { margin-top:18px; padding-top:15px; border-top:1px solid var(--line); color:var(--muted); font-size:10px; line-height:1.6; }
@@ -451,7 +451,7 @@
     .account-group #logoutBtn, .language-group #langBtn { font-size:12px; font-weight:500; letter-spacing:0; color:var(--soft); }
     .language-group .btn { min-width:48px; padding:0 11px; }
     .admin-modal { width:min(780px,94vw); z-index:71; }
-    .admin-form { display:grid; grid-template-columns:1fr 1fr auto; gap:10px; align-items:end; margin-bottom:20px; }
+    .admin-form { display:grid; grid-template-columns:1fr 1fr minmax(170px,.75fr) auto; gap:10px; align-items:end; margin-bottom:20px; }
     .admin-form .auth-field { margin:0; }
     .admin-form .btn { height:44px; }
     .admin-message { min-height:18px; margin:-8px 0 12px; color:var(--muted); font-size:11px; }
@@ -913,29 +913,26 @@
         <p>已完成 W30（7.20—7.26）有限样本周报。B站为登录态可见顶层评论样本，小黑盒为公开搜索结果卡样本；不代表平台全量。</p>
         <div class="download-actions">
           <a class="btn primary" id="downloadW30Report" href="reports/APEX_CHINA_W30_Weekly_Community_Report.xlsx" download>下载 W30 Excel 周报 .xlsx</a>
-          <a class="btn" href="reports/APEX_CHINA_W30_Weekly_Community_Report.md" download>下载 W30 口径说明 .md</a>
           <a class="btn" href="reports/APEX_CHINA_W29_Weekly_Community_Report.xlsx" download>下载 W29 历史周报 .xlsx</a>
-          <a class="btn" href="reports/APEX_CHINA_W29_Weekly_Community_Report.md" download>下载 W29 口径说明 .md</a>
         </div>
       </article>
       <article class="download-card">
         <strong>② 当前周报告输入包</strong>
-        <p>导出中国地区当前周、所选平台、上一周基准、主题指标、真实关键词与方法限制。该文件不会把缺失的官方观看数据伪装成已完成报告。</p>
+        <p>仅导出中国地区当周、所选平台、主题指标、真实关键词与方法限制；不包含历史周输入。该文件不会把缺失的官方观看数据伪装成已完成报告。</p>
         <div class="download-actions">
           <button class="btn primary" id="downloadReportInput" type="button">下载当前周输入包 .json</button>
           <a class="btn" href="outputs/bilibili_apex_2026_W30.json" download>下载 B站 W30 JSON</a>
           <a class="btn" href="outputs/heybox_apex_2026_W30_public_search.json" download>下载小黑盒 W30 JSON</a>
-          <a class="btn" href="outputs/bilibili_apex_2026_W29.json" download>下载 B站 W29 JSON</a>
-          <a class="btn" href="outputs/heybox_apex_2026_W29_public_search.json" download>下载小黑盒 W29 JSON</a>
         </div>
       </article>
       <article class="download-card">
         <strong>③ 完整看板数据</strong>
-        <p>下载 W25—W30 综合看板数据、W29 归档长图，以及统一的数据口径与叙述规则说明。</p>
+        <p>下载 W25—W30 综合看板数据、W29 归档长图，以及仅对应当前 W30 的周报口径说明与稳定版叙述规范。</p>
         <div class="download-actions">
           <button class="btn primary" id="downloadFullDashboard" type="button">下载综合看板数据 .json</button>
           <a class="btn" id="downloadDashboardLongCapture" href="reports/APEX_W29_Combined_Dashboard_Long_Capture.png" download>下载综合看板完整长图 .png</a>
-          <a class="btn" id="downloadDashboardGuide" href="templates/APEX_Dashboard_Data_and_Narrative_Guide.md" download>下载数据口径与叙述规则 .md</a>
+          <a class="btn" id="downloadCurrentMethodology" href="reports/APEX_CHINA_W30_Weekly_Community_Report.md" download>下载 W30 当周口径说明 .md</a>
+          <a class="btn" id="downloadDashboardGuide" href="templates/APEX_Dashboard_Data_and_Narrative_Guide.md" download>下载周报生成与叙述规范 .md</a>
         </div>
       </article>
     </div>
@@ -947,13 +944,14 @@
 <div class="modal admin-modal" id="adminModal">
   <div class="modal-head"><strong>账号管理</strong><button class="drawer-close" id="adminClose">×</button></div>
   <div class="modal-body">
-    <p style="font-size:12px;color:var(--muted);line-height:1.7;margin-top:0">管理员可以创建账号、重置密码、停用或删除普通账号。choco 管理员与 apex 只读账号为系统预设账号。</p>
+    <p style="font-size:12px;color:var(--muted);line-height:1.7;margin-top:0">管理员可以在创建账号时分配“可下载与导入”或“只读”权限，并可后续修改权限、重置密码、停用或删除普通账号。choco 管理员与 apex 只读账号为系统预设账号。</p>
     <form class="admin-form" id="accountForm" autocomplete="off">
       <div class="auth-field"><label for="accountUsername">账号名称</label><input id="accountUsername" maxlength="32" autocomplete="off" required /></div>
       <div class="auth-field"><label for="accountPassword">派发密码</label><input id="accountPassword" type="password" minlength="6" autocomplete="new-password" required /></div>
+      <div class="auth-field"><label for="accountRole">操作权限</label><select id="accountRole"><option value="manager">可下载与导入</option><option value="viewer">只读</option></select></div>
       <button class="btn primary" type="submit" id="saveAccountBtn">创建账号</button>
     </form>
-    <div class="admin-message" id="adminMessage">账号名称至少 3 个字符，密码至少 6 个字符。</div>
+    <div class="admin-message" id="adminMessage">账号名称至少 3 个字符，创建时密码至少 6 个字符；编辑现有账号时可只修改权限。</div>
     <div style="overflow:auto"><table class="account-table"><thead><tr><th>账号</th><th>角色</th><th>状态</th><th>操作</th></tr></thead><tbody id="accountTableBody"></tbody></table></div>
   </div>
 </div>
@@ -1063,7 +1061,7 @@ const staticTranslations = new Map([
   ['综合','Combined'],['B站','Bilibili'],['小黑盒','Heybox'],['搜索主题或关键词','Search topics or keywords'],['主题详情','Topic Details'],['关键词','Keywords'],['跨周演化','Cross-week evolution'],['代表性B站视频','Representative Bilibili videos']
   ,['当前数据说明','Current data notes'],['W25—W30为完整自然周；W31为开放周。B站与小黑盒均为有限真实样本，综合视图中的观察量单位不可比。','W25—W30 are complete natural weeks; W31 is open. Bilibili and Heybox are bounded real samples whose observation units are incomparable in the combined view.'],
   ['舆情周报 ·','Sentiment Weekly ·'],['本周数据窗口：周一 00:00 至周日 23:59；主题链不因周报切换而中断。','Weekly window: Monday 00:00 to Sunday 23:59. Topic chains continue across weekly reports.'],
-  ['模型接入提示：','Model integration:'],['B站真实模型结果已接入；情感与风险为纯模型输出；小黑盒为真实公开搜索样本（非全量）。','W25-W30 are complete natural weeks; W31 is open. Model sentiment remains unvalidated and exploratory.'],['查看字段结构','View schema'],
+  ['模型接入提示','Model methodology'],['模型接入提示：','Model integration:'],['B站与小黑盒均使用真实采集数据；主题、情感、热议度与风险为模型或公式计算结果，不使用模拟回填。','Bilibili and Heybox use collected real samples. Topics, sentiment, heat, and risk are model- or formula-derived; no simulated values are backfilled.'],['B站真实模型结果已接入；情感与风险为纯模型输出；小黑盒为真实公开搜索样本（非全量）。','W25-W30 are complete natural weeks; W31 is open. Model sentiment remains unvalidated and exploratory.'],['查看字段结构','View schema'],
   ['近5周舆情趋势','Five-Week Sentiment Trend'],['样本观察量与模型负面率同步观察；综合视图中的两平台单位不可比。','Track sample observations and model-computed negative rate; platform units are incomparable in the combined view.'],['样本观察量','Sample observations'],
   ['SnowNLP作为全量模型输出；验证指标仅用于说明模型质量。','SnowNLP output; manually review high-risk topics.'],
   ['主题来自全周跨视频语料聚类；视频热度只参与聚类后的影响力评分，不决定主题归属。','Topics are clustered from the full week of cross-video text. Video popularity affects post-clustering influence scores, not topic assignment.'],
@@ -1077,25 +1075,46 @@ const staticTranslations = new Map([
   ['BERTopic 模型接入字段','BERTopic Integration Schema'],['模型每周输出一个 JSON 对象。页面按','The model outputs one JSON object per week. The dashboard uses'],['建立周报，通过','to build weekly reports and'],['追踪跨周主题，并校验覆盖视频、覆盖作者及热议度五项分值，避免将单个热门视频误判为全周共同热点。','to track cross-week topics. It validates video coverage, creator coverage, and the five heat-score components so one popular video is not mistaken for a weekly consensus topic.'],['下载示例 JSON','Download sample JSON'],
   ['主题排序方式','Topic sort order'],['覆盖视频/作者','Videos / creators'],['本周核心主题','Core Topics This Week'],
   ['APEX 舆情控制台','APEX Sentiment Console'],['授权账号访问','Authorized accounts only'],['账号','Username'],['密码','Password'],['登录并进入看板','Sign in to dashboard'],['账号由管理员统一配置。未授权用户无法查看看板或导入 JSON 数据。','Accounts are issued by an administrator. Unauthorized users cannot view the dashboard or import JSON data.'],
-  ['账号管理','Account management'],['退出','Sign out'],['管理员可以创建账号、重置密码、停用或删除普通账号。choco 管理员与 apex 只读账号为系统预设账号。','Administrators can create, reset, disable, or delete regular accounts. The choco administrator and apex read-only viewer are protected system accounts.'],['账号名称','Username'],['派发密码','Issued password'],['创建账号','Create account'],['账号名称至少 3 个字符，密码至少 6 个字符。','Usernames require at least 3 characters and passwords at least 6.'],['角色','Role'],['操作','Actions'],
+  ['账号管理','Account management'],['退出','Sign out'],['管理员可以在创建账号时分配“可下载与导入”或“只读”权限，并可后续修改权限、重置密码、停用或删除普通账号。choco 管理员与 apex 只读账号为系统预设账号。','Administrators can assign download/import or read-only access when creating an account, and can later change access, reset its password, disable it, or delete it. The choco administrator and apex read-only viewer are protected system accounts.'],['账号名称','Username'],['派发密码','Issued password'],['操作权限','Access'],['可下载与导入','Downloads and import'],['只读','Read only'],['创建账号','Create account'],['更新账号','Update account'],['账号名称至少 3 个字符，创建时密码至少 6 个字符；编辑现有账号时可只修改权限。','Usernames require at least 3 characters. New accounts require a password of at least 6 characters; existing accounts may be updated by changing access only.'],['角色','Role'],['操作','Actions'],
   ['APAC 中国区周报下载中心','APAC China Report Downloads'],['① W30 中国区样本周报','① W30 China sample weekly report'],['② 当前周报告输入包','② Current-week report input'],['下载当前周输入包 .json','Download current-week input .json'],['③ 完整看板数据','③ Full dashboard data'],['下载综合看板数据 .json','Download combined dashboard data .json'],
   ['下载内容仅覆盖中国地区。W30 为有限真实样本周报；B站与小黑盒的计数单位不同，不得合并为平台总量。','Downloads cover China only. W30 is a bounded real-sample report; Bilibili comments and Xiaoheihe post cards use different units and must not be summed as a platform total.'],
-  ['导出中国地区当前周、所选平台、上一周基准、主题指标、真实关键词与方法限制。该文件不会把缺失的官方观看数据伪装成已完成报告。','Exports the China reporting week, selected platform, previous-week baseline, topic metrics, observed keywords, and methodology limits. It does not present missing official viewership metrics as complete.'],
-  ['下载 W25—W30 综合看板数据、W29 归档长图，以及统一的数据口径与叙述规则说明。','Download W25–W30 combined dashboard data, the archived W29 long capture, and the shared data-and-narrative guide.'],
+  ['已完成 W30（7.20—7.26）有限样本周报。B站为登录态可见顶层评论样本，小黑盒为公开搜索结果卡样本；不代表平台全量。','The bounded-sample W30 report (July 20–26) is complete. Bilibili uses signed-in visible top-level comments and Heybox uses public-search result cards; neither is platform-wide.'],
+  ['下载 W30 Excel 周报 .xlsx','Download W30 Excel report .xlsx'],['下载 W29 历史周报 .xlsx','Download W29 historical report .xlsx'],['下载 B站 W30 JSON','Download Bilibili W30 JSON'],['下载小黑盒 W30 JSON','Download Heybox W30 JSON'],['下载综合看板完整长图 .png','Download full dashboard capture .png'],
+  ['仅导出中国地区当周、所选平台、主题指标、真实关键词与方法限制；不包含历史周输入。该文件不会把缺失的官方观看数据伪装成已完成报告。','Exports only the current China week, selected platform, topic metrics, observed keywords, and methodology limits. Historical-week inputs are excluded, and missing official viewership metrics are not presented as complete.'],
+  ['下载 W25—W30 综合看板数据、W29 归档长图，以及仅对应当前 W30 的周报口径说明与稳定版叙述规范。','Download the W25–W30 combined dashboard data, the archived W29 long capture, the current W30 methodology note, and the stable narrative specification.'],
+  ['下载 W30 当周口径说明 .md','Download current W30 methodology .md'],['下载周报生成与叙述规范 .md','Download report-generation and narrative specification .md'],
   ['导出规则：报告范围仅限中国地区；自然周必须完整；不同定义的平台指标不得直接横向比较或相加；Mixed 不得被强制写成 Neutral；缺失指标不得用讨论量替代；未经验证的因果关系必须标记为假设。','Export rules: cover China only; use complete natural weeks; do not directly compare or sum platform metrics with different definitions; do not force Mixed into Neutral; do not replace missing metrics with discussion volume; label unverified causal claims as hypotheses.']
 ]);
 const statusTranslations={'新生':'New','上升':'Rising','高位持续':'Sustained high','稳定延续':'Stable','回落':'Declining','复燃':'Resurgent'};
 const displayStatus=s=>state.lang==='zh'?s:(statusTranslations[s]||s);
-const topicTypeTranslations={'广泛热议':'Broad discussion','圈层议题':'Community topic','爆发事件':'Breakout event','单点观察':'Single-source watch'};
+const topicTypeTranslations={'广泛热议':'Broad discussion','圈层议题':'Community topic','爆发事件':'Breakout event','单点观察':'Single-source watch','事件驱动':'Event-driven','玩法与机制':'Gameplay & systems','赛事与主播':'Esports & streamers','英雄与武器平衡':'Legend & weapon balance','排位与匹配':'Ranked play & matchmaking','玩家社区':'Player community'};
 const displayTopicType=s=>state.lang==='zh'?s:(topicTypeTranslations[s]||s);
 const displayPlatform=s=>state.lang==='zh'?s:({'综合':'Combined','B站':'Bilibili','小黑盒':'Heybox'}[s]||s);
-const displayTopicName=t=>state.lang==='zh'?t.name:(t.name_en||t.name);
+const canonicalTopicTranslations={
+  'APEX-T001':'Ranked Play & Matchmaking',
+  'APEX-T002':'Season Updates & Gameplay Systems',
+  'APEX-T003':'Esports & Streamers',
+  'APEX-T004':'Legend Abilities & Weapon Balance',
+  'APEX-T005':'Skins, Cosmetics & Monetization',
+  'APEX-T006':'Cyberpunk Collaboration & Controller Experience',
+  'APEX-T007':'Creator Video Feedback & Settings Help',
+  'APEX-T008':'Legend & Weapon Strength',
+  'APEX-T009':'Cosmetics & Control Experience',
+  'APEX-T010':'Competitive Esports & Streamer Discussion',
+  'APEX-T011':'Version, Ranked & Esports Discussion',
+  'APEX-T012':'Cosmetic Appeal & Official Operations',
+  'APEX-T013':'Weapon & Legend Strength'
+};
+const containsCjk=value=>/[\u3400-\u9fff]/.test(String(value||''));
+const displayTopicName=t=>state.lang==='zh'?t.name:(!containsCjk(t.name_en)?t.name_en:(canonicalTopicTranslations[t.id]||t.name_en||t.name));
 const topicKeywordStats=(t,platform=state.platform)=>Array.isArray(t?.platform_keyword_stats?.[platform])?t.platform_keyword_stats[platform].filter(x=>Number(x.document_count)>0):[];
 const KEYWORD_MIN_DOCUMENT_COVERAGE=.02;
 const weekKeywordStats=(w=currentWeek(),platform=state.platform)=>Array.isArray(w?.keyword_stats?.[platform])?w.keyword_stats[platform].filter(x=>Number(x.document_count)>=2&&Number(x.document_coverage)>=KEYWORD_MIN_DOCUMENT_COVERAGE):[];
 const descriptorKeywords=t=>Array.isArray(t?.descriptor_keywords)?t.descriptor_keywords:[];
-const displayKeywords=t=>topicKeywordStats(t).slice(0,15).map(x=>x.keyword);
-const displayQuotes=t=>state.lang==='zh'?t.quotes:(t.quotes_en?.length?t.quotes_en:t.quotes);
+const keywordTranslations={'大师':'Master','猎杀':'Predator','铂金':'Platinum','体验':'experience','队友':'teammates','单排':'solo queue','钻石':'Diamond','人数':'player count','更新':'update','服务器':'servers','队伍':'teams','最后':'final','常规赛':'regular season','晋级':'qualification','联动':'collaboration','手柄':'controller','操作':'controls','段位':'rank','瞄准':'aiming','靶场':'firing range','匹配':'matchmaking','选手':'players','赛季':'season','武器':'weapons','英雄':'legends','赛制':'format','亚太':'APAC','指挥':'shot-calling','传家宝':'heirloom','信标':'beacon','地图':'map','商店':'store','安全区':'ring','开局':'opening','控制台':'console','机器人':'bots','皮肤':'skins','外观':'cosmetics','设置':'settings','升降级赛':'promotion/relegation','僵尸':'zombies','一等':'first place','毛毛':'Maomao','不了':'cannot','右上角':'top-right','好好':'properly','一秒':'one second','只用':'only uses','希尔':'Seer','猎犬':'Bloodhound','一瞬间':'instantly'};
+const displayKeyword=word=>state.lang==='zh'?word:(keywordTranslations[word]||word);
+const displayKeywords=t=>topicKeywordStats(t).slice(0,15).map(x=>displayKeyword(x.keyword));
+const displayQuotes=t=>state.lang==='zh'?t.quotes:(t.quotes_en?.length&&!t.quotes_en.every(containsCjk)?t.quotes_en:t.quotes);
 const eventTranslations={
   '开发者访谈发布':'Developer interview released','角色与世界观讨论提升。':'Discussion of characters and worldbuilding increased.',
   '首次压力测试':'First stress test','性能与服务器话题开始出现。':'Performance and server topics emerged.',
@@ -1106,7 +1125,16 @@ const eventTranslations={
   '官方致歉':'Official apology','负面声量短暂回落。':'Negative discussion briefly declined.',
   '1.2版本补丁':'Version 1.2 patch','性能评价分化，部分玩家称改善明显。':'Performance feedback was mixed; some players reported clear improvements.',
   '概率活动开启':'Probability-based event launched','抽取规则引发集中质疑。':'Draw rules triggered concentrated criticism.',
-  '联名周边公布':'Collaboration merchandise announced','正面互动快速增长。':'Positive engagement grew rapidly.'
+  '联名周边公布':'Collaboration merchandise announced','正面互动快速增长。':'Positive engagement grew rapidly.',
+  'EWC/ALGS赛事':'EWC / ALGS competition',
+  'PLQ 升降级赛完成':'PLQ promotion/relegation stage completed',
+  'PLQ 期间服务器异常讨论':'Server issue discussion during PLQ',
+  'S29赛季更新':'Season 29 update',
+  '排位外挂投诉集中出现':'Spike in ranked-cheating complaints',
+  '赛博朋克 2077 联动上线':'Cyberpunk 2077 collaboration launched',
+  '赛博朋克联动':'Cyberpunk collaboration',
+  '来自本周有限可见帖子与评论样本；不代表平台整体发生率。':'Based on this week’s bounded visible post and comment sample; it does not represent a platform-wide incidence rate.',
+  '来自公开搜索可见帖子样本；仅作主题背景，不代表因果结论。':'Based on public-search visible post samples; this is topic context, not a causal conclusion.'
 };
 const displayEventText=s=>state.lang==='zh'?s:(eventTranslations[s]||s);
 const topicTypeClass=s=>({'广泛热议':'type-wide','圈层议题':'type-niche','爆发事件':'type-burst','单点观察':'type-single'}[s]||'type-single');
@@ -1114,7 +1142,8 @@ const topicTypeClass=s=>({'广泛热议':'type-wide','圈层议题':'type-niche'
 const AUTH_ACCOUNTS_KEY='apex_sentiment_accounts_v1';
 const AUTH_SESSION_KEY='apex_sentiment_session_v1';
 const ADMIN_USERNAME='choco';
-const ADMIN_PASSWORD_HASH='327a7380d2cc7cf09ed5820e1ecdb8abe585d696b5b5526986dfebe70acec59e';
+const ADMIN_PASSWORD_HASH='81fbb13319447db0b23f11ece014eeec6f2f661b3922b996bd0b46a9aa759c8c';
+const ADMIN_PASSWORD_FALLBACK_FINGERPRINT='71fa9ebc';
 const USER_USERNAME='nick';
 const USER_PASSWORD_HASH='397d1a8097452b158e449ce9104699854463d2b5893e8f4004abfa1db9d58aa0';
 const USER_PASSWORD_FALLBACK_FINGERPRINT='bdda2306';
@@ -1144,10 +1173,10 @@ function seedAdminAccount(){
   const accounts=readAccounts();
   let admin=accounts.find(a=>a.username.toLowerCase()===ADMIN_USERNAME);
   if(!admin){ admin={username:ADMIN_USERNAME,passwordHash:ADMIN_PASSWORD_HASH,role:'admin',active:true,createdAt:new Date().toISOString()}; accounts.unshift(admin); }
-  admin.username=ADMIN_USERNAME; admin.passwordHash=ADMIN_PASSWORD_HASH; admin.role='admin'; admin.active=true;
+  admin.username=ADMIN_USERNAME; admin.passwordHash=ADMIN_PASSWORD_HASH; admin.fallbackPasswordHash='fallback:'+ADMIN_PASSWORD_FALLBACK_FINGERPRINT; admin.role='admin'; admin.active=true;
   let user=accounts.find(a=>a.username.toLowerCase()===USER_USERNAME);
   if(!user){ user={username:USER_USERNAME,passwordHash:USER_PASSWORD_HASH,role:'user',active:true,createdAt:new Date().toISOString()}; accounts.push(user); }
-  user.username=USER_USERNAME; user.passwordHash=USER_PASSWORD_HASH; user.fallbackPasswordHash='fallback:'+USER_PASSWORD_FALLBACK_FINGERPRINT; user.role='user'; user.active=true;
+  user.username=USER_USERNAME; user.passwordHash=USER_PASSWORD_HASH; user.fallbackPasswordHash='fallback:'+USER_PASSWORD_FALLBACK_FINGERPRINT; user.role='manager'; user.active=true;
   let viewer=accounts.find(a=>a.username.toLowerCase()===VIEWER_USERNAME);
   if(!viewer){ viewer={username:VIEWER_USERNAME,passwordHash:VIEWER_PASSWORD_HASH,role:'viewer',active:true,createdAt:new Date().toISOString()}; accounts.push(viewer); }
   viewer.username=VIEWER_USERNAME; viewer.passwordHash=VIEWER_PASSWORD_HASH; viewer.fallbackPasswordHash='fallback:'+VIEWER_PASSWORD_FALLBACK_FINGERPRINT; viewer.role='viewer'; viewer.active=true;
@@ -1164,10 +1193,11 @@ function authenticatedAccount(){
 function accountRoleLabel(account){
   if(account?.role==='admin') return loc('管理员','Admin');
   if(account?.role==='viewer') return loc('只读浏览','Read only');
-  return loc('已授权','Authorized');
+  return loc('可下载与导入','Downloads and import');
 }
+function canManageContent(account){ return ['admin','manager','user'].includes(account?.role); }
 function applyAccountPermissions(account){
-  const viewer=account?.role==='viewer';
+  const viewer=!canManageContent(account);
   document.body.classList.toggle('viewer-mode',viewer);
   if(viewer){
     closeDownloadCenter();
@@ -1203,7 +1233,7 @@ function requireAuthenticated(){
 function requireContentManager(){
   const account=requireAuthenticated();
   if(!account) return null;
-  if(account.role==='viewer'){
+  if(!canManageContent(account)){
     alert(loc('当前账号仅有浏览权限。','This account has read-only access.'));
     return null;
   }
@@ -1218,9 +1248,9 @@ function renderAccounts(){
   const body=$('#accountTableBody'); if(!body) return;
   body.innerHTML=readAccounts().map(a=>{
     const protectedAdmin=[ADMIN_USERNAME,VIEWER_USERNAME].includes(a.username.toLowerCase());
-    const role=a.role==='admin'?loc('管理员','Admin'):a.role==='viewer'?loc('只读账号','Read-only viewer'):loc('普通账号','User');
+    const role=a.role==='admin'?loc('管理员','Admin'):a.role==='viewer'?loc('只读账号','Read-only viewer'):loc('可下载与导入','Downloads and import');
     const status=a.active?loc('启用','Active'):loc('停用','Disabled');
-    const actions=protectedAdmin?`<span class="account-role">${a.role==='viewer'?loc('系统只读','System read-only'):loc('系统保留','Protected')}</span>`:`<div class="account-actions"><button class="btn" data-account-action="edit" data-username="${a.username}">${loc('重置密码','Reset password')}</button><button class="btn" data-account-action="toggle" data-username="${a.username}">${a.active?loc('停用','Disable'):loc('启用','Enable')}</button><button class="btn" data-account-action="delete" data-username="${a.username}">${loc('删除','Delete')}</button></div>`;
+    const actions=protectedAdmin?`<span class="account-role">${a.role==='viewer'?loc('系统只读','System read-only'):loc('系统保留','Protected')}</span>`:`<div class="account-actions"><button class="btn" data-account-action="edit" data-username="${a.username}">${loc('密码 / 权限','Password / access')}</button><button class="btn" data-account-action="toggle" data-username="${a.username}">${a.active?loc('停用','Disable'):loc('启用','Enable')}</button><button class="btn" data-account-action="delete" data-username="${a.username}">${loc('删除','Delete')}</button></div>`;
     return `<tr><td>${a.username}</td><td class="${a.role==='admin'?'account-role':''}">${role}</td><td class="${a.active?'':'account-disabled'}">${status}</td><td>${actions}</td></tr>`;
   }).join('');
 }
@@ -1228,6 +1258,8 @@ function resetAccountForm(){
   $('#accountForm')?.reset();
   $('#accountUsername').readOnly=false;
   $('#accountForm').dataset.mode='create';
+  $('#accountPassword').required=true;
+  $('#accountRole').value='manager';
   $('#saveAccountBtn').textContent=loc('创建账号','Create account');
 }
 async function initializeAuth(){
@@ -1610,7 +1642,7 @@ function renderRiskList(){
 
 function renderKeywords(){
   const stats=weekKeywordStats().slice(0,80), max=stats[0]?.document_count||1;
-  $("#keywordCloud").innerHTML=stats.map((x,i)=>`<span class="keyword" title="${x.occurrences} 次 · 覆盖 ${x.document_count} 条文本" style="font-size:${12+x.document_count/max*17}px;color:${i<3?'#f2c94c':'#e3e3df'}">${x.keyword}</span>`).join('');
+  $("#keywordCloud").innerHTML=stats.map((x,i)=>`<span class="keyword" title="${x.occurrences} ${loc('次 · 覆盖','occurrences · covers')} ${x.document_count} ${loc('条文本','texts')}" style="font-size:${12+x.document_count/max*17}px;color:${i<3?'#f2c94c':'#e3e3df'}">${displayKeyword(x.keyword)}</span>`).join('');
 }
 
 function platformChainHistory(chain,platform=state.platform,upto=currentWeek()){
@@ -1754,7 +1786,7 @@ function chainKeywordShiftHtml(chain,platform=state.platform){
     ['retained',loc('持续保留','Retained'),current.filter(word=>previousSet.has(word))],
     ['faded',loc('本周淡出','Faded this week'),previous.filter(word=>!currentSet.has(word))]
   ];
-  return `<div class="chain-keyword-groups">${groups.map(([kind,label,words])=>`<div class="chain-keyword-group ${kind}"><strong>${label}</strong>${words.length?words.slice(0,10).map(word=>`<span class="chain-keyword-chip">${word}</span>`).join(''):`<span class="formula-text">${loc('无','None')}</span>`}</div>`).join('')}</div>`;
+  return `<div class="chain-keyword-groups">${groups.map(([kind,label,words])=>`<div class="chain-keyword-group ${kind}"><strong>${label}</strong>${words.length?words.slice(0,10).map(word=>`<span class="chain-keyword-chip">${displayKeyword(word)}</span>`).join(''):`<span class="formula-text">${loc('无','None')}</span>`}</div>`).join('')}</div>`;
 }
 function chainEvidenceHtml(chain){
   if(state.platform==='小黑盒'){
@@ -1829,7 +1861,7 @@ function openTopic(id){
     ${platformComparisonHtml(t,rankMaps)}
     <div class="section-title">${tr('heatBreakdown')}</div>
     <div class="formula-text">${state.lang==='zh'?'覆盖':'Coverage'} ${tm.discussion_coverage} × 35% + ${state.lang==='zh'?'讨论量':'Discussion'} ${tm.discussion_volume_score} × 25% + ${state.lang==='zh'?'影响力':'Influence'} ${tm.influence_score} × 20% + ${state.lang==='zh'?'互动':'Engagement'} ${tm.engagement_score} × 10% + ${state.lang==='zh'?'增长':'Growth'} ${tm.growth_score} × 10% = <strong>${tm.heat_score}</strong></div>
-    <div class="section-title">${state.lang==='zh'?'本周平台关键词':'Weekly platform keywords'}</div><div>${topicKeywordStats(t).slice(0,15).map(x=>`<span class="status s-high" title="${x.occurrences} 次 · 覆盖 ${x.document_count} 条文本" style="margin:0 5px 5px 0">${x.keyword}</span>`).join('') || `<span class="formula-text">${state.lang==='zh'?'当前平台本周没有可统计关键词。':'No observed keywords for this platform and week.'}</span>`}</div>
+    <div class="section-title">${state.lang==='zh'?'本周平台关键词':'Weekly platform keywords'}</div><div>${topicKeywordStats(t).slice(0,15).map(x=>`<span class="status s-high" title="${x.occurrences} ${loc('次 · 覆盖','occurrences · covers')} ${x.document_count} ${loc('条文本','texts')}" style="margin:0 5px 5px 0">${displayKeyword(x.keyword)}</span>`).join('') || `<span class="formula-text">${state.lang==='zh'?'当前平台本周没有可统计关键词。':'No observed keywords for this platform and week.'}</span>`}</div>
     ${topicEvidenceHtml(t)}
     ${topicVideoHtml(t)}
     ${chainSummary.weeks>1?`<button type="button" class="chain-open-button" id="openChainDetail">${loc('查看持续主题追踪','Open persistent topic tracking')} →</button>`:''}`;
@@ -1850,7 +1882,7 @@ function dashboardKeywordStats(w){
 function showMetricDrawer(title,sub,body){$("#drawer").classList.remove("chain-mode");$("#drawerTitle").textContent=title;$("#drawerSub").textContent=sub;$("#drawerBody").innerHTML=body;$("#drawerMask").classList.add("show");$("#drawer").classList.add("show");}
 function openVolumeDrawer(){var w=currentWeek(),totals={"B站":0,"小黑盒":0};w.topics.forEach(function(t){Object.keys(totals).forEach(function(p){totals[p]+=Number(t.platform_metrics&&t.platform_metrics[p]&&t.platform_metrics[p].count)||0;});});var all=totals["B站"]+totals["小黑盒"]||1;var bars=Object.entries(totals).map(function(x){var k=x[0],v=x[1];return '<div class="platform-row"><span>'+displayPlatform(k)+'</span><div class="platform-bar"><i style="width:'+(v/all*100)+'%"></i></div><b style="color:#dbe3f4">'+(v/all*100).toFixed(1)+'%</b></div>';}).join("");showMetricDrawer(state.platform==="综合"?loc("样本观察量（不可比）","Sample observations (not comparable)"):loc("本周样本量","Weekly sample size"),w.label+" · "+fmt(all)+" "+loc("条","items"),'<p class="risk-drawer-intro">'+loc("平台声量分布仅在此二级页面展示；B站为真实数据，小黑盒为真实公开搜索样本（非全量）。","Bilibili counts comments while Heybox counts search-visible posts; do not interpret their sum as a cross-platform total.")+'</p><div class="platform-bars drawer-platform-bars">'+bars+'</div><div class="detail-kpis"><div class="detail-kpi"><span>'+(state.platform==="综合"?loc("样本观察量（不可比）","Sample observations (not comparable)"):loc("本周样本量","Weekly sample size"))+'</span><strong>'+fmt(all)+'</strong></div><div class="detail-kpi"><span>B站</span><strong>'+fmt(totals["B站"])+'</strong></div><div class="detail-kpi"><span>小黑盒</span><strong>'+fmt(totals["小黑盒"])+'</strong></div></div>');}
 function openSentimentDrawer(){var w=currentWeek(),cur=aggregateWeek(w),summaries=dashboardData.weeks.map(function(x){return {w:x,s:aggregateWeek(x)};}),max=Math.max.apply(null,summaries.map(function(x){return x.s.volume;}).concat([1]));var rows=[[loc("积极","Positive"),cur.sentiment.positive,"var(--sentiment-positive)"],[loc("中性","Neutral"),cur.sentiment.neutral,"var(--sentiment-neutral)"],[loc("负面","Negative"),cur.sentiment.negative,"var(--sentiment-negative)"]];var rhtml=rows.map(function(r){return '<div class="sentiment-row"><span>'+r[0]+'</span><div class="bar"><i style="width:'+r[1]+'%;background:'+r[2]+'"></i></div><b style="color:'+r[2]+'">'+r[1]+'%</b></div>';}).join("");var donut="<div class=\"drawer-donut\" style=\"--p1:"+cur.sentiment.positive+"%;--p2:"+(cur.sentiment.positive+cur.sentiment.neutral)+"%\"><span>"+cur.sentiment.positive+"%</span></div>";var chart=summaries.map(function(x){return '<div class="drawer-chart-row"><span>'+x.w.label+'</span><div class="drawer-chart-bar"><i style="width:'+(x.s.volume/max*100)+'%"></i></div><b>'+x.s.negative_rate+'%</b></div>';}).join("");showMetricDrawer(loc("本周情感结构","Sentiment this week"),w.label+" · "+loc("模型全量输出","Model full-coverage output"),'<p class="risk-drawer-intro">'+loc("本页展示模型计算的本周结构和历史环比。","This view shows the model-computed structure and week-over-week comparison.")+'</p><div class="drawer-donut-wrap">'+donut+'<div class="drawer-donut-legend"><div><i style="background:var(--sentiment-positive)"></i>'+loc("积极","Positive")+' '+cur.sentiment.positive+'%</div><div><i style="background:var(--sentiment-neutral)"></i>'+loc("中性","Neutral")+' '+cur.sentiment.neutral+'%</div><div><i style="background:var(--sentiment-negative)"></i>'+loc("负面","Negative")+' '+cur.sentiment.negative+'%</div></div></div><div class="sentiment-list">'+rhtml+'</div><div class="section-title">'+loc("近5周情感结构环比","Five-week sentiment comparison")+'</div><div class="drawer-chart">'+chart+'</div>');}
-function openKeywordDrawer(){var w=currentWeek(),stats=dashboardKeywordStats(w),max=stats[0]?stats[0].document_count:1,scope=state.platform==="B站"?loc("来自映射到主题的真实B站评论文本。","Derived from real Bilibili comments mapped to topics."):state.platform==="小黑盒"?loc("来自小黑盒公开搜索可见帖子样本；样本非全量。","Derived from the sampled Heybox posts visible in public search; the sample is not exhaustive."):loc("合并B站评论与小黑盒公开搜索帖子样本；两平台采样范围与计数单位不同。","Merges Bilibili comments and sampled Heybox public-search posts; sampling scopes and units differ.");var chips=stats.slice(0,30).map(function(x,i){return '<span class="drawer-keyword" style="font-size:'+(12+x.document_count/max*10)+'px;color:'+(i<5?"#f2c94c":"#e3e3df")+'">'+x.keyword+'<small style="display:block;color:var(--muted);font-size:10px;margin-top:3px">'+fmt(x.occurrences)+' '+loc("次出现","occurrences")+' · '+loc("覆盖","covers")+' '+fmt(x.document_count)+' '+loc("条文本","texts")+'</small></span>';}).join("");showMetricDrawer(loc("本周高频关键词","Weekly top keywords"),w.label+" · "+displayPlatform(state.platform)+" · "+stats.length+" "+loc("个有效关键词","observed keywords"),'<p class="risk-drawer-intro">'+scope+loc(" 有效关键词需至少覆盖2条文本，且覆盖本周不低于2%的文本；排序依据为覆盖文本数，其次为实际出现次数，不再使用主题声量重复加权。"," Observed keywords must cover at least two texts and at least 2% of this week's texts; they are ranked by document coverage, then actual occurrence count, without duplicate topic-volume weighting.")+'</p><div class="drawer-keywords">'+chips+'</div>');}
+function openKeywordDrawer(){var w=currentWeek(),stats=dashboardKeywordStats(w),max=stats[0]?stats[0].document_count:1,scope=state.platform==="B站"?loc("来自映射到主题的真实B站评论文本。","Derived from real Bilibili comments mapped to topics."):state.platform==="小黑盒"?loc("来自小黑盒公开搜索可见帖子样本；样本非全量。","Derived from the sampled Heybox posts visible in public search; the sample is not exhaustive."):loc("合并B站评论与小黑盒公开搜索帖子样本；两平台采样范围与计数单位不同。","Merges Bilibili comments and sampled Heybox public-search posts; sampling scopes and units differ.");var chips=stats.slice(0,30).map(function(x,i){return '<span class="drawer-keyword" style="font-size:'+(12+x.document_count/max*10)+'px;color:'+(i<5?"#f2c94c":"#e3e3df")+'">'+displayKeyword(x.keyword)+'<small style="display:block;color:var(--muted);font-size:10px;margin-top:3px">'+fmt(x.occurrences)+' '+loc("次出现","occurrences")+' · '+loc("覆盖","covers")+' '+fmt(x.document_count)+' '+loc("条文本","texts")+'</small></span>';}).join("");showMetricDrawer(loc("本周高频关键词","Weekly top keywords"),w.label+" · "+displayPlatform(state.platform)+" · "+stats.length+" "+loc("个有效关键词","observed keywords"),'<p class="risk-drawer-intro">'+scope+loc(" 有效关键词需至少覆盖2条文本，且覆盖本周不低于2%的文本；排序依据为覆盖文本数，其次为实际出现次数，不再使用主题声量重复加权。"," Observed keywords must cover at least two texts and at least 2% of this week's texts; they are ranked by document coverage, then actual occurrence count, without duplicate topic-volume weighting.")+'</p><div class="drawer-keywords">'+chips+'</div>');}
 function openActionDrawer(){var topics=filteredTopics(),risks=topics.filter(function(t){return t.risk==="风险";}).sort(function(a,b){return metricFor(b).risk_score-metricFor(a).risk_score;}),ops=topics.filter(function(t){return t.risk==="机会";}).sort(function(a,b){return metricFor(b).heat_score-metricFor(a).heat_score;}),items=risks.map(function(t){return {t:t,kind:"risk"};}).concat(ops.map(function(t){return {t:t,kind:"op"};}));var html=items.map(function(x,i){var tm=metricFor(x.t);return '<div class="risk-item" data-topic="'+x.t.id+'"><div class="risk-line '+(x.kind==="op"?"op":"")+'"></div><div><strong>'+displayTopicName(x.t)+'</strong><span>'+(x.kind==="op"?tr("heatOption")+" "+tm.heat_score+" · "+tr("heatAsset"):tr("negativeRate")+" "+tm.negative+"% · "+tr("responseAdvice"))+'</span></div><div class="risk-level">'+(x.kind==="op"?tr("opportunity"):"P"+Math.min(3,i+1))+'</div></div>';}).join("");showMetricDrawer(loc("辅助复核意见","Review comments"),currentWeek().label+" · "+items.length+" "+loc("项","items"),'<p class="risk-drawer-intro">'+loc("以下建议用于辅助专业人员安排复核顺序，不替代人工舆情判断。","These suggestions help professionals prioritize review and do not replace human judgment.")+'</p><div class="drawer-action-list">'+html+'</div>');$$("#drawerBody .risk-item").forEach(function(el){el.onclick=function(){openTopic(el.dataset.topic);};});}
 function renderKpis(){var w=currentWeek(),k=aggregateWeek(w),keywordCount=dashboardKeywordStats(w).length,items=[[state.platform==="综合"?loc("样本观察量（不可比）","Sample observations (not comparable)"):tr("thisWeekVolume"),fmt(k.volume),loc("查看平台样本","View platform samples")],[tr("negativeShare"),k.negative_rate+"%",loc("辅助复核意见","Review comments")],[tr("highRisk"),k.risk_topics,tr("priorityNeeded")],[tr("newTopics"),k.new_topics,tr("modelDetected")],[loc("有效关键词","Observed keywords"),keywordCount,loc("查看真实词频","View observed frequency")],[loc("本周情感结构","Sentiment this week"),k.sentiment_score.toFixed(2),loc("查看情感环比","View sentiment comparison")]],actions=[openVolumeDrawer,openActionDrawer,openHighRiskDrawer,openNewTopicsDrawer,openKeywordDrawer,openSentimentDrawer];$("#kpiGrid").innerHTML=items.map(function(x,i){return '<button type="button" class="card kpi kpi-action" id="kpiAction'+i+'" aria-label="'+x[0]+' '+x[1]+'"><div class="kpi-label">'+x[0]+'</div><div class="kpi-value">'+x[1]+'</div><div class="kpi-foot">'+x[2]+'</div></button>';}).join("");items.forEach(function(_,i){$("#kpiAction"+i).addEventListener("click",actions[i]);});}
 function arrangeDashboardOrder(){if(document.body.dataset.dashboardArranged)return;var main=document.querySelector("main"),overview=document.querySelector("#overview"),topics=document.querySelector("#topics"),risk=document.querySelector("#risk");if(!main||!overview||!topics||!risk)return;var pageHead=overview.querySelector(".page-head"),kpiGrid=document.querySelector("#kpiGrid"),method=topics.querySelector(".method-grid"),coreGrid=topics.querySelector(".grid-12"),coreCard=coreGrid&&coreGrid.querySelector(".span-12"),eventCard=coreGrid&&coreGrid.querySelector(".span-12:not(:first-child)"),trend=overview.querySelector(".grid-12 .span-8"),sentimentPanel=overview.querySelector("#sentiment"),riskGrid=risk.querySelector(".grid-12"),matrix=riskGrid&&riskGrid.querySelector(".span-7"),actionPanel=riskGrid&&riskGrid.querySelector(".span-5"),chainGrid=risk.querySelectorAll(".grid-12")[1],chainCard=chainGrid&&chainGrid.querySelector(".span-6:last-child"),keywordCard=chainGrid&&chainGrid.querySelector(".span-6:first-child");if(!pageHead||!kpiGrid||!method||!coreCard||!trend||!matrix||!chainCard)return;sentimentPanel&&sentimentPanel.classList.add("legacy-layout-hidden");actionPanel&&actionPanel.classList.add("legacy-layout-hidden");keywordCard&&keywordCard.classList.add("legacy-layout-hidden");if(eventCard){eventCard.querySelector(".platform-bars")&&eventCard.querySelector(".platform-bars").classList.add("legacy-layout-hidden");eventCard.querySelector(".panel-head")&&eventCard.querySelector(".panel-head").classList.add("legacy-layout-hidden");}var order=document.createElement("div");order.id="dashboardOrder";order.className="dashboard-flow";var chainEventRow=document.createElement("div");chainEventRow.className="chain-event-row";var row=document.createElement("div");row.className="trend-risk-row";trend.classList.remove("span-8");matrix.classList.remove("span-7");matrix.classList.add("span-5");row.append(trend,matrix);main.insertBefore(order,overview);if(eventCard)chainEventRow.append(chainCard,eventCard);else chainEventRow.append(chainCard);order.append(pageHead,kpiGrid,method,coreCard,row,chainEventRow);[overview,topics,risk].forEach(function(s){s.classList.add("legacy-layout-hidden");});document.body.dataset.dashboardArranged="1";$$(".nav-item[data-anchor]").forEach(function(n){n.onclick=function(){var target=n.dataset.anchor==="evolution"?"evolution":"dashboardOrder";document.getElementById(target)&&document.getElementById(target).scrollIntoView({behavior:"smooth",block:"start"});$$(".nav-item").forEach(function(x){x.classList.remove("active");});n.classList.add("active");};});}
@@ -1901,8 +1933,8 @@ function reportTopicRows(week,previousWeek,platform){
   });
 }
 function buildReportInputPackage(){
-  const week=currentWeek(), previousWeek=state.weekIndex>0?dashboardData.weeks[state.weekIndex-1]:null, platform=state.platform;
-  const currentSummary=reportWeekSummary(week,platform), previousSummary=reportWeekSummary(previousWeek,platform);
+  const week=currentWeek(), platform=state.platform;
+  const currentSummary=reportWeekSummary(week,platform);
   const warnings=[
     'Official total views and watch-hours data are not present; do not infer viewership from discussion volume.',
     'SnowNLP sentiment and derived risk scores are exploratory model outputs and are not independently validated for formal reporting.',
@@ -1910,16 +1942,17 @@ function buildReportInputPackage(){
     'Bilibili counts mapped comment texts while Heybox counts search-visible posts; the units are not directly comparable.'
   ];
   return {
-    schema_version:'apac_china_weekly_sentiment_report_input_v3', generated_at:new Date().toISOString(),
+    schema_version:'apac_china_weekly_sentiment_report_input_v4', generated_at:new Date().toISOString(),
     export_status:'draft_input_only_not_a_complete_report',
-    download_paths:{dashboard_long_capture:'reports/APEX_W29_Combined_Dashboard_Long_Capture.png',data_and_narrative_guide:'templates/APEX_Dashboard_Data_and_Narrative_Guide.md'},
+    history_scope:'current_week_only',
+    download_paths:{current_week_methodology:'reports/APEX_CHINA_W30_Weekly_Community_Report.md',data_and_narrative_guide:'templates/APEX_Dashboard_Data_and_Narrative_Guide.md',report_contract:'config/weekly_bilingual_report_contract.json'},
     report_scope:{region:'China',reporting_owner:'China reporting team',regional_aggregation:'not_in_scope'},
-    report_rule:{section_order:['Overview','Top Conversation Drivers','Sentiment History','UGC / Stream Viewership','Methodology Notes','Data Quality Check'],narrative_sequence:['Conclusion','Attribution','Evidence','Comparison','Impact'],sentiment_order:['Positive','Neutral or Mixed','Negative'],natural_week_required:true,missing_metric_substitution_forbidden:true},
+    report_rule:{layout:'single_sheet_bilingual_side_by_side',template_reference:'W30',section_order:['Overview','Top Conversation Drivers','Sentiment History','UGC / Stream Viewership','Methodology Notes','Data Quality Check'],narrative_sequence:['Audience scope','Evaluated object','Direct reaction','Specific reason','Observed impact'],sentiment_order:['Positive','Neutral or Mixed','Negative'],driver_count:{target:10,minimum:8,maximum:10,reduction_only_when_independent_evidence_qualified_drivers_are_insufficient:true,padding_by_duplication_or_topic_splitting_forbidden:true},natural_week_required:true,missing_metric_substitution_forbidden:true},
     reporting_period:{week_id:week.week_id,label:week.label,start:week.start,end:week.end,is_complete_natural_week:true},
     selection:{region:'China',platform_view:platform},
-    required_input_status:{china:'available_with_exploratory_limitations',previous_week:previousWeek?'available':'missing',official_viewership:'missing',representative_heybox_text:'missing_from_dashboard_payload'},
+    required_input_status:{china:'available_with_exploratory_limitations',historical_weeks:'omitted_by_current_week_only_policy',official_viewership:'missing',representative_heybox_text:'missing_from_dashboard_payload'},
     regions:{
-      china:{status:'available_with_limitations',current_week:currentSummary,previous_week:previousSummary,conversation_drivers:reportTopicRows(week,previousWeek,platform),sentiment_history:dashboardData.weeks.slice(0,state.weekIndex+1).map(item=>reportWeekSummary(item,platform)),ugc_and_viewership:{status:'incomplete',total_views:null,watch_hours:null,popularity_or_heat:null,ugc_volume:null,active_creators:null,available_dashboard_coverage:{video_or_content_count:currentSummary.observed_video_or_content_count,creator_count:currentSummary.observed_creator_count},warning:'Dashboard coverage counts are not a substitute for official reach, watch-hours, popularity, or creator-activity metrics.'}}
+      china:{status:'available_with_limitations',current_week:currentSummary,conversation_drivers:reportTopicRows(week,null,platform),ugc_and_viewership:{status:'incomplete',total_views:null,watch_hours:null,popularity_or_heat:null,ugc_volume:null,active_creators:null,available_dashboard_coverage:{video_or_content_count:currentSummary.observed_video_or_content_count,creator_count:currentSummary.observed_creator_count},warning:'Dashboard coverage counts are not a substitute for official reach, watch-hours, popularity, or creator-activity metrics.'}}
     },
     methodology:{topic_model:dashboardData.meta.model_version,topic_assignment:'single canonical topic per mapped text in this dashboard',sentiment_model:dashboardData.meta.sentiment_model,sentiment_scale:'0 to 1 SnowNLP model output; report label thresholds require analyst confirmation',platform_scope:dashboardData.meta.platform_status,formal_reporting_qualified:Boolean(dashboardData.meta.qualified_for_formal_reporting),regional_comparability:'not_applicable_single_region_report',platform_unit_comparability:'Bilibili mapped comment texts and Heybox search-visible posts are not directly comparable or additive'},
     data_quality_warnings:warnings,
@@ -1930,7 +1963,7 @@ function openDownloadCenter(){
   if(!requireContentManager()) return;
   const week=currentWeek(), platform=displayPlatform(state.platform);
   $('#downloadContext').innerHTML=`<span>${loc('报告范围','Report scope')} · ${loc('中国地区','China')}</span><span>${loc('报告周次','Reporting week')} · ${week.label}</span><span>${loc('平台视图','Platform view')} · ${platform}</span><span>${loc('模板版本','Template version')} · 3.0</span>`;
-  $('#downloadWarning').textContent=loc('W29 Excel 样本周报已生成；官方观看指标仍缺失，JSON 保留为可追溯输入包。该周报仅供探索，不具备正式统计报告资格。','The W29 sample workbook is available. Official viewership metrics remain unavailable; JSON stays as a traceable input package, and the report is exploratory only.');
+  $('#downloadWarning').textContent=loc('W30 为当前周，报告输入包仅包含当周；W29 仅保留历史 Excel 周报下载。官方观看指标仍缺失，报告仅供探索。','W30 is the current week and its report-input package contains current-week data only. W29 remains available only as the historical Excel report. Official viewership metrics are still unavailable, so reporting remains exploratory.');
   $('#downloadMask').classList.add('show'); $('#downloadModal').classList.add('show');
 }
 function closeDownloadCenter(){ $('#downloadMask')?.classList.remove('show'); $('#downloadModal')?.classList.remove('show'); }
@@ -1961,18 +1994,25 @@ $('#accountForm').addEventListener('submit',async e=>{
   const admin=requireAuthenticated(); if(!admin||admin.role!=='admin') return;
   const username=$('#accountUsername').value.trim().toLowerCase();
   const password=$('#accountPassword').value;
+  const role=$('#accountRole').value;
+  const editing=$('#accountForm').dataset.mode==='edit';
   if(!/^[a-z0-9_.-]{3,32}$/i.test(username)){ $('#adminMessage').textContent=loc('账号仅支持 3—32 位字母、数字、下划线、点或短横线。','Use 3–32 letters, numbers, underscores, periods, or hyphens.'); return; }
-  if(password.length<6){ $('#adminMessage').textContent=loc('密码至少需要 6 个字符。','Passwords require at least 6 characters.'); return; }
+  if(!['manager','viewer'].includes(role)){ $('#adminMessage').textContent=loc('请选择有效的操作权限。','Select a valid access level.'); return; }
+  if((!editing||password)&&password.length<6){ $('#adminMessage').textContent=loc('创建账号或重置密码时，密码至少需要 6 个字符。','New accounts and password resets require at least 6 characters.'); return; }
   if([ADMIN_USERNAME,VIEWER_USERNAME].includes(username)){ $('#adminMessage').textContent=loc('系统预设账号不可修改。','Protected system accounts cannot be modified.'); return; }
   const submit=$('#saveAccountBtn'); submit.disabled=true;
   try{
     const accounts=readAccounts();
     const existing=accounts.find(a=>a.username.toLowerCase()===username);
-    const passwordHash=await hashPassword(password);
-    if(existing){ existing.passwordHash=passwordHash; existing.active=true; }
-    else accounts.push({username,passwordHash,role:'user',active:true,createdAt:new Date().toISOString()});
+    if(existing){
+      if(password) existing.passwordHash=await hashPassword(password);
+      existing.role=role; existing.active=true;
+    }else{
+      const passwordHash=await hashPassword(password);
+      accounts.push({username,passwordHash,role,active:true,createdAt:new Date().toISOString()});
+    }
     writeAccounts(accounts); renderAccounts(); resetAccountForm();
-    $('#adminMessage').textContent=existing?loc(`账号 ${username} 的密码已重置并启用。`,`Password reset and account enabled for ${username}.`):loc(`账号 ${username} 已创建。`,`Account ${username} created.`);
+    $('#adminMessage').textContent=existing?loc(`账号 ${username} 的权限已更新并启用${password?'，密码已重置':''}。`,`Access for ${username} was updated and enabled${password?'; the password was reset':''}.`):loc(`账号 ${username} 已创建并分配操作权限。`,`Account ${username} was created with the selected access.`);
   }catch(err){ $('#adminMessage').textContent=err.message; }
   finally{ submit.disabled=false; }
 });
@@ -1985,8 +2025,9 @@ $('#accountTableBody').addEventListener('click',e=>{
   const accounts=readAccounts(), account=accounts.find(a=>a.username===username); if(!account) return;
   if(action==='edit'){
     $('#accountUsername').value=account.username; $('#accountUsername').readOnly=true; $('#accountPassword').value='';
-    $('#accountForm').dataset.mode='edit'; $('#saveAccountBtn').textContent=loc('重置密码','Reset password');
-    $('#adminMessage').textContent=loc(`为账号 ${username} 输入新密码。`,`Enter a new password for ${username}.`); $('#accountPassword').focus(); return;
+    $('#accountPassword').required=false; $('#accountRole').value=account.role==='viewer'?'viewer':'manager';
+    $('#accountForm').dataset.mode='edit'; $('#saveAccountBtn').textContent=loc('更新账号','Update account');
+    $('#adminMessage').textContent=loc(`可修改账号 ${username} 的操作权限；如需重置密码，再输入新密码。`,`Change access for ${username}; enter a new password only if it should be reset.`); $('#accountRole').focus(); return;
   }
   if(action==='toggle') account.active=!account.active;
   if(action==='delete'&&!confirm(loc(`确认删除账号 ${username}？`,`Delete account ${username}?`))) return;

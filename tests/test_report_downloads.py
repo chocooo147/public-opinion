@@ -12,10 +12,10 @@ W29_EXCEL = ROOT / "reports/APEX_CHINA_W29_Weekly_Community_Report.xlsx"
 WEEKLY_DATA = (
     ROOT / "outputs/bilibili_apex_2026_W30.json",
     ROOT / "outputs/heybox_apex_2026_W30_public_search.json",
-    ROOT / "outputs/bilibili_apex_2026_W29.json",
-    ROOT / "outputs/heybox_apex_2026_W29_public_search.json",
 )
 NARRATIVE_RULES = ROOT / "templates/Community_Topic_Driver_Narrative_Rules.md"
+REPORT_CONTRACT = ROOT / "config/weekly_bilingual_report_contract.json"
+REPORT_VALIDATOR = ROOT / "scripts/validate_weekly_report_contract.py"
 HTML_PATHS = [
     ROOT / "index.html",
     ROOT / "game_sentiment_dashboard_apex_W25_W30_mixed_sample.html",
@@ -43,11 +43,15 @@ class ReportDownloadTests(unittest.TestCase):
                 self.assertIn("templates/APEX_Dashboard_Data_and_Narrative_Guide.md", source)
                 self.assertIn("reports/APEX_W29_Combined_Dashboard_Long_Capture.png", source)
                 self.assertNotIn("reports/APEX_W29_Combined_Dashboard_Landscape.pdf", source)
-                self.assertIn("apac_china_weekly_sentiment_report_input_v3", source)
+                self.assertIn("apac_china_weekly_sentiment_report_input_v4", source)
                 self.assertIn("export_status:'draft_input_only_not_a_complete_report'", source)
+                self.assertIn("history_scope:'current_week_only'", source)
                 self.assertIn("report_scope:{region:'China'", source)
                 self.assertIn("regions:{\n      china:", source)
                 self.assertIn("official_viewership:'missing'", source)
+                self.assertIn("historical_weeks:'omitted_by_current_week_only_policy'", source)
+                self.assertNotIn("previous_week:previousSummary", source)
+                self.assertNotIn("sentiment_history:dashboardData.weeks", source)
                 self.assertNotIn("japan:{", source)
                 self.assertNotIn("Japan data", source)
                 self.assertNotIn("日本数据", source)
@@ -63,6 +67,7 @@ class ReportDownloadTests(unittest.TestCase):
             "downloadReportInput",
             "downloadFullDashboard",
             "downloadDashboardLongCapture",
+            "downloadCurrentMethodology",
             "downloadDashboardGuide",
         ):
             with self.subTest(element_id=element_id):
@@ -71,13 +76,38 @@ class ReportDownloadTests(unittest.TestCase):
         download_grid = source[source.index('<div class="download-grid">'):source.index('<div class="download-spec">')]
         self.assertIn("bilibili_apex_2026_W30.json", download_grid)
         self.assertIn("heybox_apex_2026_W30_public_search.json", download_grid)
-        self.assertIn("bilibili_apex_2026_W29.json", download_grid)
-        self.assertIn("heybox_apex_2026_W29_public_search.json", download_grid)
+        self.assertNotIn("bilibili_apex_2026_W29.json", download_grid)
+        self.assertNotIn("heybox_apex_2026_W29_public_search.json", download_grid)
         self.assertIn("APEX_CHINA_W29_Weekly_Community_Report.xlsx", download_grid)
-        self.assertIn("APEX_CHINA_W29_Weekly_Community_Report.md", download_grid)
+        self.assertNotIn("APEX_CHINA_W29_Weekly_Community_Report.md", download_grid)
+        self.assertEqual(
+            download_grid.count("APEX_CHINA_W30_Weekly_Community_Report.md"),
+            1,
+        )
         self.assertEqual(source.count('id="downloadDashboardGuide"'), 1)
         self.assertNotIn('id="downloadDashboardPdf"', source)
         self.assertIn("download-actions", source)
+
+    def test_stable_w30_report_contract_is_packaged(self):
+        self.assertTrue(REPORT_CONTRACT.is_file())
+        self.assertTrue(REPORT_VALIDATOR.is_file())
+        contract = __import__("json").loads(REPORT_CONTRACT.read_text(encoding="utf-8"))
+        self.assertEqual(contract["layout"]["worksheet_count"], 1)
+        self.assertEqual(
+            contract["layout"]["worksheet_structure"],
+            "single_sheet_bilingual_side_by_side",
+        )
+        self.assertEqual(contract["driver_policy"]["target_count"], 10)
+        self.assertEqual(contract["driver_policy"]["minimum_count"], 8)
+        self.assertEqual(contract["driver_policy"]["maximum_count"], 10)
+        self.assertTrue(
+            contract["driver_policy"][
+                "reduction_only_when_independent_evidence_qualified_drivers_are_insufficient"
+            ]
+            if "reduction_only_when_independent_evidence_qualified_drivers_are_insufficient"
+            in contract["driver_policy"]
+            else "independent evidence-qualified" in contract["driver_policy"]["reduction_rule"]
+        )
 
     def test_narrative_rules_are_packaged_without_content_changes(self):
         source_candidates = (
