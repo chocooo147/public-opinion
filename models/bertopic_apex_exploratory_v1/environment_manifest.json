@@ -14,7 +14,7 @@
   "actual_bertopic_for_all_experiments": true,
   "substitute_or_simulation": false,
   "input_corpus": {
-    "path": "/Users/choco/Documents/APEX/data/processed/bilibili_apex_W25_W28_bertopic_exploratory_corpus.csv",
+    "path": "data/processed/bilibili_apex_W25_W28_bertopic_exploratory_corpus.csv",
     "rows": 1052,
     "sha256": "869c03d5dfe01cfadbfb8575d6c752e23e89438c02766e7b2834e840f03711c5"
   },
@@ -51,7 +51,7 @@
           "calculate_probabilities": false,
           "verbose": false
         },
-        "model_path": "/Users/choco/Documents/APEX/work/bertopic_models/exp_a_balanced.pkl",
+        "model_path": "work/bertopic_models/exp_a_balanced.pkl",
         "model_sha256": "40f0c48d7dee49f2c3f804b3a5a896828c671503708a30f84be5812fc7e463a5"
       }
     },
@@ -87,7 +87,7 @@
           "calculate_probabilities": false,
           "verbose": false
         },
-        "model_path": "/Users/choco/Documents/APEX/work/bertopic_models/exp_b_finer.pkl",
+        "model_path": "work/bertopic_models/exp_b_finer.pkl",
         "model_sha256": "eb844779890bab0cd8045a3af47ab0704b9e024f329dc1db79ab7a05655870b0"
       }
     },
@@ -123,7 +123,7 @@
           "calculate_probabilities": false,
           "verbose": false
         },
-        "model_path": "/Users/choco/Documents/APEX/work/bertopic_models/exp_c_conservative.pkl",
+        "model_path": "work/bertopic_models/exp_c_conservative.pkl",
         "model_sha256": "3f306e6c93e88d9d211c93db7d15480c28832781e8f7cc1878167bc9dcf52614"
       }
     }
@@ -136,8 +136,8 @@
     "topic_chain_generated": false,
     "dashboard_updated": false
   },
-  "python_executable": "/Users/choco/Documents/APEX/.venv-bertopic/bin/python",
-  "venv_path": "/Users/choco/Documents/APEX/.venv-bertopic",
+  "python_executable": ".venv-bertopic/bin/python",
+  "venv_path": ".venv-bertopic",
   "numpy_version": "2.3.5",
   "pandas_version": "2.2.3",
   "embedding_dimension": 50,
@@ -178,5 +178,5 @@
     }
   },
   "environment_permanently_locked": true,
-  "requirements_lock": "/Users/choco/Documents/APEX/requirements-bertopic.lock.txt"
+  "requirements_lock": "requirements-bertopic.lock.txt"
 }

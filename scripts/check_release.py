@@ -15,7 +15,20 @@ REQUIRED = [
     "reports/dashboard_W25_W28_mixed_data_report.md", "docs/DATA_DICTIONARY.md", "docs/MODEL_VERSION.md", "docs/PUBLISHING.md",
     "scripts/evaluate_metric_bias.py",
 ]
-SENSITIVE = re.compile(r"(?:cookie|token|secret|password|session|/Users/[^/]+/Documents)", re.I)
+PUBLIC_TEXT_SUFFIXES = {
+    ".css", ".csv", ".html", ".ini", ".js", ".json", ".md", ".mjs",
+    ".py", ".sh", ".toml", ".ts", ".txt", ".yaml", ".yml",
+}
+ABSOLUTE_PATH_PATTERNS = {
+    "mac_user_home": re.compile(r"/" + r"Users/[^/\s\"']+/"),
+    "linux_user_home": re.compile(r"/" + r"home/[^/\s\"']+/"),
+    "windows_user_home": re.compile(
+        r"\b[A-Za-z]:" + r"[\\/](?:Users|Documents and Settings)[\\/][^\\/\s\"']+[\\/]"
+    ),
+}
+SCAN_EXCLUDES = {
+    Path("outputs/release_check.json"),
+}
 AUTH_HTML_CANDIDATES = [
     "index.html",
     "game_sentiment_dashboard_v3.html",
@@ -24,14 +37,45 @@ AUTH_HTML_CANDIDATES = [
 ]
 
 
+def find_portability_issues(text: str) -> list[str]:
+    return [
+        label
+        for label, pattern in ABSOLUTE_PATH_PATTERNS.items()
+        if pattern.search(text)
+    ]
+
+
+def scan_public_text_paths() -> list[dict[str, object]]:
+    issues = []
+    for path in sorted(ROOT.rglob("*")):
+        if not path.is_file() or ".git" in path.parts:
+            continue
+        relative = path.relative_to(ROOT)
+        if relative in SCAN_EXCLUDES:
+            continue
+        if path.suffix.lower() not in PUBLIC_TEXT_SUFFIXES and path.name != ".env.example":
+            continue
+        try:
+            text = path.read_text(encoding="utf-8")
+        except UnicodeDecodeError:
+            continue
+        for label, pattern in ABSOLUTE_PATH_PATTERNS.items():
+            for match in pattern.finditer(text):
+                issues.append({
+                    "path": relative.as_posix(),
+                    "kind": label,
+                    "line": text.count("\n", 0, match.start()) + 1,
+                })
+    return issues
+
+
 def main() -> int:
     missing = [p for p in REQUIRED if not (ROOT / p).exists()]
-    absolute_manifest_paths = []
-    for path in [ROOT / "models/bertopic_apex_exploratory_v1/model_manifest.json", ROOT / "config/project_paths.example.json"]:
-        if path.exists():
-            text = path.read_text(encoding="utf-8")
-            if "/Users/" in text or "\\\\" in text:
-                absolute_manifest_paths.append(str(path.relative_to(ROOT)))
+    public_text_absolute_path_issues = scan_public_text_paths()
+    absolute_manifest_paths = sorted({
+        issue["path"] for issue in public_text_absolute_path_issues
+        if "manifest" in str(issue["path"]) or str(issue["path"]).startswith("config/")
+    })
     auth_script_issues = []
     for relative in AUTH_HTML_CANDIDATES:
         path = ROOT / relative
@@ -47,7 +91,14 @@ def main() -> int:
         for label, count in checks.items():
             if count != 1:
                 auth_script_issues.append({"path": relative, "check": label, "count": count})
-    result = {"required_files_missing": missing, "absolute_path_manifest_issues": absolute_manifest_paths, "auth_script_issues": auth_script_issues, "sensitive_filename_policy": "raw/cookie/token/session files are excluded by .gitignore", "publish_ready": not missing and not absolute_manifest_paths and not auth_script_issues}
+    result = {
+        "required_files_missing": missing,
+        "absolute_path_manifest_issues": absolute_manifest_paths,
+        "public_text_absolute_path_issues": public_text_absolute_path_issues,
+        "auth_script_issues": auth_script_issues,
+        "sensitive_filename_policy": "raw/cookie/token/session files are excluded by .gitignore",
+        "publish_ready": not missing and not public_text_absolute_path_issues and not auth_script_issues,
+    }
     (ROOT / "outputs/release_check.json").write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
     print(json.dumps(result, ensure_ascii=False, indent=2))
     return 0 if result["publish_ready"] else 1

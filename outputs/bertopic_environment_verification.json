@@ -1,7 +1,7 @@
 {
-  "python_executable": "/Users/choco/Documents/APEX/.venv-bertopic/bin/python",
+  "python_executable": ".venv-bertopic/bin/python",
   "python_version": "3.12.13 (main, Mar  3 2026, 15:35:03) [Clang 21.1.4 ]",
-  "venv_path": "/Users/choco/Documents/APEX/work/public-opinion/.venv-bertopic",
+  "venv_path": ".venv-bertopic",
   "platform": "macOS-15.5-arm64-arm-64bit",
   "packages": {
     "bertopic": "0.16.4",
