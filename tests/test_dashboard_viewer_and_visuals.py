@@ -40,6 +40,48 @@ class DashboardViewerAndVisualTests(unittest.TestCase):
                     source,
                 )
 
+    def test_admin_can_assign_download_or_read_only_access(self):
+        for path in HTML_PATHS:
+            source = path.read_text(encoding="utf-8")
+            with self.subTest(path=path.name):
+                self.assertIn('id="accountRole"', source)
+                self.assertIn('<option value="manager">可下载与导入</option>', source)
+                self.assertIn('<option value="viewer">只读</option>', source)
+                self.assertIn("function canManageContent(account)", source)
+                self.assertIn("existing.role=role", source)
+                self.assertIn("accounts.push({username,passwordHash,role,active:true", source)
+                self.assertIn("$('#accountPassword').required=false", source)
+
+    def test_admin_password_hash_is_rotated(self):
+        expected = (
+            "const ADMIN_PASSWORD_HASH="
+            "'81fbb13319447db0b23f11ece014eeec6f2f661b3922b996bd0b46a9aa759c8c';"
+        )
+        for path in HTML_PATHS:
+            source = path.read_text(encoding="utf-8")
+            with self.subTest(path=path.name):
+                self.assertEqual(source.count(expected), 1)
+                self.assertEqual(
+                    source.count("const ADMIN_PASSWORD_FALLBACK_FINGERPRINT='71fa9ebc';"),
+                    1,
+                )
+
+    def test_english_mode_has_canonical_topic_and_event_translations(self):
+        for path in HTML_PATHS:
+            source = path.read_text(encoding="utf-8")
+            with self.subTest(path=path.name):
+                self.assertIn("'APEX-T001':'Ranked Play & Matchmaking'", source)
+                self.assertIn("'APEX-T013':'Weapon & Legend Strength'", source)
+                self.assertIn(
+                    "'PLQ 期间服务器异常讨论':'Server issue discussion during PLQ'",
+                    source,
+                )
+                self.assertIn(
+                    "canonicalTopicTranslations[t.id]",
+                    source,
+                )
+                self.assertIn("displayKeyword(x.keyword)", source)
+
     def test_trend_uses_data_scaled_nice_axis(self):
         for path in HTML_PATHS:
             source = path.read_text(encoding="utf-8")

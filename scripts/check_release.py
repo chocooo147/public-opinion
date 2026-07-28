@@ -13,7 +13,8 @@ REQUIRED = [
     "outputs/game_sentiment_dashboard_apex_W25_W28_mixed_test.html", "reports/bertopic_and_platform_logic_audit.md",
     "outputs/week_boundary_audit.json", "outputs/bertopic_confidence_manifest.json", "outputs/bertopic_topic_confidence_distribution.csv",
     "reports/dashboard_W25_W28_mixed_data_report.md", "docs/DATA_DICTIONARY.md", "docs/MODEL_VERSION.md", "docs/PUBLISHING.md",
-    "scripts/evaluate_metric_bias.py",
+    "scripts/evaluate_metric_bias.py", "config/weekly_bilingual_report_contract.json",
+    "scripts/validate_weekly_report_contract.py", "reports/APEX_CHINA_W30_Weekly_Community_Report.xlsx",
 ]
 PUBLIC_TEXT_SUFFIXES = {
     ".css", ".csv", ".html", ".ini", ".js", ".json", ".md", ".mjs",
@@ -87,6 +88,12 @@ def main() -> int:
             "login submit handler": text.count("$('#loginForm').addEventListener('submit'"),
             "apex viewer declaration": text.count("const VIEWER_USERNAME='apex';"),
             "viewer permission guard": text.count("function requireContentManager()"),
+            "assignable account role": text.count('id="accountRole"'),
+            "content permission helper": text.count("function canManageContent(account)"),
+            "current admin password hash": text.count(
+                "const ADMIN_PASSWORD_HASH='81fbb13319447db0b23f11ece014eeec6f2f661b3922b996bd0b46a9aa759c8c';"
+            ),
+            "English canonical topic map": text.count("const canonicalTopicTranslations="),
         }
         for label, count in checks.items():
             if count != 1:

@@ -1,0 +1,52 @@
+{
+  "contract_version": "1.0",
+  "template_reference": "reports/APEX_CHINA_W30_Weekly_Community_Report.xlsx",
+  "layout": {
+    "worksheet_count": 1,
+    "worksheet_structure": "single_sheet_bilingual_side_by_side",
+    "english_columns": ["A", "B"],
+    "chinese_columns": ["D", "E"],
+    "title_cells": {
+      "english": "A1",
+      "chinese": "D1"
+    },
+    "topic_header_cells": {
+      "english": "A3",
+      "chinese": "D3"
+    }
+  },
+  "driver_policy": {
+    "target_count": 10,
+    "minimum_count": 8,
+    "maximum_count": 10,
+    "core_driver_count": 3,
+    "core_sentiment_order": ["Positive", "Neutral", "Negative"],
+    "reduction_rule": "Use 8 or 9 drivers only when fewer than 10 independent evidence-qualified drivers remain after deduplication and misclassification review.",
+    "forbidden_padding": [
+      "duplicate_driver",
+      "split_one_driver_without_independent_evidence",
+      "outlier_or_misclassified_text",
+      "unsupported_causal_claim"
+    ]
+  },
+  "narrative_policy": {
+    "required_sequence": [
+      "audience_scope",
+      "evaluated_object",
+      "direct_reaction",
+      "specific_reason",
+      "observed_impact"
+    ],
+    "bilingual_meaning_alignment_required": true,
+    "evidence_comment_required_per_driver": true,
+    "source_scope_and_limitations_required": true,
+    "causal_language_requires_direct_evidence": true
+  },
+  "quality_gate": {
+    "minimum_driver_narrative_characters": 80,
+    "formula_errors_forbidden": true,
+    "blank_driver_titles_forbidden": true,
+    "mixed_must_not_be_forced_to_neutral": true,
+    "platform_units_must_not_be_summed_as_a_formal_total": true
+  }
+}
