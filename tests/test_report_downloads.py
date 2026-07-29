@@ -84,6 +84,28 @@ class ReportDownloadTests(unittest.TestCase):
                     source.index('id="reportPreviewBtn"'),
                     source.index('id="downloadBtn"'),
                 )
+
+    def test_report_preview_has_center_divider_on_desktop_only(self):
+        divider = (
+            '.report-preview-bilingual-head::after,'
+            '.report-preview-bilingual-row::after { content:""; position:absolute; '
+            'top:0; bottom:0; left:50%; width:1px; background:#8f8f8f; '
+            'pointer-events:none; }'
+        )
+        mobile_override = (
+            '.report-preview-bilingual-head::after,'
+            '.report-preview-bilingual-row::after{display:none}'
+        )
+        for path in HTML_PATHS:
+            source = path.read_text(encoding="utf-8")
+            with self.subTest(path=path.name):
+                self.assertEqual(source.count(divider), 1)
+                self.assertEqual(source.count(mobile_override), 1)
+                self.assertIn(
+                    ".report-preview-bilingual-head,.report-preview-bilingual-row "
+                    "{ position:relative;",
+                    source,
+                )
                 self.assertIn(
                     '$("#reportPreviewBtn").onclick=openReportPreview;',
                     source,
