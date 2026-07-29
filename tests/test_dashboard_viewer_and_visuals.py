@@ -43,7 +43,7 @@ class DashboardViewerAndVisualTests(unittest.TestCase):
                 )
                 self.assertIn(
                     ".sidebar-art { position:relative; z-index:0; display:block; "
-                    "width:calc(100% + 32px); max-width:none; height:auto; "
+                    "width:calc(100% + 32px); max-width:none; height:443px; "
                     "margin:0 -16px -72px;",
                     source,
                 )
