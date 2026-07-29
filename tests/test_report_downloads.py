@@ -85,25 +85,29 @@ class ReportDownloadTests(unittest.TestCase):
                     source.index('id="downloadBtn"'),
                 )
 
-    def test_report_preview_has_center_divider_on_desktop_only(self):
-        divider = (
-            '.report-preview-bilingual-head::after,'
-            '.report-preview-bilingual-row::after { content:""; position:absolute; '
-            'top:0; bottom:0; left:50%; width:1px; background:#8f8f8f; '
-            'pointer-events:none; }'
-        )
-        mobile_override = (
-            '.report-preview-bilingual-head::after,'
-            '.report-preview-bilingual-row::after{display:none}'
-        )
+    def test_report_preview_uses_one_aligned_center_divider(self):
         for path in HTML_PATHS:
             source = path.read_text(encoding="utf-8")
             with self.subTest(path=path.name):
-                self.assertEqual(source.count(divider), 1)
-                self.assertEqual(source.count(mobile_override), 1)
                 self.assertIn(
-                    ".report-preview-bilingual-head,.report-preview-bilingual-row "
-                    "{ position:relative;",
+                    ".report-preview-title > div + div "
+                    "{ border-left:1px solid #f5f5f2; }",
+                    source,
+                )
+                self.assertIn(
+                    ".report-preview-bilingual-head span:nth-child(3) "
+                    "{ border-left:1px solid #8f8f8f; }",
+                    source,
+                )
+                self.assertIn(
+                    ".report-preview-bilingual-row "
+                    ".report-preview-copy:nth-child(3) "
+                    "{ border-left:1px solid #9a9a9a; }",
+                    source,
+                )
+                self.assertNotIn(
+                    ".report-preview-bilingual-head::after,"
+                    ".report-preview-bilingual-row::after",
                     source,
                 )
                 self.assertIn(

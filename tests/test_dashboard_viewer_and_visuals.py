@@ -21,6 +21,33 @@ class DashboardViewerAndVisualTests(unittest.TestCase):
             with self.subTest(path=path.name):
                 self.assertNotIn('data-anchor="sentiment"', source)
 
+    def test_sidebar_art_is_clipped_inside_sidebar(self):
+        asset = ROOT / "assets/sidebar-apex-character.png"
+        self.assertTrue(asset.is_file())
+        for path in HTML_PATHS:
+            source = path.read_text(encoding="utf-8")
+            expected_src = (
+                "../assets/sidebar-apex-character.png"
+                if path.parent.name == "outputs"
+                else "assets/sidebar-apex-character.png"
+            )
+            with self.subTest(path=path.name):
+                self.assertIn(
+                    f'<img class="sidebar-art" src="{expected_src}" '
+                    'alt="" aria-hidden="true" />',
+                    source,
+                )
+                self.assertIn(
+                    ".sidebar { overflow-y:auto; overflow-x:hidden;",
+                    source,
+                )
+                self.assertIn(
+                    ".sidebar-art { position:relative; z-index:0; display:block; "
+                    "width:calc(100% + 32px); max-width:none; height:auto; "
+                    "margin:0 -16px -72px;",
+                    source,
+                )
+
     def test_apex_is_seeded_as_fixed_read_only_viewer(self):
         for path in HTML_PATHS:
             source = path.read_text(encoding="utf-8")
