@@ -1147,7 +1147,7 @@ const canonicalTopicTranslations={
   'APEX-T003':'Esports & Streamers',
   'APEX-T004':'Legend Abilities & Weapon Balance',
   'APEX-T005':'Skins, Cosmetics & Monetization',
-  'APEX-T006':'Cyberpunk Collaboration & Controller Experience',
+  'APEX-T006':'Collaboration Events & Experience',
   'APEX-T007':'Creator Video Feedback & Settings Help',
   'APEX-T008':'Legend & Weapon Strength',
   'APEX-T009':'Cosmetics & Control Experience',
@@ -1157,7 +1157,8 @@ const canonicalTopicTranslations={
   'APEX-T013':'Weapon & Legend Strength'
 };
 const containsCjk=value=>/[\u3400-\u9fff]/.test(String(value||''));
-const displayTopicName=t=>state.lang==='zh'?t.name:(!containsCjk(t.name_en)?t.name_en:(canonicalTopicTranslations[t.id]||t.name_en||t.name));
+const canonicalTopicDisplayNames={'APEX-T006':'联动活动与体验'};
+const displayTopicName=t=>state.lang==='zh'?(canonicalTopicDisplayNames[t.id]||t.name):(!containsCjk(t.name_en)?t.name_en:(canonicalTopicTranslations[t.id]||t.name_en||t.name));
 const topicKeywordStats=(t,platform=state.platform)=>Array.isArray(t?.platform_keyword_stats?.[platform])?t.platform_keyword_stats[platform].filter(x=>Number(x.document_count)>0):[];
 const KEYWORD_MIN_DOCUMENT_COVERAGE=.02;
 const weekKeywordStats=(w=currentWeek(),platform=state.platform)=>Array.isArray(w?.keyword_stats?.[platform])?w.keyword_stats[platform].filter(x=>Number(x.document_count)>=2&&Number(x.document_coverage)>=KEYWORD_MIN_DOCUMENT_COVERAGE):[];

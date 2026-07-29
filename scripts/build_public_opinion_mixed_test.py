@@ -569,6 +569,18 @@ function enrichWeekTopics(w){
     )
     # Keep W28 as the current/latest default while preserving an explicit week selector.
     source = source.replace("let state = { weekIndex: dashboardData.weeks.length - 1, platform: \"综合\", search: \"\", sort: \"risk\", lang: \"zh\" };", "let state = { weekIndex: dashboardData.weeks.findIndex(w=>w.week_id==='2026-W28')>=0?dashboardData.weeks.findIndex(w=>w.week_id==='2026-W28'):dashboardData.weeks.length-1, platform: \"综合\", search: \"\", sort: \"risk\", lang: \"zh\" };")
+    # Presentation-only topic aliases keep the frozen model registry and topic
+    # IDs intact while allowing clearer wording in the dashboard.
+    source = source.replace(
+        "'APEX-T006':'Cyberpunk Collaboration & Controller Experience'",
+        "'APEX-T006':'Collaboration Events & Experience'",
+    )
+    if "const canonicalTopicDisplayNames=" not in source:
+        source = source.replace(
+            "const displayTopicName=t=>state.lang==='zh'?t.name:(!containsCjk(t.name_en)?t.name_en:(canonicalTopicTranslations[t.id]||t.name_en||t.name));",
+            "const canonicalTopicDisplayNames={'APEX-T006':'联动活动与体验'};\n"
+            "const displayTopicName=t=>state.lang==='zh'?(canonicalTopicDisplayNames[t.id]||t.name):(!containsCjk(t.name_en)?t.name_en:(canonicalTopicTranslations[t.id]||t.name_en||t.name));",
+        )
     # Imported data must contain real metrics for both platforms; fail closed.
     if "$(\"#fileInput\").addEventListener('change',e=>{" in source:
         start = source.index("$(\"#fileInput\").addEventListener('change',e=>{")

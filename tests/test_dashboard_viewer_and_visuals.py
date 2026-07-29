@@ -1,3 +1,4 @@
+import json
 import unittest
 from pathlib import Path
 
@@ -103,6 +104,41 @@ class DashboardViewerAndVisualTests(unittest.TestCase):
                     source,
                 )
                 self.assertIn("displayKeyword(x.keyword)", source)
+
+    def test_t006_uses_presentation_only_clearer_display_name(self):
+        expected_alias = "const canonicalTopicDisplayNames={'APEX-T006':'联动活动与体验'};"
+        for path in HTML_PATHS:
+            source = path.read_text(encoding="utf-8")
+            with self.subTest(path=path.name):
+                self.assertEqual(source.count(expected_alias), 1)
+                self.assertIn(
+                    "canonicalTopicDisplayNames[t.id]||t.name",
+                    source,
+                )
+                self.assertIn(
+                    "'APEX-T006':'Collaboration Events & Experience'",
+                    source,
+                )
+                self.assertNotIn(
+                    "'APEX-T006':'Cyberpunk Collaboration & Controller Experience'",
+                    source,
+                )
+
+        registry_path = (
+            ROOT
+            / "models"
+            / "bertopic_apex_exploratory_v1"
+            / "topic_registry_exploratory.json"
+        )
+        registry = json.loads(registry_path.read_text(encoding="utf-8"))
+        t006 = next(
+            row for row in registry
+            if row["canonical_topic_id"] == "APEX-T006"
+        )
+        self.assertEqual(
+            t006["canonical_topic_name"],
+            "赛博朋克联动与手柄体验",
+        )
 
     def test_trend_uses_data_scaled_nice_axis(self):
         for path in HTML_PATHS:
