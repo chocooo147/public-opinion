@@ -49,6 +49,7 @@ GitHub Pages 入口为 <https://chocooo147.github.io/public-opinion/>。当前�
 - “本周核心主题”用于查看当前周主题快照；“持续主题链概览”用于查看生命周期、连续周数、逐周平台轨迹、关键词迁移和按周证据。
 - 持续主题抽屉遵循当前平台筛选：综合视图展示两条平台轨迹，单平台视图只展示本平台内容；小黑盒缺少帖子正文时明确留空，不使用B站文本补位。
 - 近5周总声量使用随数据范围变化的刻度与加粗折线，避免小幅波动被固定大刻度压成近似直线。
+- 侧栏“报告预览”直接展示当前 W30 单页中英对照周报。管理员和只读账号均可预览；只有具备“可下载与导入”权限的账号显示并可使用 Excel 下载操作。
 - 下载中心提供 W30 与 W29 双语 Excel 周报；报告输入与平台 JSON 仅保留当前 W30。W30 当周口径说明、完整看板 JSON 和稳定版叙述规范统一放在“完整看板数据”栏。W28 及更早周报不在网站下载中心展示。
 
 预设只读演示账号为 `apex / 09876`。该账号只能浏览看板，不显示报告下载和 JSON 导入入口。管理员创建普通账号时可选择“可下载与导入”或“只读”，并可后续修改该权限。
@@ -59,7 +60,10 @@ GitHub Pages 入口为 <https://chocooo147.github.io/public-opinion/>。当前�
 
 ```bash
 python3 scripts/validate_weekly_report_contract.py reports/APEX_CHINA_W30_Weekly_Community_Report.xlsx
+python3 scripts/build_weekly_report_preview.py
 ```
+
+每次替换当前周 Excel 后必须重新运行预览生成脚本。它会先执行同一份周报契约验证，再从工作簿生成当前周只读预览 JSON，避免网站预览与 Excel 内容分叉。
 
 ## 使用
 

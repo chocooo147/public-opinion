@@ -15,6 +15,8 @@ REQUIRED = [
     "reports/dashboard_W25_W28_mixed_data_report.md", "docs/DATA_DICTIONARY.md", "docs/MODEL_VERSION.md", "docs/PUBLISHING.md",
     "scripts/evaluate_metric_bias.py", "config/weekly_bilingual_report_contract.json",
     "scripts/validate_weekly_report_contract.py", "reports/APEX_CHINA_W30_Weekly_Community_Report.xlsx",
+    "scripts/build_weekly_report_preview.py",
+    "reports/APEX_CHINA_W30_Weekly_Community_Report.preview.json",
 ]
 PUBLIC_TEXT_SUFFIXES = {
     ".css", ".csv", ".html", ".ini", ".js", ".json", ".md", ".mjs",
@@ -94,6 +96,9 @@ def main() -> int:
                 "const ADMIN_PASSWORD_HASH='81fbb13319447db0b23f11ece014eeec6f2f661b3922b996bd0b46a9aa759c8c';"
             ),
             "English canonical topic map": text.count("const canonicalTopicTranslations="),
+            "report preview navigation": text.count('id="reportPreviewBtn"'),
+            "report preview dialog": text.count('id="reportPreviewModal"'),
+            "report preview loader": text.count("async function openReportPreview()"),
         }
         for label, count in checks.items():
             if count != 1:

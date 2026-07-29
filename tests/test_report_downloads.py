@@ -1,3 +1,4 @@
+import json
 import unittest
 import xml.etree.ElementTree as ET
 from zipfile import ZipFile
@@ -16,6 +17,10 @@ WEEKLY_DATA = (
 NARRATIVE_RULES = ROOT / "templates/Community_Topic_Driver_Narrative_Rules.md"
 REPORT_CONTRACT = ROOT / "config/weekly_bilingual_report_contract.json"
 REPORT_VALIDATOR = ROOT / "scripts/validate_weekly_report_contract.py"
+REPORT_PREVIEW = (
+    ROOT / "reports/APEX_CHINA_W30_Weekly_Community_Report.preview.json"
+)
+REPORT_PREVIEW_BUILDER = ROOT / "scripts/build_weekly_report_preview.py"
 HTML_PATHS = [
     ROOT / "index.html",
     ROOT / "game_sentiment_dashboard_apex_W25_W30_mixed_sample.html",
@@ -28,6 +33,8 @@ class ReportDownloadTests(unittest.TestCase):
         self.assertTrue(W29_EXCEL.is_file())
         self.assertTrue(LONG_CAPTURE.is_file())
         self.assertTrue(GUIDE.is_file())
+        self.assertTrue(REPORT_PREVIEW.is_file())
+        self.assertTrue(REPORT_PREVIEW_BUILDER.is_file())
         for path in WEEKLY_DATA:
             with self.subTest(path=path.name):
                 self.assertTrue(path.is_file())
@@ -59,6 +66,76 @@ class ReportDownloadTests(unittest.TestCase):
                 self.assertNotIn(
                     '$("#downloadBtn").onclick=()=>downloadJSON(schemaExample', source
                 )
+
+    def test_current_report_preview_is_above_download_center(self):
+        for path in HTML_PATHS:
+            source = path.read_text(encoding="utf-8")
+            with self.subTest(path=path.name):
+                self.assertEqual(source.count('id="reportPreviewBtn"'), 1)
+                self.assertEqual(source.count('id="reportPreviewModal"'), 1)
+                self.assertEqual(source.count("async function openReportPreview()"), 1)
+                self.assertEqual(
+                    source.count(
+                        "reports/APEX_CHINA_W30_Weekly_Community_Report.preview.json"
+                    ),
+                    1,
+                )
+                self.assertLess(
+                    source.index('id="reportPreviewBtn"'),
+                    source.index('id="downloadBtn"'),
+                )
+                self.assertIn(
+                    '$("#reportPreviewBtn").onclick=openReportPreview;',
+                    source,
+                )
+                preview_function = source[
+                    source.index("async function openReportPreview()"):
+                    source.index("function closeReportPreview()")
+                ]
+                self.assertIn("requireAuthenticated()", preview_function)
+                self.assertNotIn("requireContentManager()", preview_function)
+                self.assertIn(
+                    "body.viewer-mode #previewDownloadBtn",
+                    source,
+                )
+                self.assertIn(
+                    "if(!requireContentManager()) return;",
+                    source[
+                        source.index("function downloadCurrentPreviewReport()"):
+                        source.index("function finiteOrNull")
+                    ],
+                )
+
+    def test_w30_report_preview_matches_the_validated_workbook(self):
+        preview = json.loads(REPORT_PREVIEW.read_text(encoding="utf-8"))
+        self.assertEqual(
+            preview["schema_version"],
+            "apex_weekly_report_preview_v1",
+        )
+        self.assertEqual(preview["week_id"], "2026_W30")
+        self.assertEqual(preview["period"]["label"], "7.20—7.26")
+        self.assertEqual(
+            preview["layout"],
+            "single_sheet_bilingual_side_by_side",
+        )
+        self.assertEqual(preview["driver_count"], 8)
+        self.assertEqual(preview["driver_count"], len(preview["drivers"]))
+        self.assertEqual(
+            [item["sentiment_en"] for item in preview["drivers"][:3]],
+            ["Positive", "Neutral", "Negative"],
+        )
+        self.assertEqual(
+            preview["drivers"][0]["topic_en"],
+            "PLQ Explainer Content",
+        )
+        self.assertEqual(
+            preview["drivers"][0]["topic_zh"],
+            "PLQ赛制科普内容",
+        )
+        self.assertEqual(
+            preview["source"]["sha256"],
+            __import__("hashlib").sha256(EXCEL.read_bytes()).hexdigest(),
+        )
 
     def test_download_center_exposes_excel_png_guide_and_combined_data(self):
         source = (ROOT / "index.html").read_text(encoding="utf-8")
