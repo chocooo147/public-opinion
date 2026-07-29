@@ -417,10 +417,47 @@
     }
     .download-actions { margin-top:auto; display:grid; gap:8px; }
     .download-spec { margin-top:16px; padding-top:14px; border-top:1px solid var(--line); color:var(--muted); font-size:10px; line-height:1.7; }
-    @media(max-width:760px){.download-grid{grid-template-columns:1fr}.download-card p{min-height:0}}
+    .report-preview-modal { width:min(1180px,96vw); max-height:92vh; }
+    .report-preview-body { padding:0; background:#090909; }
+    .report-preview-toolbar { position:sticky; top:0; z-index:2; display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 18px; border-bottom:1px solid var(--line); background:rgba(13,13,13,.97); }
+    .report-preview-meta { display:flex; flex-wrap:wrap; gap:8px; }
+    .report-preview-meta span { padding:5px 8px; border:1px solid var(--line); background:#151515; color:#d9d9d4; font-size:10px; }
+    .report-preview-sheet { margin:18px; border:1px solid #454545; background:#f5f5f2; color:#252525; box-shadow:0 20px 55px rgba(0,0,0,.32); }
+    .report-preview-title { display:grid; grid-template-columns:1fr 1fr; background:#8f210f; color:#fff; }
+    .report-preview-title > div { padding:16px 18px; }
+    .report-preview-title > div + div { border-left:5px solid #f5f5f2; }
+    .report-preview-title strong { display:block; font-size:17px; letter-spacing:.04em; }
+    .report-preview-title p { margin:7px 0 0; font-size:10px; line-height:1.55; }
+    .report-preview-bilingual-head,.report-preview-bilingual-row { display:grid; grid-template-columns:minmax(0,1fr) 96px minmax(0,1fr) 96px; }
+    .report-preview-bilingual-head { border-bottom:1px solid #8f8f8f; background:#d5d5d3; color:#444; font-size:10px; font-weight:700; }
+    .report-preview-bilingual-head span { padding:7px 11px; }
+    .report-preview-bilingual-head span:nth-child(3) { border-left:5px solid #f5f5f2; }
+    .report-preview-bilingual-row { border-bottom:1px solid #9a9a9a; }
+    .report-preview-copy { min-width:0; padding:11px 12px 14px; }
+    .report-preview-copy strong { display:block; margin-bottom:8px; font-size:13px; }
+    .report-preview-copy p { margin:0; color:#4f4f4c; font-size:10px; font-style:italic; line-height:1.62; }
+    .report-preview-bilingual-row .report-preview-copy:nth-child(3) { border-left:5px solid #f5f5f2; }
+    .report-preview-sentiment { display:grid; place-items:center; padding:10px 7px; border-left:1px solid #9a9a9a; font-size:12px; font-weight:800; text-align:center; }
+    .report-preview-sentiment.positive { color:#078a31; }
+    .report-preview-sentiment.negative { color:#e00; }
+    .report-preview-sentiment.neutral,.report-preview-sentiment.mixed { color:#4b4b49; }
+    .report-preview-limitation { margin:0; padding:12px 18px 18px; color:#757570; font-size:10px; line-height:1.65; }
+    .report-preview-loading { min-height:280px; display:grid; place-items:center; padding:30px; color:var(--muted); font-size:12px; }
+    @media(max-width:760px){
+      .download-grid{grid-template-columns:1fr}.download-card p{min-height:0}
+      .report-preview-toolbar{align-items:flex-start;flex-direction:column}
+      .report-preview-sheet{margin:10px}
+      .report-preview-title{grid-template-columns:1fr}
+      .report-preview-title > div + div{border-left:0;border-top:5px solid #f5f5f2}
+      .report-preview-bilingual-head,.report-preview-bilingual-row{grid-template-columns:minmax(0,1fr) 72px}
+      .report-preview-bilingual-head span:nth-child(3),.report-preview-bilingual-row .report-preview-copy:nth-child(3){border-left:0;border-top:5px solid #f5f5f2}
+      .report-preview-bilingual-head span:nth-child(4),.report-preview-bilingual-row .report-preview-sentiment:nth-child(4){border-top:5px solid #f5f5f2}
+      .report-preview-copy{padding:10px}.report-preview-copy p{font-size:9px}
+    }
     pre { white-space:pre-wrap; background:#090909; color:#e0e0dc; border:1px solid var(--line); border-radius:12px; padding:14px; font-size:11px; line-height:1.65; overflow:auto; }
     .auth-hidden { display:none !important; }
     body.viewer-mode #downloadBtn,
+    body.viewer-mode #previewDownloadBtn,
     body.viewer-mode #importBtn,
     body.viewer-mode #downloadSchema { display:none !important; }
     body.auth-locked { overflow:hidden; }
@@ -702,6 +739,7 @@
       <div class="side-section">
         <div class="side-label">Operations</div>
         <div class="nav-item" data-anchor="risk"><span class="nav-icon">△</span>风险与机会</div>
+        <div class="nav-item" id="reportPreviewBtn"><span class="nav-icon">▤</span>报告预览</div>
         <div class="nav-item" id="downloadBtn"><span class="nav-icon">⇩</span>报告下载中心</div>
       </div>
       <div class="sidebar-note sidebar-data-note">
@@ -940,6 +978,18 @@
   </div>
 </div>
 
+<div class="drawer-mask" id="reportPreviewMask" style="z-index:62"></div>
+<div class="modal report-preview-modal" id="reportPreviewModal" style="z-index:63" role="dialog" aria-modal="true" aria-labelledby="reportPreviewTitle">
+  <div class="modal-head"><strong id="reportPreviewTitle">APAC 中国区周报预览</strong><button class="drawer-close" id="reportPreviewClose" aria-label="关闭报告预览">×</button></div>
+  <div class="modal-body report-preview-body">
+    <div class="report-preview-toolbar">
+      <div class="report-preview-meta" id="reportPreviewMeta"></div>
+      <button class="btn primary" id="previewDownloadBtn" type="button">下载当前 Excel 周报</button>
+    </div>
+    <div id="reportPreviewContent" aria-live="polite"><div class="report-preview-loading">正在读取当前周报告…</div></div>
+  </div>
+</div>
+
 <div class="drawer-mask" id="adminMask" style="z-index:70"></div>
 <div class="modal admin-modal" id="adminModal">
   <div class="modal-head"><strong>账号管理</strong><button class="drawer-close" id="adminClose">×</button></div>
@@ -1050,7 +1100,8 @@ const tr = key => copy[state.lang][key];
 const loc=(zh,en)=>state.lang==='zh'?zh:en;
 const staticTranslations = new Map([
   ['游戏舆情监测中心','Game Sentiment Monitor'],['周度主题识别 · 跨周主题链 · 情感与风险融合','Weekly topic discovery · Cross-week topic chains · Sentiment and risk'],
-  ['BERTopic已接入·B站&小黑盒真实数据','BERTopic connected · real Bilibili & Heybox data'],['数据接入说明','Data schema'],['导入 JSON','Import JSON'],['舆情总览','Overview'],['主题监测','Topics'],['主题演化','Evolution'],['情感分析','Sentiment'],['风险与机会','Risk & Opportunity'],['报告下载中心','Report downloads'],
+  ['BERTopic已接入·B站&小黑盒真实数据','BERTopic connected · real Bilibili & Heybox data'],['数据接入说明','Data schema'],['导入 JSON','Import JSON'],['舆情总览','Overview'],['主题监测','Topics'],['主题演化','Evolution'],['情感分析','Sentiment'],['风险与机会','Risk & Opportunity'],['报告预览','Report preview'],['报告下载中心','Report downloads'],
+  ['APAC 中国区周报预览','APAC China Report Preview'],['下载当前 Excel 周报','Download current Excel report'],['正在读取当前周报告…','Loading current weekly report…'],
   ['本周核心主题','Core Topics This Week'],['点击主题可查看跨周主题链、代表文本和情绪变化。','Select a topic to view its cross-week chain, representative posts, and sentiment changes.'],
   ['周度主题识别口径','Weekly Topic Methodology'],['计算主题热议度公式','Topic Heat Formula'],['全周语料','Full-week corpus'],['语义聚类','Semantic clustering'],['共识校验','Consensus validation'],['综合评分','Composite scoring'],['周度 Top 10','Weekly Top 10'],
   ['主题类型','Topic type'],['覆盖视频/作者','Videos / creators'],['跨视频共识度','Cross-video consensus'],['热议度','Heat score'],
@@ -1217,7 +1268,7 @@ function unlockDashboard(account){
   renderAll();
 }
 function lockDashboard(message=''){
-  authCurrentUser=null; writeSessionUsername(''); closeAdmin(); closeDrawer(); closeSchema(); closeDownloadCenter();
+  authCurrentUser=null; writeSessionUsername(''); closeAdmin(); closeDrawer(); closeSchema(); closeDownloadCenter(); closeReportPreview();
   document.body.classList.remove('viewer-mode');
   document.body.classList.add('auth-locked');
   $('#dashboardApp').classList.add('auth-hidden'); $('#loginScreen').classList.remove('hidden');
@@ -1286,6 +1337,8 @@ function applyLanguage(){
   if(signedIn) $('#currentRole').textContent=accountRoleLabel(signedIn);
   if($('#adminModal')?.classList.contains('show')) renderAccounts();
   if($('#downloadModal')?.classList.contains('show')) openDownloadCenter();
+  if($('#reportPreviewModal')?.classList.contains('show')&&reportPreviewData) renderReportPreview(reportPreviewData);
+  $('#reportPreviewClose')?.setAttribute('aria-label',loc('关闭报告预览','Close report preview'));
   document.querySelector('.method-flow')?.setAttribute('aria-label',loc('周度主题识别流程','Weekly topic discovery process'));
   document.querySelector('.formula-line[aria-label="主题热议度权重"], .formula-line[aria-label="Topic heat-score weights"]')?.setAttribute('aria-label',loc('主题热议度权重','Topic heat-score weights'));
   document.querySelector('.formula-line[aria-label="跨视频共识度权重"], .formula-line[aria-label="Cross-video consensus weights"]')?.setAttribute('aria-label',loc('跨视频共识度权重','Cross-video consensus weights'));
@@ -1893,6 +1946,67 @@ function openSchema(){ $("#schemaPre").textContent=JSON.stringify(schemaExample,
 function closeSchema(){ $("#modalMask").classList.remove('show'); $("#schemaModal").classList.remove('show'); }
 function downloadJSON(obj,name){ const blob=new Blob([JSON.stringify(obj,null,2)],{type:'application/json'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=name; a.click(); URL.revokeObjectURL(url); }
 
+const CURRENT_REPORT_PREVIEW_PATH='reports/APEX_CHINA_W30_Weekly_Community_Report.preview.json';
+const CURRENT_REPORT_XLSX_PATH='reports/APEX_CHINA_W30_Weekly_Community_Report.xlsx';
+let reportPreviewData=null;
+function reportPreviewEscape(value){
+  return String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+}
+function reportPreviewSentimentClass(value){
+  const normalized=String(value||'').toLowerCase();
+  return ['positive','negative','neutral','mixed'].includes(normalized)?normalized:'neutral';
+}
+function renderReportPreview(payload){
+  const drivers=Array.isArray(payload?.drivers)?payload.drivers:[];
+  const count=Number(payload?.driver_count);
+  if(payload?.schema_version!=='apex_weekly_report_preview_v1'||payload?.layout!=='single_sheet_bilingual_side_by_side'||count!==drivers.length||count<8||count>10) throw new Error(loc('报告预览数据未通过 W30 格式检查。','The report preview data failed the W30 format check.'));
+  $('#reportPreviewTitle').textContent=loc('APAC 中国区周报预览','APAC China Report Preview');
+  $('#previewDownloadBtn').textContent=loc('下载当前 Excel 周报','Download current Excel report');
+  $('#reportPreviewMeta').innerHTML=[
+    `${loc('当前周','Current week')} · ${reportPreviewEscape(payload.week_label)}`,
+    `${loc('自然周','Natural week')} · ${reportPreviewEscape(payload.period?.label)}`,
+    `${loc('独立驱动因素','Independent drivers')} · ${drivers.length}`,
+    `${loc('结构','Layout')} · ${loc('单页中英对照','Single-page bilingual')}`
+  ].map(value=>`<span>${value}</span>`).join('');
+  const rows=drivers.map(driver=>{
+    const sentimentClass=reportPreviewSentimentClass(driver.sentiment_en);
+    return `<div class="report-preview-bilingual-row">
+      <div class="report-preview-copy"><strong>${reportPreviewEscape(driver.topic_en)}</strong><p>${reportPreviewEscape(driver.narrative_en)}</p></div>
+      <div class="report-preview-sentiment ${sentimentClass}">${reportPreviewEscape(driver.sentiment_en)}</div>
+      <div class="report-preview-copy"><strong>${reportPreviewEscape(driver.topic_zh)}</strong><p>${reportPreviewEscape(driver.narrative_zh)}</p></div>
+      <div class="report-preview-sentiment ${sentimentClass}">${reportPreviewEscape(driver.sentiment_zh)}</div>
+    </div>`;
+  }).join('');
+  $('#reportPreviewContent').innerHTML=`<article class="report-preview-sheet">
+    <div class="report-preview-title">
+      <div><strong>CHINA · ${reportPreviewEscape(payload.week_label)}</strong><p>${reportPreviewEscape(payload.sample_summary?.en)}</p></div>
+      <div><strong>中国 · ${reportPreviewEscape(payload.week_label)}</strong><p>${reportPreviewEscape(payload.sample_summary?.zh)}</p></div>
+    </div>
+    <div class="report-preview-bilingual-head"><span>TOPIC/DRIVER</span><span>SENTIMENT</span><span>话题/驱动因素</span><span>情绪</span></div>
+    ${rows}
+    <p class="report-preview-limitation">${reportPreviewEscape(payload.limitations?.en)}<br>${reportPreviewEscape(payload.limitations?.zh)}</p>
+  </article>`;
+}
+async function openReportPreview(){
+  if(!requireAuthenticated()) return;
+  $('#reportPreviewMask').classList.add('show'); $('#reportPreviewModal').classList.add('show');
+  if(reportPreviewData){ renderReportPreview(reportPreviewData); return; }
+  $('#reportPreviewContent').innerHTML=`<div class="report-preview-loading">${loc('正在读取当前周报告…','Loading current weekly report…')}</div>`;
+  try{
+    const response=await fetch(CURRENT_REPORT_PREVIEW_PATH,{cache:'no-store'});
+    if(!response.ok) throw new Error(`HTTP ${response.status}`);
+    reportPreviewData=await response.json();
+    renderReportPreview(reportPreviewData);
+  }catch(err){
+    $('#reportPreviewContent').innerHTML=`<div class="report-preview-loading">${loc('报告预览暂时无法读取，请稍后重试。','The report preview is temporarily unavailable. Please try again later.')}<br>${reportPreviewEscape(err.message)}</div>`;
+  }
+}
+function closeReportPreview(){ $('#reportPreviewMask')?.classList.remove('show'); $('#reportPreviewModal')?.classList.remove('show'); }
+function downloadCurrentPreviewReport(){
+  if(!requireContentManager()) return;
+  const link=document.createElement('a'); link.href=CURRENT_REPORT_XLSX_PATH; link.download='APEX_CHINA_W30_Weekly_Community_Report.xlsx'; link.click();
+}
+
 function finiteOrNull(value){ return value===null||value===undefined||value===''?null:(Number.isFinite(Number(value))?Number(value):null); }
 function reportWeekSummary(week,platform){
   if(!week) return null;
@@ -2044,10 +2158,14 @@ $("#topicSearch").addEventListener('input',e=>{state.search=e.target.value.trim(
 $("#drawerClose").onclick=closeDrawer; $("#drawerMask").onclick=closeDrawer;
 $("#schemaBtn").onclick=openSchema; $("#jumpSchema")?.addEventListener("click",openSchema); $("#jumpSchemaSidebar")?.addEventListener("click",openSchema); $("#modalClose").onclick=closeSchema; $("#modalMask").onclick=closeSchema;
 $("#downloadSchema").onclick=()=>{if(requireContentManager())downloadJSON(schemaExample,'game_sentiment_data_example.json');};
+$("#reportPreviewBtn").onclick=openReportPreview;
+$("#reportPreviewClose").onclick=closeReportPreview; $("#reportPreviewMask").onclick=closeReportPreview;
+$("#previewDownloadBtn").onclick=downloadCurrentPreviewReport;
 $("#downloadBtn").onclick=openDownloadCenter;
 $("#downloadClose").onclick=closeDownloadCenter; $("#downloadMask").onclick=closeDownloadCenter;
 $("#downloadReportInput").onclick=()=>{if(!requireContentManager())return;const payload=buildReportInputPackage(),safePlatform=state.platform==='综合'?'combined':state.platform==='B站'?'bilibili':'heybox';downloadJSON(payload,`apac_china_report_input_${currentWeek().week_id}_${safePlatform}.json`);};
 $("#downloadFullDashboard").onclick=()=>{if(requireContentManager())downloadJSON(dashboardData,'apex_sentiment_dashboard_complete_data.json');};
+document.addEventListener('keydown',event=>{if(event.key==='Escape')closeReportPreview();});
 $("#importBtn").onclick=()=>{if(requireContentManager())$("#fileInput").click();};
 $("#fileInput").addEventListener('change',e=>{
   if(!requireContentManager()) return;

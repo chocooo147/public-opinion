@@ -9,6 +9,7 @@ HTML_PATHS = [
     ROOT / "game_sentiment_dashboard_v5.html",
     ROOT / "game_sentiment_dashboard_apex_W25_W28_mixed_test.html",
     ROOT / "outputs/game_sentiment_dashboard_apex_W25_W28_mixed_test.html",
+    ROOT / "game_sentiment_dashboard_apex_W25_W30_mixed_sample.html",
 ]
 
 
@@ -51,6 +52,27 @@ class DashboardViewerAndVisualTests(unittest.TestCase):
                 self.assertIn("existing.role=role", source)
                 self.assertIn("accounts.push({username,passwordHash,role,active:true", source)
                 self.assertIn("$('#accountPassword').required=false", source)
+
+    def test_read_only_account_can_preview_but_not_download_report(self):
+        for path in HTML_PATHS:
+            source = path.read_text(encoding="utf-8")
+            with self.subTest(path=path.name):
+                self.assertIn('id="reportPreviewBtn"', source)
+                self.assertNotIn(
+                    "body.viewer-mode #reportPreviewBtn",
+                    source,
+                )
+                self.assertIn(
+                    "body.viewer-mode #previewDownloadBtn",
+                    source,
+                )
+                self.assertIn(
+                    "if(!requireContentManager()) return;",
+                    source[
+                        source.index("function downloadCurrentPreviewReport()"):
+                        source.index("function finiteOrNull")
+                    ],
+                )
 
     def test_admin_password_hash_is_rotated(self):
         expected = (

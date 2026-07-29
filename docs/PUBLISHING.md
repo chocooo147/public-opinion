@@ -17,7 +17,9 @@ python3 scripts/check_release.py
 - `apex` 只读账号不显示报告下载和 JSON 导入入口；
 - 浏览器控制台无错误，近5周趋势折线可辨识波动；
 - 页面中的 W30/W29 Excel 可访问；报告输入和 B站/小黑盒 JSON 只出现当前 W30；W30 当周口径说明只在“完整看板数据”栏出现一次；
+- “报告预览”位于“报告下载中心”正上方，展示当前周单页中英对照内容；只读账号可预览但不显示 Excel 下载按钮；
 - `python3 scripts/validate_weekly_report_contract.py reports/APEX_CHINA_W30_Weekly_Community_Report.xlsx` 通过，确认单页中英对照、8—10 个独立驱动因素、核心情绪顺序与逐项证据批注；
+- `python3 scripts/build_weekly_report_preview.py` 已从当前周 Excel 重新生成预览 JSON，预览中的周次、摘要、驱动因素数量和叙述与工作簿一致；
 - 管理员可在创建或编辑账号时选择“可下载与导入”或“只读”，只读账号的下载与导入动作均被拦截；
 - EN 模式中的固定界面、canonical 主题名称和周度事件均使用英文；中文原始代表文本只能作为明确标注的源语言证据出现；
 - 综合视图 KPI 显示“样本观察量（不可比）”，不得把 B站评论与小黑盒帖子解释为跨平台总量；

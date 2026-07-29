@@ -1,0 +1,92 @@
+{
+  "schema_version": "apex_weekly_report_preview_v1",
+  "week_id": "2026_W30",
+  "week_label": "W30",
+  "period": {
+    "label": "7.20—7.26",
+    "start": "2026-07-20",
+    "end": "2026-07-26"
+  },
+  "region": "China",
+  "layout": "single_sheet_bilingual_side_by_side",
+  "sample_summary": {
+    "en": "Weekly conversations: 104 Bilibili comments; 19 Heybox posts | Visible engagement: Bilibili 5.40K likes; Heybox 1.94K likes/comments",
+    "zh": "每周讨论量：104条B站评论；19篇小黑盒帖子｜可见互动：B站5.40K赞；小黑盒1.94K赞/评"
+  },
+  "driver_count": 8,
+  "drivers": [
+    {
+      "topic_en": "PLQ Explainer Content",
+      "sentiment_en": "Positive",
+      "narrative_en": "Newer tournament viewers welcomed explanations of PLQ, ALGS and ENC, particularly the qualification acronyms and slot structure. Clearer context helped viewers follow the competition and encouraged interest in upcoming broadcasts.",
+      "topic_zh": "PLQ赛制科普内容",
+      "sentiment_zh": "正向",
+      "narrative_zh": "新赛事观众认可对PLQ、ALGS与ENC的科普，尤其是资格赛缩写和名额结构的解释。更清晰的背景信息帮助观众理解赛事，并提升了对后续直播的关注。"
+    },
+    {
+      "topic_en": "Season 30 Outlook",
+      "sentiment_en": "Neutral",
+      "narrative_en": "A search-visible post drew strong interaction around rumored Legend changes, an R-301 skin and the August update. Because comment bodies were unavailable and the details remained unconfirmed, no reliable positive or negative consensus could be established.",
+      "topic_zh": "30赛季前瞻",
+      "sentiment_zh": "中性",
+      "narrative_zh": "一篇公开搜索可见帖子围绕传闻中的传奇调整、R-301皮肤与8月更新获得较高互动。由于未采集评论正文，且内容尚未经证实，目前无法形成可靠的正向或负向共识。"
+    },
+    {
+      "topic_en": "Ranked Server Stability",
+      "sentiment_en": "Negative",
+      "narrative_en": "Some ranked players described the week’s server experience as unreliable. Match removals, stalled queues, severe latency and an abnormal data-update screen interrupted play and prompted players to check whether other servers were more stable.",
+      "topic_zh": "排位服务器稳定性",
+      "sentiment_zh": "负向",
+      "narrative_zh": "部分排位玩家认为本周服务器体验缺乏稳定性。对局中断、匹配队列停滞、严重延迟与异常数据更新界面打断了正常游玩，并促使玩家询问其他服务器是否更稳定。"
+    },
+    {
+      "topic_en": "Ranked Solo Queue",
+      "sentiment_en": "Neutral",
+      "narrative_en": "Ranked players reported sharply different solo-queue experiences: some found Diamond-and-above fights rewarding, while others struggled with uneven lobbies, language barriers and passive teammates. The contrast prevented a clear overall verdict.",
+      "topic_zh": "排位单排体验",
+      "sentiment_zh": "中性",
+      "narrative_zh": "排位玩家对单排体验的评价差异明显：有人认为钻石及以上对局具有较强回报感，也有人因大厅实力不均、语言障碍和队友过于保守而受挫。两类经历相互抵消，尚未形成明确共识。"
+    },
+    {
+      "topic_en": "ENC Roster Expectations",
+      "sentiment_en": "Neutral",
+      "narrative_en": "Tournament viewers discussed possible QQ, DDS and Maomao lineups and debated how national-team slots would work. Interest was evident, but the conversation remained speculative and had not formed a stable judgment on roster strength.",
+      "topic_zh": "ENC阵容预期",
+      "sentiment_zh": "中性",
+      "narrative_zh": "赛事观众讨论了QQ、DDS与毛毛等可能的阵容组合，并交流国家队名额规则。社区关注度较明显，但讨论仍以推测为主，尚未对阵容强度形成稳定判断。"
+    },
+    {
+      "topic_en": "Anti-Cheat Trust",
+      "sentiment_en": "Negative",
+      "narrative_en": "Some viewers interpreted rapid map scans, instant armor progression and concealed aim assistance as suspicious play. Uncertainty over whether strong performance was legitimate weakened trust in match fairness and increased calls for closer scrutiny.",
+      "topic_zh": "反作弊信任",
+      "sentiment_zh": "负向",
+      "narrative_zh": "部分观众将快速扫描全圈、瞬间提升护甲与隐蔽的瞄准辅助视为可疑操作。强势表现是否真实合规难以判断，削弱了对局公平性的信任，也增加了对更严格审查的诉求。"
+    },
+    {
+      "topic_en": "Cyberpunk Event Clarity",
+      "sentiment_en": "Neutral",
+      "narrative_en": "A small group of players questioned whether the featured mode was part of the Cyberpunk 2077 collaboration and whether the event shop would refresh. Unclear event framing and reward timing limited confident participation decisions.",
+      "topic_zh": "《赛博朋克》活动信息",
+      "sentiment_zh": "中性",
+      "narrative_zh": "少量玩家无法确定当前模式是否属于《赛博朋克2077》联动，以及活动商店是否还会刷新。活动定位和奖励时间不够清晰，限制了玩家对后续参与的明确判断。"
+    },
+    {
+      "topic_en": "Controller Performance Claims",
+      "sentiment_en": "Negative",
+      "narrative_en": "A small controller-focused discussion rejected the claim that simply switching inputs guarantees high-rank performance after watching 3mz’s play. The example reinforced frustration with oversimplified aim-assist claims, but was too limited to establish a broader balance consensus.",
+      "topic_zh": "手柄表现预期",
+      "sentiment_zh": "负向",
+      "narrative_zh": "一组有限的手柄相关讨论在观看3mz的表现后，否定了“只要切换输入方式就能达到高段位”的说法。该案例加深了对辅助瞄准简化叙事的反感，但样本仍不足以支持更广泛的平衡性结论。"
+    }
+  ],
+  "source": {
+    "workbook": "reports/APEX_CHINA_W30_Weekly_Community_Report.xlsx",
+    "sha256": "448d5316bb78b515905d787e939ed5f3e4de5fb6e1cd6ec5fcc9d6f2dcf1973d",
+    "contract": "config/weekly_bilingual_report_contract.json"
+  },
+  "limitations": {
+    "en": "Bounded real samples only. Bilibili comment counts and Heybox search-visible post counts use different units and are not additive.",
+    "zh": "仅使用有限真实样本。B站评论计数与小黑盒公开搜索可见帖子计数使用不同单位，不得相加。"
+  }
+}
