@@ -42,9 +42,19 @@ class DashboardViewerAndVisualTests(unittest.TestCase):
                     source,
                 )
                 self.assertIn(
-                    ".sidebar-art { position:relative; z-index:0; display:block; "
-                    "width:calc(100% + 32px); max-width:none; height:443px; "
-                    "margin:0 -16px -72px;",
+                    "padding-bottom:0; isolation:isolate; display:flex; "
+                    "flex-direction:column;",
+                    source,
+                )
+                self.assertIn(
+                    ".sidebar-art-wrap { position:relative; z-index:0; "
+                    "flex:0 0 443px; width:calc(100% + 32px); height:443px; "
+                    "margin:auto -16px 0; overflow:hidden; }",
+                    source,
+                )
+                self.assertIn(
+                    ".sidebar-art-wrap .sidebar-signature { z-index:1; "
+                    "bottom:18px; }",
                     source,
                 )
 
