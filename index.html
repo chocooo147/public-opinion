@@ -280,6 +280,9 @@
     .event-body:before { content:""; width:7px; height:7px; border-radius:50%; background:var(--accent); position:absolute; left:-4px; top:4px; }
     .event-body strong { font-size:12px; display:block; }
     .event-body p { margin:5px 0 0; font-size:10px; color:var(--muted); line-height:1.5; }
+    .event-state { color:var(--muted); font-size:12px; line-height:1.6; padding:10px 0; }
+    .negative-rate-main { display:block; }
+    .sentiment-low-sample-note { display:block; margin-top:4px; color:var(--muted) !important; font-size:10px; font-weight:400; line-height:1.45; text-align:left; white-space:normal; }
     .keyword-cloud { min-height: 190px; display:flex; align-content:center; justify-content:center; align-items:center; flex-wrap:wrap; gap:8px 12px; padding:14px; }
     .keyword { color:#dbe2f3; opacity:.86; cursor:default; transition:.2s ease; }
     .keyword:hover { color:#fff; transform:scale(1.08); }
@@ -1035,8 +1038,8 @@ function enrichWeekTopics(w){
     t.data_provenance['B站']={...(t.data_provenance['B站']||{}),data_type:'real',metrics_source:b.metrics_source,simulated:false};
     t.data_provenance['小黑盒']={...(t.data_provenance['小黑盒']||{}),data_type:'real_sample',metrics_source:h.metrics_source,simulated:false,sample_limited:true};
     const combinedSource='mixed_real_observations_incomparable_units';
-    const combined={...b,count:(Number(b.count)||0)+(Number(h.count)||0),video_count:(Number(b.video_count)||0)+(Number(h.video_count)||0),creator_count:(Number(b.creator_count)||0)+(Number(h.creator_count)||0),comment_count:(Number(b.comment_count)||0)+(Number(h.comment_count)||0),heat_score:weightedRealMetric(b,h,'heat_score'),consensus_score:weightedRealMetric(b,h,'consensus_score'),negative:weightedRealMetric(b,h,'negative'),metrics_source:combinedSource,simulated:false,estimated:true,sample_limited:true,unit_warning:'B站为评论数，小黑盒为公开搜索可见帖子数；综合值不可解释为跨平台总量。'};
-    t.combined_metrics={...(t.combined_metrics||{}),...combined}; t.data_provenance['综合']={data_type:'mixed_real_observations',metrics_source:combinedSource,simulated:false};
+    if(!t.combined_metrics) throw new Error(`主题 ${t.id||t.name||'unknown'} 缺少后端综合指标，已停止渲染。`);
+    t.data_provenance['综合']={data_type:'mixed_real_observations',metrics_source:combinedSource,simulated:false};
     t.metrics_source='bilibili_real_model_output'; t.sentiment_status=t.sentiment_status||b.sentiment_status||'model_only_full_coverage'; t.sentiment_estimated=t.sentiment_estimated??b.sentiment_estimated??true; t.sentiment_source=t.sentiment_source||b.sentiment_model||'SnowNLP'; t.risk_status=t.risk_status||b.risk_status||'model_only_derived'; t.risk_score_estimated=true;
     t.quotes=t.quotes||[]; t.name_en=t.name_en||t.name; t.keywords_en=t.keywords_en||t.keywords; t.quotes_en=t.quotes_en||t.quotes;
   });
@@ -1089,11 +1092,8 @@ function writeDashboardHistory(meta,weeks){
 }
 
 const storedDashboardHistory=readDashboardHistory();
-if(storedDashboardHistory?.weeks?.length && storedDashboardHistory.meta?.data_version==='apex_bilibili_scope_final_v1'){
-  dashboardData.meta={...dashboardData.meta,...(storedDashboardHistory.meta||{})};
-  dashboardData.weeks=mergeDashboardWeeks(dashboardData.weeks,storedDashboardHistory.weeks);
-  writeDashboardHistory(dashboardData.meta,dashboardData.weeks);
-}else if(storedDashboardHistory){ try{ localStorage.removeItem(DASHBOARD_HISTORY_KEY); }catch(err){} }
+if(storedDashboardHistory?.meta?.data_version!==dashboardData.meta?.data_version){ try{ localStorage.removeItem(DASHBOARD_HISTORY_KEY); }catch(err){} }
+writeDashboardHistory(dashboardData.meta,dashboardData.weeks);
 dashboardData.weeks.forEach(enrichWeekTopics);
 let state = { weekIndex: dashboardData.weeks.findIndex(w=>w.week_id==='2026-W31')>=0?dashboardData.weeks.findIndex(w=>w.week_id==='2026-W31'):dashboardData.weeks.length-1, platform: "综合", search: "", sort: "risk", lang: "zh" };
 const $ = s => document.querySelector(s);
@@ -1167,13 +1167,13 @@ const canonicalTopicTranslations={
 const containsCjk=value=>/[\u3400-\u9fff]/.test(String(value||''));
 const canonicalTopicDisplayNames={'APEX-T006':'联动活动与体验'};
 const displayTopicName=t=>state.lang==='zh'?(canonicalTopicDisplayNames[t.id]||t.name):(!containsCjk(t.name_en)?t.name_en:(canonicalTopicTranslations[t.id]||t.name_en||t.name));
-const topicKeywordStats=(t,platform=state.platform)=>Array.isArray(t?.platform_keyword_stats?.[platform])?t.platform_keyword_stats[platform].filter(x=>Number(x.document_count)>0):[];
-const KEYWORD_MIN_DOCUMENT_COVERAGE=.02;
-const weekKeywordStats=(w=currentWeek(),platform=state.platform)=>Array.isArray(w?.keyword_stats?.[platform])?w.keyword_stats[platform].filter(x=>Number(x.document_count)>=2&&Number(x.document_coverage)>=KEYWORD_MIN_DOCUMENT_COVERAGE):[];
+const qualifiedKeywords=rows=>Array.isArray(rows)?rows.filter(x=>x?.quality_status==='passed'):[];
+const topicKeywordStats=(t,platform=state.platform)=>qualifiedKeywords(t?.platform_keyword_stats?.[platform]);
+const weekKeywordStats=(w=currentWeek(),platform=state.platform)=>qualifiedKeywords(w?.keyword_stats?.[platform]);
 const descriptorKeywords=t=>Array.isArray(t?.descriptor_keywords)?t.descriptor_keywords:[];
 const keywordTranslations={'大师':'Master','猎杀':'Predator','铂金':'Platinum','体验':'experience','队友':'teammates','单排':'solo queue','钻石':'Diamond','人数':'player count','更新':'update','服务器':'servers','队伍':'teams','最后':'final','常规赛':'regular season','晋级':'qualification','联动':'collaboration','手柄':'controller','操作':'controls','段位':'rank','瞄准':'aiming','靶场':'firing range','匹配':'matchmaking','选手':'players','赛季':'season','武器':'weapons','英雄':'legends','赛制':'format','亚太':'APAC','指挥':'shot-calling','传家宝':'heirloom','信标':'beacon','地图':'map','商店':'store','安全区':'ring','开局':'opening','控制台':'console','机器人':'bots','皮肤':'skins','外观':'cosmetics','设置':'settings','升降级赛':'promotion/relegation','僵尸':'zombies','一等':'first place','毛毛':'Maomao','不了':'cannot','右上角':'top-right','好好':'properly','一秒':'one second','只用':'only uses','希尔':'Seer','猎犬':'Bloodhound','一瞬间':'instantly'};
 const displayKeyword=word=>state.lang==='zh'?word:(keywordTranslations[word]||word);
-const displayKeywords=t=>topicKeywordStats(t).slice(0,15).map(x=>displayKeyword(x.keyword));
+const displayKeywords=t=>topicKeywordStats(t).slice(0,15).map(x=>displayKeyword(x.normalized_keyword));
 const displayQuotes=t=>state.lang==='zh'?t.quotes:(t.quotes_en?.length&&!t.quotes_en.every(containsCjk)?t.quotes_en:t.quotes);
 const eventTranslations={
   '开发者访谈发布':'Developer interview released','角色与世界观讨论提升。':'Discussion of characters and worldbuilding increased.',
@@ -1378,34 +1378,24 @@ function populateWeekSelect(){
 
 function currentWeek(){ return dashboardData.weeks[state.weekIndex]; }
 function metricFor(t,platform=state.platform){ return platform==='综合' ? t.combined_metrics : t.platform_metrics?.[platform]; }
-function reviewedNegativeRate(t,platform=state.platform,week=currentWeek()){
-  const review=t?.manual_sentiment_review?.platforms;
-  if(week?.week_id!=='2026-W31'||!review) return undefined;
-  if(platform==='综合'){
-    const rates=['B站','小黑盒'].map(p=>review[p]?.negative_rate_percent).filter(Number.isFinite);
-    return rates.length?Math.max(...rates):null;
-  }
-  const value=review[platform]?.negative_rate_percent;
-  return Number.isFinite(value)?value:null;
+function finiteBackendRate(value){
+  return typeof value==='number'&&Number.isFinite(value)?value:null;
 }
-function negativeRateNumeric(t,m,platform=state.platform,week=currentWeek()){
-  const reviewed=reviewedNegativeRate(t,platform,week);
-  return reviewed===undefined?Number(m?.negative):reviewed;
+function negativeRateNumeric(t,m){
+  return finiteBackendRate(m?.negative_rate);
 }
-function negativeRateCompact(t,m,platform=state.platform,week=currentWeek()){
-  const value=negativeRateNumeric(t,m,platform,week);
+function negativeRateCompact(t,m){
+  const value=negativeRateNumeric(t,m);
   return Number.isFinite(value)?`${value}%`:'—';
 }
-function negativeRateHtml(t,m,platform=state.platform,week=currentWeek()){
-  const review=t?.manual_sentiment_review?.platforms;
-  if(week?.week_id!=='2026-W31'||!review) return `${m?.negative??'—'}%`;
-  if(platform==='综合'){
-    const rows=['B站','小黑盒'].filter(p=>review[p]?.valid_evidence_count>0).map(p=>`${displayPlatform(p)} ${review[p].negative_rate_percent}%`);
-    return rows.length?rows.join('<br>'):'—';
-  }
-  return review[platform]?.valid_evidence_count>0?`${review[platform].negative_rate_percent}%`:'—';
+function negativeRateHtml(t,m){
+  const value=negativeRateNumeric(t,m),valid=Number.isInteger(m?.sentiment_valid_count)?m.sentiment_valid_count:0,negative=Number.isInteger(m?.negative_count)?m.negative_count:0;
+  if(value===null||valid===0) return '—';
+  const main=`<span class="negative-rate-main">${value}%</span>`;
+  if(value===0&&negative===0&&m?.low_sample_status===true) return `${main}<span class="sentiment-low-sample-note">${loc('低样本：样本量较小 不单独用于风险结论','Low sample: insufficient for standalone risk conclusions')}</span>`;
+  return main;
 }
-function negativeReviewCaption(t){ return currentWeek()?.week_id==='2026-W31'&&t?.manual_sentiment_review?loc('人工核验','Human review'):''; }
+function negativeReviewCaption(){ return ''; }
 function visibleTopicIds(w,platform=state.platform){
   return new Set(w.topics.filter(t=>{const m=metricFor(t,platform);return m&&Number(m.count)>0;}).map(t=>t.id));
 }
@@ -1417,29 +1407,29 @@ function newVisibleTopicIds(w=currentWeek(),platform=state.platform){
 }
 function topicsForWeek(w=currentWeek()){
   return w.topics.filter(t=>{
-    const searchText=[t.name,t.name_en,...descriptorKeywords(t),...topicKeywordStats(t).map(x=>x.keyword)].filter(Boolean).join(' ').toLowerCase();
+    const searchText=[t.name,t.name_en,...descriptorKeywords(t),...topicKeywordStats(t).map(x=>x.normalized_keyword)].filter(Boolean).join(' ').toLowerCase();
     const m=metricFor(t); return m&&m.count>0&&(!state.search||searchText.includes(state.search.toLowerCase()));
   });
 }
 function aggregateWeek(w,platform=state.platform){
   const rows=w.topics.map(t=>({t,m:metricFor(t,platform)})).filter(x=>x.m&&x.m.count>0);
-  const volume=rows.reduce((s,x)=>s+x.m.count,0)||1;
+  const volume=rows.reduce((s,x)=>s+x.m.count,0);
   const weighted=k=>rows.reduce((s,x)=>s+(Number(x.m[k])||0)*x.m.count,0)/volume;
   const hasWow=rows.some(x=>x.m.wow!==null&&x.m.wow!==undefined&&x.m.wow!=='');
-  const negative=Math.round(weighted('negative'));
-  const neutral=21;
-  return {volume,negative_rate:negative,wow:hasWow?+weighted('wow').toFixed(1):null,risk_topics:rows.filter(x=>x.m.risk_score>=60||x.m.negative>=60).length,new_topics:newVisibleTopicIds(w,platform).length,persistent_topics:rows.filter(x=>x.t.weeks>1).length,sentiment_score:+(1-negative/100-neutral/200).toFixed(2),sentiment:{positive:Math.max(0,100-negative-neutral),neutral,negative}};
+  const backend=w.platform_sentiment_metrics?.[platform]||{};
+  const negative=finiteBackendRate(backend.negative_rate);
+  return {volume,negative_rate:negative,wow:volume&&hasWow?+weighted('wow').toFixed(1):null,risk_topics:rows.filter(x=>x.m.risk_score>=60).length,new_topics:newVisibleTopicIds(w,platform).length,persistent_topics:rows.filter(x=>x.t.weeks>1).length,sentiment_score:finiteBackendRate(backend.sentiment),sentiment:{positive:finiteBackendRate(backend.positive_rate),neutral:finiteBackendRate(backend.neutral_rate),negative},sentiment_valid_count:Number.isInteger(backend.sentiment_valid_count)?backend.sentiment_valid_count:0,negative_count:Number.isInteger(backend.negative_count)?backend.negative_count:0,low_sample_status:Boolean(backend.low_sample_status)};
 }
 
 function renderKpis(){
   const w = currentWeek(), k = aggregateWeek(w);
   const items = [
     [tr('thisWeekVolume'), fmt(k.volume), `<span class="${k.wow>=0?'up':'down'}">${k.wow>=0?'↑':'↓'} ${Math.abs(k.wow)}%</span> ${tr('vsLastWeek')}`],
-    [tr('negativeShare'), k.negative_rate+"%", `<span class="${k.negative_rate>40?'up':'neutral'}">${k.negative_rate>40?tr('highRiskBand'):tr('normalBand')}</span>`],
+    [tr('negativeShare'), k.negative_rate===null?'—':k.negative_rate+"%", k.negative_rate===null?loc('情感数据不足','Insufficient sentiment data'):`<span class="${k.negative_rate>40?'up':'neutral'}">${k.negative_rate>40?tr('highRiskBand'):tr('normalBand')}</span>`],
     [tr('highRisk'), k.risk_topics, tr('priorityNeeded')],
     [tr('newTopics'), k.new_topics, tr('modelDetected')],
     [tr('persistentTopics'), k.persistent_topics, tr('over7Days')],
-    [tr('avgSentiment'), k.sentiment_score.toFixed(2), `<span class="${k.sentiment_score<.5?'up':'down'}">${k.sentiment_score<.5?tr('moreNegative'):tr('morePositive')}</span>`]
+    [tr('avgSentiment'), k.sentiment_score===null?'—':k.sentiment_score.toFixed(2), k.sentiment_score===null?loc('情感数据不足','Insufficient sentiment data'):`<span class="${k.sentiment_score<.5?'up':'down'}">${k.sentiment_score<.5?tr('moreNegative'):tr('morePositive')}</span>`]
   ];
   $("#kpiGrid").innerHTML = items.map((x,i)=>{
     const action=i===2?{id:'highRiskKpi',overview:tr('riskOverview')}:i===3?{id:'newTopicsKpi',overview:tr('newTopicOverview')}:null;
@@ -1468,11 +1458,13 @@ function renderTrend(){
   const niceFactor=normalized<=1?1:normalized<=2?2:normalized<=5?5:10;
   const volumeStep=Math.max(1,niceFactor*magnitude);
   const maxV=Math.ceil(rawMaxV/volumeStep)*volumeStep;
-  const maxN=Math.max(50,Math.ceil(Math.max(...negs,1)/10)*10);
+  const validNegs=negs.filter(Number.isFinite);
+  const maxN=Math.max(50,Math.ceil(Math.max(...validNegs,1)/10)*10);
   const x=i=>p.l+i*((W-p.l-p.r)/(Math.max(1,data.length-1)));
   const yV=v=>H-p.b-(v/maxV)*(H-p.t-p.b);
   const yN=v=>H-p.b-(v/maxN)*(H-p.t-p.b);
   const line=(arr,yfn)=>arr.map((v,i)=>`${i?'L':'M'} ${x(i)} ${yfn(v)}`).join(' ');
+  const optionalLine=(arr,yfn)=>{let drawing=false;return arr.map((v,i)=>{if(!Number.isFinite(v)){drawing=false;return '';}const command=drawing?'L':'M';drawing=true;return `${command} ${x(i)} ${yfn(v)}`;}).filter(Boolean).join(' ');};
   const area=`${line(vols,yV)} L ${x(vols.length-1)} ${H-p.b} L ${x(0)} ${H-p.b} Z`;
   let html=`<defs><linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#f21f2b" stop-opacity=".28"/><stop offset="72%" stop-color="#f21f2b" stop-opacity=".08"/><stop offset="100%" stop-color="#f21f2b" stop-opacity=".015"/></linearGradient></defs>`;
   for(let i=0;i<5;i++){
@@ -1480,14 +1472,20 @@ function renderTrend(){
     html+=`<line class="grid-line" x1="${p.l}" x2="${W-p.r}" y1="${yy}" y2="${yy}"/><text class="axis-text" text-anchor="end" x="${p.l-14}" y="${yy+4}">${fmt(value)}</text>`;
   }
   data.forEach((d,i)=>{ html+=`<text class="axis-text" text-anchor="middle" x="${x(i)}" y="${H-9}">${d.label}</text>`; });
-  html+=`<path class="area" d="${area}"/><path class="volume-line" d="${line(vols,yV)}"/><path class="negative-line" d="${line(negs,yN)}"/>`;
+  html+=`<path class="area" d="${area}"/><path class="volume-line" d="${line(vols,yV)}"/><path class="negative-line" d="${optionalLine(negs,yN)}"/>`;
   vols.forEach((v,i)=> html+=`<circle class="point" cx="${x(i)}" cy="${yV(v)}" r="4"/><text class="axis-text trend-value-volume" text-anchor="middle" x="${x(i)}" y="${yV(v)-12}">${fmt(v)}</text>`);
-  negs.forEach((v,i)=> html+=`<circle class="point-neg" cx="${x(i)}" cy="${yN(v)}" r="3"/><text class="axis-text trend-value-negative" x="${x(i)+6}" y="${yN(v)-4}">${v}%</text>`);
+  negs.forEach((v,i)=>{if(Number.isFinite(v))html+=`<circle class="point-neg" cx="${x(i)}" cy="${yN(v)}" r="3"/><text class="axis-text trend-value-negative" x="${x(i)+6}" y="${yN(v)-4}">${v}%</text>`;});
   svg.innerHTML=html;
 }
 
 function renderSentiment(){
   const w=currentWeek(), summary=aggregateWeek(w), s=summary.sentiment;
+  if(!Number.isFinite(s.positive)||!Number.isFinite(s.neutral)||!Number.isFinite(s.negative)){
+    $("#donut").style.setProperty("--p1","0%"); $("#donut").style.setProperty("--p2","0%");
+    $("#sentimentScore").textContent='—';
+    $("#sentimentList").innerHTML=`<div class="sentiment-row"><span>${loc('情感数据不可用','Sentiment unavailable')}</span><b>—</b></div>`;
+    return;
+  }
   const p1=s.positive+"%", p2=(s.positive+s.neutral)+"%";
   $("#donut").style.setProperty("--p1",p1); $("#donut").style.setProperty("--p2",p2);
   $("#sentimentScore").textContent=summary.sentiment_score.toFixed(2);
@@ -1576,7 +1574,7 @@ function renderTopicTable(){
     <td><span class="mobile-label">${tr('consensusLabel')}</span><span class="score">${m.consensus_score}</span><div class="score-bar"><i style="width:${m.consensus_score}%"></i></div></td>
     <td><span class="mobile-label">${tr('heatOption')}</span><span class="score">${m.heat_score}</span><div class="score-bar"><i style="width:${m.heat_score}%"></i></div><span class="topic-sub">${tr('volume')} ${fmt(m.count)} · ${(m.count/total*100).toFixed(1)}%</span></td>
     <td style="color:${reviewedNegative===null?'var(--muted)':reviewedNegative>=60?'var(--negative)':reviewedNegative<=25?'var(--positive)':'var(--neutral)'}"><span class="mobile-label">${tr('negativeRate')}</span>${negativeRateHtml(t,m)}${negativeReviewCaption(t)?`<span class="topic-sub">${negativeReviewCaption(t)}</span>`:''}</td>
-    <td><span class="mobile-label">${tr('trendLabel')}</span>${sparkline(m.trend,m.negative>=60?'#ff3340':'#d92530')}</td>
+    <td><span class="mobile-label">${tr('trendLabel')}</span>${sparkline(m.trend,negativeRateNumeric(t,m)>=60?'#ff3340':'#d92530')}</td>
   </tr>`}).join('') || `<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:28px">${tr('empty')}</td></tr>`;
   $$("#topicTableBody tr[data-topic]").forEach(tr=>tr.addEventListener('click',()=>openTopic(tr.dataset.topic)));
 }
@@ -1588,7 +1586,19 @@ function renderPlatforms(){
 }
 
 function renderEvents(){
-  $("#eventList").innerHTML=currentWeek().events.map(e=>`<div class="event"><div class="event-time">${e.date}</div><div class="event-body"><strong>${displayEventText(e.title)}</strong><p>${displayEventText(e.desc)}</p></div></div>`).join('');
+  const week=currentWeek(),generation=week?.event_generation,events=Array.isArray(week?.events)?week.events:null;
+  if(!generation||!String(generation.status||'').startsWith('success_')||events===null){
+    console.error('APEX_EVENT_DATA_UNAVAILABLE',week?.week_id||'unknown');
+    window.__APEX_EVENT_RENDER_ERROR__=true;
+    $("#eventList").innerHTML=`<div class="event-state">${loc('关键事件数据暂不可用','Key event data is temporarily unavailable')}</div>`;
+    return;
+  }
+  const visible=events.filter(e=>state.platform==='综合'||e.platforms?.includes(state.platform));
+  if(!visible.length){
+    $("#eventList").innerHTML=`<div class="event-state">${loc('本周暂无达到展示门槛的关键事件','No key events met the display threshold this week')}</div>`;
+    return;
+  }
+  $("#eventList").innerHTML=visible.map(e=>`<div class="event"><div class="event-time">${e.event_date||'—'}</div><div class="event-body"><strong>${state.lang==='zh'?e.title:(e.title_en||e.title)}</strong><p>${state.lang==='zh'?e.summary:(e.summary_en||e.summary)}</p></div></div>`).join('');
 }
 
 function renderFlow(){
@@ -1696,11 +1706,12 @@ function renderMatrix(){
   filteredTopics().forEach((t,i)=>{
     const tm=metricFor(t), share=tm.count/total*100;
     const x=Math.min(96,Math.max(4,share/26*100));
-    const y=Math.min(96,Math.max(4,tm.negative));
+    const negative=negativeRateNumeric(t,tm);
+    const y=Math.min(96,Math.max(4,negative===null?50:negative));
     const b=document.createElement('div'); b.className='bubble';
     b.style.left=x+'%'; b.style.bottom=y+'%';
     b.style.width=b.style.height=(12+Math.sqrt(tm.count)/18)+'px';
-    b.style.background=tm.negative>=60?'var(--negative)':tm.negative<=25?'var(--positive)':'var(--accent)';
+    b.style.background=negative===null?'var(--muted)':negative>=60?'var(--negative)':negative<=25?'var(--positive)':'var(--accent)';
     b.title=`${displayTopicName(t)} | ${tr('share')} ${share.toFixed(1)}% | ${tr('negativeRate')} ${negativeRateCompact(t,tm)}`;
     b.onclick=()=>openTopic(t.id);
     const name=displayTopicName(t);
@@ -1731,8 +1742,8 @@ function renderRiskList(){
 }
 
 function renderKeywords(){
-  const stats=weekKeywordStats().slice(0,80), max=stats[0]?.document_count||1;
-  $("#keywordCloud").innerHTML=stats.map((x,i)=>`<span class="keyword" title="${x.occurrences} ${loc('次 · 覆盖','occurrences · covers')} ${x.document_count} ${loc('条文本','texts')}" style="font-size:${12+x.document_count/max*17}px;color:${i<3?'#f2c94c':'#e3e3df'}">${displayKeyword(x.keyword)}</span>`).join('');
+  const stats=weekKeywordStats().slice(0,80), max=stats[0]?.text_coverage_count||1;
+  $("#keywordCloud").innerHTML=stats.map((x,i)=>`<span class="keyword" title="${x.occurrence_count} ${loc('次 · 覆盖','occurrences · covers')} ${x.text_coverage_count} ${loc('条文本','texts')}" style="font-size:${12+x.text_coverage_count/max*17}px;color:${i<3?'#f2c94c':'#e3e3df'}">${displayKeyword(x.normalized_keyword)}</span>`).join('')||`<span class="event-state">${loc('本周暂无通过质量校验的关键词','No keywords passed quality checks this week')}</span>`;
 }
 
 function platformChainHistory(chain,platform=state.platform,upto=currentWeek()){
@@ -1788,7 +1799,7 @@ function renderChains(){
 function openHighRiskDrawer(){
   const risks=currentWeek().topics
     .map(t=>({t,m:metricFor(t)}))
-    .filter(x=>x.m&&x.m.count>0&&(x.m.risk_score>=60||x.m.negative>=60))
+    .filter(x=>x.m&&x.m.count>0&&x.m.risk_score>=60)
     .sort((a,b)=>b.m.risk_score-a.m.risk_score);
   $("#drawerTitle").textContent=tr('riskOverview');
   $("#drawerSub").textContent=`${currentWeek().label} · ${displayPlatform(state.platform)} · ${tr('highRisk')} ${risks.length}`;
@@ -1951,7 +1962,7 @@ function openTopic(id){
     ${platformComparisonHtml(t,rankMaps)}
     <div class="section-title">${tr('heatBreakdown')}</div>
     <div class="formula-text">${state.lang==='zh'?'覆盖':'Coverage'} ${tm.discussion_coverage} × 35% + ${state.lang==='zh'?'讨论量':'Discussion'} ${tm.discussion_volume_score} × 25% + ${state.lang==='zh'?'影响力':'Influence'} ${tm.influence_score} × 20% + ${state.lang==='zh'?'互动':'Engagement'} ${tm.engagement_score} × 10% + ${state.lang==='zh'?'增长':'Growth'} ${tm.growth_score} × 10% = <strong>${tm.heat_score}</strong></div>
-    <div class="section-title">${state.lang==='zh'?'本周平台关键词':'Weekly platform keywords'}</div><div>${topicKeywordStats(t).slice(0,15).map(x=>`<span class="status s-high" title="${x.occurrences} ${loc('次 · 覆盖','occurrences · covers')} ${x.document_count} ${loc('条文本','texts')}" style="margin:0 5px 5px 0">${displayKeyword(x.keyword)}</span>`).join('') || `<span class="formula-text">${state.lang==='zh'?'当前平台本周没有可统计关键词。':'No observed keywords for this platform and week.'}</span>`}</div>
+    <div class="section-title">${state.lang==='zh'?'本周平台关键词':'Weekly platform keywords'}</div><div>${topicKeywordStats(t).slice(0,15).map(x=>`<span class="status s-high" title="${x.occurrence_count} ${loc('次 · 覆盖','occurrences · covers')} ${x.text_coverage_count} ${loc('条文本','texts')}" style="margin:0 5px 5px 0">${displayKeyword(x.normalized_keyword)}</span>`).join('') || `<span class="formula-text">${state.lang==='zh'?'当前平台本周没有通过质量校验的关键词。':'No platform keywords passed quality checks this week.'}</span>`}</div>
     ${topicEvidenceHtml(t)}
     ${topicVideoHtml(t)}
     ${chainSummary.weeks>1?`<button type="button" class="chain-open-button" id="openChainDetail">${loc('查看持续主题追踪','Open persistent topic tracking')} →</button>`:''}`;
@@ -1971,10 +1982,10 @@ function dashboardKeywordStats(w){
 }
 function showMetricDrawer(title,sub,body){$("#drawer").classList.remove("chain-mode");$("#drawerTitle").textContent=title;$("#drawerSub").textContent=sub;$("#drawerBody").innerHTML=body;$("#drawerMask").classList.add("show");$("#drawer").classList.add("show");}
 function openVolumeDrawer(){var w=currentWeek(),totals={"B站":0,"小黑盒":0};w.topics.forEach(function(t){Object.keys(totals).forEach(function(p){totals[p]+=Number(t.platform_metrics&&t.platform_metrics[p]&&t.platform_metrics[p].count)||0;});});var all=totals["B站"]+totals["小黑盒"]||1;var bars=Object.entries(totals).map(function(x){var k=x[0],v=x[1];return '<div class="platform-row"><span>'+displayPlatform(k)+'</span><div class="platform-bar"><i style="width:'+(v/all*100)+'%"></i></div><b style="color:#dbe3f4">'+(v/all*100).toFixed(1)+'%</b></div>';}).join("");showMetricDrawer(state.platform==="综合"?loc("样本观察量（不可比）","Sample observations (not comparable)"):loc("本周样本量","Weekly sample size"),w.label+" · "+fmt(all)+" "+loc("条","items"),'<p class="risk-drawer-intro">'+loc("平台声量分布仅在此二级页面展示；B站为真实数据，小黑盒为真实公开搜索样本（非全量）。","Bilibili counts comments while Heybox counts search-visible posts; do not interpret their sum as a cross-platform total.")+'</p><div class="platform-bars drawer-platform-bars">'+bars+'</div><div class="detail-kpis"><div class="detail-kpi"><span>'+(state.platform==="综合"?loc("样本观察量（不可比）","Sample observations (not comparable)"):loc("本周样本量","Weekly sample size"))+'</span><strong>'+fmt(all)+'</strong></div><div class="detail-kpi"><span>B站</span><strong>'+fmt(totals["B站"])+'</strong></div><div class="detail-kpi"><span>小黑盒</span><strong>'+fmt(totals["小黑盒"])+'</strong></div></div>');}
-function openSentimentDrawer(){var w=currentWeek(),cur=aggregateWeek(w),summaries=dashboardData.weeks.map(function(x){return {w:x,s:aggregateWeek(x)};}),max=Math.max.apply(null,summaries.map(function(x){return x.s.volume;}).concat([1]));var rows=[[loc("积极","Positive"),cur.sentiment.positive,"var(--sentiment-positive)"],[loc("中性","Neutral"),cur.sentiment.neutral,"var(--sentiment-neutral)"],[loc("负面","Negative"),cur.sentiment.negative,"var(--sentiment-negative)"]];var rhtml=rows.map(function(r){return '<div class="sentiment-row"><span>'+r[0]+'</span><div class="bar"><i style="width:'+r[1]+'%;background:'+r[2]+'"></i></div><b style="color:'+r[2]+'">'+r[1]+'%</b></div>';}).join("");var donut="<div class=\"drawer-donut\" style=\"--p1:"+cur.sentiment.positive+"%;--p2:"+(cur.sentiment.positive+cur.sentiment.neutral)+"%\"><span>"+cur.sentiment.positive+"%</span></div>";var chart=summaries.map(function(x){return '<div class="drawer-chart-row"><span>'+x.w.label+'</span><div class="drawer-chart-bar"><i style="width:'+(x.s.volume/max*100)+'%"></i></div><b>'+x.s.negative_rate+'%</b></div>';}).join("");showMetricDrawer(loc("本周情感结构","Sentiment this week"),w.label+" · "+loc("模型全量输出","Model full-coverage output"),'<p class="risk-drawer-intro">'+loc("本页展示模型计算的本周结构和历史环比。","This view shows the model-computed structure and week-over-week comparison.")+'</p><div class="drawer-donut-wrap">'+donut+'<div class="drawer-donut-legend"><div><i style="background:var(--sentiment-positive)"></i>'+loc("积极","Positive")+' '+cur.sentiment.positive+'%</div><div><i style="background:var(--sentiment-neutral)"></i>'+loc("中性","Neutral")+' '+cur.sentiment.neutral+'%</div><div><i style="background:var(--sentiment-negative)"></i>'+loc("负面","Negative")+' '+cur.sentiment.negative+'%</div></div></div><div class="sentiment-list">'+rhtml+'</div><div class="section-title">'+loc("近5周情感结构环比","Five-week sentiment comparison")+'</div><div class="drawer-chart">'+chart+'</div>');}
-function openKeywordDrawer(){var w=currentWeek(),stats=dashboardKeywordStats(w),max=stats[0]?stats[0].document_count:1,scope=state.platform==="B站"?loc("来自映射到主题的真实B站评论文本。","Derived from real Bilibili comments mapped to topics."):state.platform==="小黑盒"?loc("来自小黑盒公开搜索可见帖子样本；样本非全量。","Derived from the sampled Heybox posts visible in public search; the sample is not exhaustive."):loc("合并B站评论与小黑盒公开搜索帖子样本；两平台采样范围与计数单位不同。","Merges Bilibili comments and sampled Heybox public-search posts; sampling scopes and units differ.");var chips=stats.slice(0,30).map(function(x,i){return '<span class="drawer-keyword" style="font-size:'+(12+x.document_count/max*10)+'px;color:'+(i<5?"#f2c94c":"#e3e3df")+'">'+displayKeyword(x.keyword)+'<small style="display:block;color:var(--muted);font-size:10px;margin-top:3px">'+fmt(x.occurrences)+' '+loc("次出现","occurrences")+' · '+loc("覆盖","covers")+' '+fmt(x.document_count)+' '+loc("条文本","texts")+'</small></span>';}).join("");showMetricDrawer(loc("本周高频关键词","Weekly top keywords"),w.label+" · "+displayPlatform(state.platform)+" · "+stats.length+" "+loc("个有效关键词","observed keywords"),'<p class="risk-drawer-intro">'+scope+loc(" 有效关键词需至少覆盖2条文本，且覆盖本周不低于2%的文本；排序依据为覆盖文本数，其次为实际出现次数，不再使用主题声量重复加权。"," Observed keywords must cover at least two texts and at least 2% of this week's texts; they are ranked by document coverage, then actual occurrence count, without duplicate topic-volume weighting.")+'</p><div class="drawer-keywords">'+chips+'</div>');}
+function openSentimentDrawer(){var w=currentWeek(),cur=aggregateWeek(w),summaries=dashboardData.weeks.map(function(x){return {w:x,s:aggregateWeek(x)};}),max=Math.max.apply(null,summaries.map(function(x){return x.s.volume;}).concat([1])),available=[cur.sentiment.positive,cur.sentiment.neutral,cur.sentiment.negative].every(Number.isFinite);var rows=[[loc("积极","Positive"),cur.sentiment.positive,"var(--sentiment-positive)"],[loc("中性","Neutral"),cur.sentiment.neutral,"var(--sentiment-neutral)"],[loc("负面","Negative"),cur.sentiment.negative,"var(--sentiment-negative)"]];var rhtml=rows.map(function(r){var value=Number.isFinite(r[1])?r[1]:null;return '<div class="sentiment-row"><span>'+r[0]+'</span><div class="bar"><i style="width:'+(value===null?0:value)+'%;background:'+r[2]+'"></i></div><b style="color:'+r[2]+'">'+(value===null?'—':value+'%')+'</b></div>';}).join("");var positive=available?cur.sentiment.positive:0,neutral=available?cur.sentiment.neutral:0;var donut="<div class=\"drawer-donut\" style=\"--p1:"+positive+"%;--p2:"+(positive+neutral)+"%\"><span>"+(available?positive+'%':'—')+"</span></div>";var legend=rows.map(function(r){return '<div><i style="background:'+r[2]+'"></i>'+r[0]+' '+(Number.isFinite(r[1])?r[1]+'%':'—')+'</div>';}).join("");var chart=summaries.map(function(x){return '<div class="drawer-chart-row"><span>'+x.w.label+'</span><div class="drawer-chart-bar"><i style="width:'+(x.s.volume/max*100)+'%"></i></div><b>'+(Number.isFinite(x.s.negative_rate)?x.s.negative_rate+'%':'—')+'</b></div>';}).join("");showMetricDrawer(loc("本周情感结构","Sentiment this week"),w.label+" · "+loc("模型全量输出","Model full-coverage output"),'<p class="risk-drawer-intro">'+loc("本页展示模型计算的本周结构和历史环比。","This view shows the model-computed structure and week-over-week comparison.")+'</p><div class="drawer-donut-wrap">'+donut+'<div class="drawer-donut-legend">'+legend+'</div></div><div class="sentiment-list">'+rhtml+'</div><div class="section-title">'+loc("近5周情感结构环比","Five-week sentiment comparison")+'</div><div class="drawer-chart">'+chart+'</div>');}
+function openKeywordDrawer(){var w=currentWeek(),stats=dashboardKeywordStats(w),max=stats[0]?stats[0].text_coverage_count:1,scope=state.platform==="B站"?loc("来自映射到主题的真实B站评论文本。","Derived from real Bilibili comments mapped to topics."):state.platform==="小黑盒"?loc("来自小黑盒公开搜索可见帖子样本；样本非全量。","Derived from the sampled Heybox posts visible in public search; the sample is not exhaustive."):loc("合并B站评论与小黑盒公开搜索帖子样本；两平台采样范围与计数单位不同。","Merges Bilibili comments and sampled Heybox public-search posts; sampling scopes and units differ.");var chips=stats.slice(0,30).map(function(x,i){return '<span class="drawer-keyword" style="font-size:'+(12+x.text_coverage_count/max*10)+'px;color:'+(i<5?"#f2c94c":"#e3e3df")+'">'+displayKeyword(x.normalized_keyword)+'<small style="display:block;color:var(--muted);font-size:10px;margin-top:3px">'+fmt(x.occurrence_count)+' '+loc("次出现","occurrences")+' · '+loc("覆盖","covers")+' '+fmt(x.text_coverage_count)+' '+loc("条文本","texts")+'</small></span>';}).join("");showMetricDrawer(loc("本周高频关键词","Weekly top keywords"),w.label+" · "+displayPlatform(state.platform)+" · "+stats.length+" "+loc("个有效关键词","observed keywords"),'<p class="risk-drawer-intro">'+scope+loc(" 前端仅展示后端通过质量校验、覆盖至少2条独立文本并可追溯到有效主题的归一化关键词。"," The frontend only displays normalized backend keywords that passed quality checks, cover at least two independent texts, and trace to valid topics.")+'</p><div class="drawer-keywords">'+chips+'</div>');}
 function openActionDrawer(){var topics=filteredTopics(),risks=topics.filter(function(t){return t.risk==="风险";}).sort(function(a,b){return metricFor(b).risk_score-metricFor(a).risk_score;}),ops=topics.filter(function(t){return t.risk==="机会";}).sort(function(a,b){return metricFor(b).heat_score-metricFor(a).heat_score;}),items=risks.map(function(t){return {t:t,kind:"risk"};}).concat(ops.map(function(t){return {t:t,kind:"op"};}));var html=items.map(function(x,i){var tm=metricFor(x.t);return '<div class="risk-item" data-topic="'+x.t.id+'"><div class="risk-line '+(x.kind==="op"?"op":"")+'"></div><div><strong>'+displayTopicName(x.t)+'</strong><span>'+(x.kind==="op"?tr("heatOption")+" "+tm.heat_score+" · "+tr("heatAsset"):tr("negativeRate")+" "+negativeRateCompact(x.t,tm)+" · "+tr("responseAdvice"))+'</span></div><div class="risk-level">'+(x.kind==="op"?tr("opportunity"):"P"+Math.min(3,i+1))+'</div></div>';}).join("");showMetricDrawer(loc("辅助复核意见","Review comments"),currentWeek().label+" · "+items.length+" "+loc("项","items"),'<p class="risk-drawer-intro">'+loc("以下建议用于辅助专业人员安排复核顺序，不替代人工舆情判断。","These suggestions help professionals prioritize review and do not replace human judgment.")+'</p><div class="drawer-action-list">'+html+'</div>');$$("#drawerBody .risk-item").forEach(function(el){el.onclick=function(){openTopic(el.dataset.topic);};});}
-function renderKpis(){var w=currentWeek(),k=aggregateWeek(w),keywordCount=dashboardKeywordStats(w).length,items=[[state.platform==="综合"?loc("样本观察量（不可比）","Sample observations (not comparable)"):tr("thisWeekVolume"),fmt(k.volume),loc("查看平台样本","View platform samples")],[tr("negativeShare"),k.negative_rate+"%",loc("辅助复核意见","Review comments")],[tr("highRisk"),k.risk_topics,tr("priorityNeeded")],[tr("newTopics"),k.new_topics,tr("modelDetected")],[loc("有效关键词","Observed keywords"),keywordCount,loc("查看真实词频","View observed frequency")],[loc("本周情感结构","Sentiment this week"),k.sentiment_score.toFixed(2),loc("查看情感环比","View sentiment comparison")]],actions=[openVolumeDrawer,openActionDrawer,openHighRiskDrawer,openNewTopicsDrawer,openKeywordDrawer,openSentimentDrawer];$("#kpiGrid").innerHTML=items.map(function(x,i){return '<button type="button" class="card kpi kpi-action" id="kpiAction'+i+'" aria-label="'+x[0]+' '+x[1]+'"><div class="kpi-label">'+x[0]+'</div><div class="kpi-value">'+x[1]+'</div><div class="kpi-foot">'+x[2]+'</div></button>';}).join("");items.forEach(function(_,i){$("#kpiAction"+i).addEventListener("click",actions[i]);});}
+function renderKpis(){var w=currentWeek(),k=aggregateWeek(w),keywordCount=dashboardKeywordStats(w).length,negative=Number.isFinite(k.negative_rate)?k.negative_rate+"%":"—",score=Number.isFinite(k.sentiment_score)?k.sentiment_score.toFixed(2):"—",items=[[state.platform==="综合"?loc("样本观察量（不可比）","Sample observations (not comparable)"):tr("thisWeekVolume"),fmt(k.volume),loc("查看平台样本","View platform samples")],[tr("negativeShare"),negative,Number.isFinite(k.negative_rate)?loc("辅助复核意见","Review comments"):loc("情感数据不足","Insufficient sentiment data")],[tr("highRisk"),k.risk_topics,tr("priorityNeeded")],[tr("newTopics"),k.new_topics,tr("modelDetected")],[loc("有效关键词","Observed keywords"),keywordCount,loc("查看真实词频","View observed frequency")],[loc("本周情感结构","Sentiment this week"),score,Number.isFinite(k.sentiment_score)?loc("查看情感环比","View sentiment comparison"):loc("情感数据不足","Insufficient sentiment data")]],actions=[openVolumeDrawer,openActionDrawer,openHighRiskDrawer,openNewTopicsDrawer,openKeywordDrawer,openSentimentDrawer];$("#kpiGrid").innerHTML=items.map(function(x,i){return '<button type="button" class="card kpi kpi-action" id="kpiAction'+i+'" aria-label="'+x[0]+' '+x[1]+'"><div class="kpi-label">'+x[0]+'</div><div class="kpi-value">'+x[1]+'</div><div class="kpi-foot">'+x[2]+'</div></button>';}).join("");items.forEach(function(_,i){$("#kpiAction"+i).addEventListener("click",actions[i]);});}
 function arrangeDashboardOrder(){if(document.body.dataset.dashboardArranged)return;var main=document.querySelector("main"),overview=document.querySelector("#overview"),topics=document.querySelector("#topics"),risk=document.querySelector("#risk");if(!main||!overview||!topics||!risk)return;var pageHead=overview.querySelector(".page-head"),kpiGrid=document.querySelector("#kpiGrid"),method=topics.querySelector(".method-grid"),coreGrid=topics.querySelector(".grid-12"),coreCard=coreGrid&&coreGrid.querySelector(".span-12"),eventCard=coreGrid&&coreGrid.querySelector(".span-12:not(:first-child)"),trend=overview.querySelector(".grid-12 .span-8"),sentimentPanel=overview.querySelector("#sentiment"),riskGrid=risk.querySelector(".grid-12"),matrix=riskGrid&&riskGrid.querySelector(".span-7"),actionPanel=riskGrid&&riskGrid.querySelector(".span-5"),chainGrid=risk.querySelectorAll(".grid-12")[1],chainCard=chainGrid&&chainGrid.querySelector(".span-6:last-child"),keywordCard=chainGrid&&chainGrid.querySelector(".span-6:first-child");if(!pageHead||!kpiGrid||!method||!coreCard||!trend||!matrix||!chainCard)return;sentimentPanel&&sentimentPanel.classList.add("legacy-layout-hidden");actionPanel&&actionPanel.classList.add("legacy-layout-hidden");keywordCard&&keywordCard.classList.remove("legacy-layout-hidden");if(eventCard){eventCard.querySelector(".platform-bars")&&eventCard.querySelector(".platform-bars").classList.add("legacy-layout-hidden");eventCard.querySelector(".panel-head")&&eventCard.querySelector(".panel-head").classList.add("legacy-layout-hidden");}var order=document.createElement("div");order.id="dashboardOrder";order.className="dashboard-flow";var chainEventRow=document.createElement("div");chainEventRow.className="chain-event-row";var row=document.createElement("div");row.className="trend-risk-row";trend.classList.remove("span-8");matrix.classList.remove("span-7");matrix.classList.add("span-5");row.append(trend,matrix);main.insertBefore(order,overview);if(eventCard)chainEventRow.append(chainCard,eventCard);else chainEventRow.append(chainCard);order.append(pageHead,kpiGrid,method,coreCard,row);if(keywordCard){keywordCard.classList.remove("span-6");order.append(keywordCard);}order.append(chainEventRow);[overview,topics,risk].forEach(function(s){s.classList.add("legacy-layout-hidden");});document.body.dataset.dashboardArranged="1";$$(".nav-item[data-anchor]").forEach(function(n){n.onclick=function(){var target=n.dataset.anchor==="evolution"?"evolution":"dashboardOrder";document.getElementById(target)&&document.getElementById(target).scrollIntoView({behavior:"smooth",block:"start"});$$(".nav-item").forEach(function(x){x.classList.remove("active");});n.classList.add("active");};});}
 
 const schemaExample = dashboardData;
@@ -2049,12 +2060,12 @@ function reportWeekSummary(week,platform){
   if(!week) return null;
   const rows=week.topics.map(topic=>({topic,metric:metricFor(topic,platform)})).filter(row=>row.metric&&Number(row.metric.count)>0);
   const volume=rows.reduce((sum,row)=>sum+Number(row.metric.count||0),0);
-  const weighted=key=>volume?rows.reduce((sum,row)=>sum+Number(row.metric[key]||0)*Number(row.metric.count||0),0)/volume:null;
+  const backend=week.platform_sentiment_metrics?.[platform]||{};
   return {
     week_id:week.week_id, label:week.label, start:week.start, end:week.end,
     selected_platform:platform, observed_volume:volume,
     volume_unit:platform==='B站'?'mapped_comment_texts':platform==='小黑盒'?'public_search_visible_posts_sample':'mixed_incomparable_observation_units',
-    sentiment:{model:'SnowNLP',score_0_to_1:finiteOrNull(weighted('sentiment')),positive_rate_percent:finiteOrNull(weighted('positive')),neutral_rate_percent:finiteOrNull(weighted('neutral')),negative_rate_percent:finiteOrNull(weighted('negative')),report_label:'analyst_review_required'},
+    sentiment:{model:backend.sentiment_model||null,model_version:backend.sentiment_model_version||null,score_0_to_1:finiteOrNull(backend.sentiment),positive_rate_percent:finiteOrNull(backend.positive_rate),neutral_rate_percent:finiteOrNull(backend.neutral_rate),negative_rate_percent:finiteOrNull(backend.negative_rate),sentiment_valid_count:Number.isInteger(backend.sentiment_valid_count)?backend.sentiment_valid_count:0,negative_count:Number.isInteger(backend.negative_count)?backend.negative_count:0,low_sample_status:Boolean(backend.low_sample_status),report_label:'analyst_review_required'},
     topic_count:rows.length,
     observed_video_or_content_count:rows.reduce((sum,row)=>sum+Number(row.metric.video_count||0),0),
     observed_creator_count:rows.reduce((sum,row)=>sum+Number(row.metric.creator_count||0),0)
@@ -2067,7 +2078,7 @@ function reportTopicRows(week,previousWeek,platform){
     const previousTopic=previousWeek?.topics.find(topic=>topic.id===row.topic.id);
     const previousMetric=previousTopic?metricFor(previousTopic,platform):null;
     const currentCount=Number(row.metric.count||0), previousCount=Number(previousMetric?.count||0);
-    const actualKeywords=topicKeywordStats(row.topic,platform).slice(0,15).map(item=>({keyword:item.keyword,occurrences:item.occurrences,document_count:item.document_count,document_coverage:item.document_coverage}));
+    const actualKeywords=topicKeywordStats(row.topic,platform).slice(0,15).map(item=>({keyword:item.normalized_keyword,normalized_keyword:item.normalized_keyword,entity_type:item.entity_type,occurrence_count:item.occurrence_count,text_coverage_count:item.text_coverage_count,content_coverage_count:item.content_coverage_count,platforms:item.platforms,topic_ids:item.topic_ids,event_driven:item.event_driven,quality_status:item.quality_status}));
     const evidence=platform==='小黑盒'?[]:(row.topic.quotes||[]).slice(0,3).map(text=>({text,source_platform:'B站'}));
     return {
       rank:index+1, topic_id:row.topic.id, topic_chain_id:row.topic.chain, topic_name:row.topic.name,

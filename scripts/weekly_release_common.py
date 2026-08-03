@@ -13,6 +13,14 @@ from pathlib import Path
 from typing import Any, Iterable
 
 from project_paths import resolve_project_asset
+from content_integrity import (
+    EVENT_RULE_VERSION,
+    KEYWORD_RULE_VERSION,
+    SENTIMENT_RULE_VERSION,
+    extract_keywords,
+    generate_events,
+)
+from sentiment_integrity import summarize_sentiment
 
 
 WEEK_ID_RE = re.compile(r"^(?P<year>\d{4})_W(?P<week>\d{2})$")
@@ -557,18 +565,9 @@ def _clamp(value: float, low: int = 0, high: int = 100) -> int:
     return max(low, min(high, int(round(value))))
 
 
-def _sentiment(records: list[dict[str, Any]]) -> dict[str, float]:
-    labels = Counter(
-        str(record.get("sentiment_label") or "neutral") for record in records
-    )
-    count = len(records)
-    scores = [float(record.get("sentiment_score") or 0.5) for record in records]
-    return {
-        "positive": round(labels["positive"] / count * 100, 2) if count else 0.0,
-        "neutral": round(labels["neutral"] / count * 100, 2) if count else 100.0,
-        "negative": round(labels["negative"] / count * 100, 2) if count else 0.0,
-        "sentiment": round(sum(scores) / count, 6) if count else 0.5,
-    }
+def _sentiment(records: list[dict[str, Any]]) -> dict[str, Any]:
+    """Return count-backed sentiment rates without defaulting missing data to 0."""
+    return summarize_sentiment(records)
 
 
 def _keywords(records: Iterable[dict[str, Any]], limit: int = 15) -> list[str]:
@@ -600,27 +599,7 @@ def _keyword_stats(
     records: list[dict[str, Any]],
     limit: int = 30,
 ) -> list[dict[str, Any]]:
-    terms = _keywords(records, limit=limit)
-    rows: list[dict[str, Any]] = []
-    total = len(records)
-    for term in terms:
-        occurrences = sum(str(r.get("text") or "").lower().count(term) for r in records)
-        documents = sum(term in str(r.get("text") or "").lower() for r in records)
-        rows.append(
-            {
-                "keyword": term,
-                "occurrences": occurrences,
-                "document_count": documents,
-                "document_coverage": round(documents / total, 6) if total else 0,
-                "score": round(
-                    occurrences * math.log((total + 1) / (documents + 1) + 1),
-                    6,
-                )
-                if total
-                else 0,
-            }
-        )
-    return rows
+    return extract_keywords(records)["qualified"][:limit]
 
 
 def _platform_metric(
@@ -648,14 +627,15 @@ def _platform_metric(
     comments = sum(int(record.get("comments") or 0) for record in records)
     prior_trend = list((previous or {}).get("trend") or [])
     trend = (prior_trend + [count])[-5:]
-    negative = sentiment["negative"]
-    consensus = _clamp(50 + abs(sentiment["positive"] - negative) * 0.35)
-    heat = _clamp(18 + count * 8 + math.log1p(likes + comments) * 7)
-    risk = _clamp(
-        max(negative, negative * 0.65 + max(0, wow or 0) * 0.2 + (100 - consensus) * 0.15)
-        if negative >= 60
-        else negative * 0.65 + max(0, wow or 0) * 0.2 + (100 - consensus) * 0.15
+    negative = sentiment["negative_rate"]
+    positive = sentiment["positive_rate"]
+    valid_count = int(sentiment["sentiment_valid_count"])
+    consensus = (
+        _clamp(50 + abs(float(positive) - float(negative)) * 0.35)
+        if positive is not None and negative is not None
+        else None
     )
+    heat = _clamp(18 + count * 8 + math.log1p(likes + comments) * 7)
     is_bilibili = platform == "B站"
     metrics_source = (
         "simulated_fixture"
@@ -684,6 +664,29 @@ def _platform_metric(
         or r.get("author")
         or r.get("author_name")
     }
+    # Sentiment cannot depress risk when evidence is tiny.  Below five valid
+    # predictions it contributes nothing; at five-to-nine it is downweighted.
+    sentiment_weight = float(sentiment["sentiment_risk_weight"])
+    growth_component = min(45.0, max(0.0, float(wow or 0)) * 0.2)
+    volume_component = min(25.0, count / 20 * 25.0)
+    source_component = min(15.0, len(source_ids) / 5 * 15.0)
+    sentiment_component = (
+        float(negative) * 0.65 * sentiment_weight
+        if negative is not None
+        else 0.0
+    )
+    disagreement_component = (
+        (100 - float(consensus)) * 0.15 * sentiment_weight
+        if consensus is not None
+        else 0.0
+    )
+    risk = _clamp(
+        sentiment_component
+        + disagreement_component
+        + growth_component
+        + volume_component
+        + source_component
+    )
     metric = {
         "count": count,
         "video_count": len(source_ids),
@@ -715,7 +718,7 @@ def _platform_metric(
             "wow",
         ],
         "estimated_fields": [
-            "negative",
+            "negative_rate",
             "sentiment",
             "heat_score",
             "consensus_score",
@@ -727,19 +730,31 @@ def _platform_metric(
         "sentiment_model": (
             "fixture"
             if simulated
-            else str(records[0].get("sentiment_model") or "SnowNLP_0.12.3")
-            if records
-            else "no_observations"
+            else sentiment["sentiment_model"]
+        ),
+        "sentiment_model_version": (
+            "fixture" if simulated else sentiment["sentiment_model_version"]
         ),
         "sentiment_status": (
             "simulation_only"
             if simulated
-            else str(records[0].get("sentiment_status") or "model_only_unvalidated")
-            if records
-            else "no_observations"
+            else sentiment["sentiment_status"]
         ),
         "sentiment_estimated": True,
-        "risk_status": "model_only_derived",
+        "risk_status": (
+            "sentiment_low_sample"
+            if valid_count < 5
+            else "sentiment_limited_weight"
+            if valid_count < 10
+            else "model_only_derived"
+        ),
+        "risk_components": {
+            "sentiment": round(sentiment_component, 3),
+            "disagreement": round(disagreement_component, 3),
+            "growth": round(growth_component, 3),
+            "volume": round(volume_component, 3),
+            "source_coverage": round(source_component, 3),
+        },
         "risk_score_estimated": True,
     }
     if not is_bilibili:
@@ -767,18 +782,45 @@ def _combined_metric(
     simulated: bool,
 ) -> dict[str, Any]:
     count = int(bilibili["count"]) + int(heybox["count"])
+    valid_count = int(bilibili["sentiment_valid_count"]) + int(
+        heybox["sentiment_valid_count"]
+    )
 
-    def weighted(key: str) -> float:
+    def weighted_by_valid(key: str) -> float | None:
+        if not valid_count:
+            return None
+        terms = []
+        for metric in (bilibili, heybox):
+            value = metric.get(key)
+            weight = int(metric.get("sentiment_valid_count") or 0)
+            if value is not None and weight:
+                terms.append(float(value) * weight)
+        if not terms:
+            return None
+        return round(
+            sum(terms) / valid_count,
+            3,
+        )
+
+    def weighted_by_count(key: str) -> float:
         if not count:
             return 0.0
         return round(
             (
-                float(bilibili[key]) * int(bilibili["count"])
-                + float(heybox[key]) * int(heybox["count"])
+                float(bilibili.get(key) or 0) * int(bilibili["count"])
+                + float(heybox.get(key) or 0) * int(heybox["count"])
             )
             / count,
             3,
         )
+
+    class_counts = {
+        key: int(bilibili.get(key) or 0) + int(heybox.get(key) or 0)
+        for key in ("positive_count", "neutral_count", "negative_count")
+    }
+
+    def rate(count_key: str) -> float | None:
+        return round(class_counts[count_key] / valid_count * 100, 2) if valid_count else None
 
     b_trend = list(bilibili.get("trend") or [])
     h_trend = list(heybox.get("trend") or [])
@@ -786,13 +828,27 @@ def _combined_metric(
     b_trend = [0] * (size - len(b_trend)) + b_trend
     h_trend = [0] * (size - len(h_trend)) + h_trend
     return {
-        "negative": weighted("negative"),
-        "positive": weighted("positive"),
-        "neutral": weighted("neutral"),
-        "sentiment": weighted("sentiment"),
-        "heat_score": weighted("heat_score"),
-        "consensus_score": weighted("consensus_score"),
-        "risk_score": weighted("risk_score"),
+        "negative": rate("negative_count"),
+        "positive": rate("positive_count"),
+        "neutral": rate("neutral_count"),
+        "negative_rate": rate("negative_count"),
+        "positive_rate": rate("positive_count"),
+        "neutral_rate": rate("neutral_count"),
+        "sentiment": weighted_by_valid("sentiment"),
+        "sentiment_valid_count": valid_count,
+        "sentiment_invalid_count": int(bilibili.get("sentiment_invalid_count") or 0)
+        + int(heybox.get("sentiment_invalid_count") or 0),
+        **class_counts,
+        "low_sample_status": valid_count < 5,
+        "sentiment_sample_band": (
+            "unavailable" if valid_count == 0 else "low_under_5" if valid_count < 5 else "limited_5_to_9" if valid_count < 10 else "adequate_10_plus"
+        ),
+        "sentiment_status": "sentiment_data_unavailable" if valid_count == 0 else "mixed_platform_model_output",
+        "sentiment_model": "mixed_platform_models" if valid_count else None,
+        "sentiment_model_version": "see_platform_metrics" if valid_count else None,
+        "heat_score": weighted_by_count("heat_score"),
+        "consensus_score": weighted_by_valid("consensus_score"),
+        "risk_score": weighted_by_count("risk_score"),
         "count": count,
         "video_count": int(bilibili["video_count"]) + int(heybox["video_count"]),
         "creator_count": (
@@ -970,12 +1026,20 @@ def build_dashboard(
                 "video_count": int(b_metric["video_count"]),
                 "creator_count": b_metric.get("creator_count"),
                 "share": 0,
-                "sentiment": float(b_metric["sentiment"]),
-                "negative": float(b_metric["negative"]),
+                "sentiment": b_metric["sentiment"],
+                "negative": b_metric["negative_rate"],
+                "negative_rate": b_metric["negative_rate"],
+                "sentiment_valid_count": b_metric["sentiment_valid_count"],
+                "negative_count": b_metric["negative_count"],
+                "low_sample_status": b_metric["low_sample_status"],
                 "wow": wow,
                 "trend": list(b_metric["trend"]),
                 "heat_score": int(b_metric["heat_score"]),
-                "consensus_score": int(b_metric["consensus_score"]),
+                "consensus_score": (
+                    int(b_metric["consensus_score"])
+                    if b_metric["consensus_score"] is not None
+                    else None
+                ),
                 "risk": int(b_metric["risk_score"]),
                 "status": STATUS_ZH[status_code],
                 "status_code": status_code,
@@ -1016,15 +1080,9 @@ def build_dashboard(
                     if simulated
                     else str(bilibili_payload["meta"].get("sentiment_model") or "SnowNLP_baseline_only")
                 ),
-                "sentiment_status": (
-                    "simulation_only" if simulated else "model_only_unvalidated"
-                ),
+                "sentiment_status": b_metric["sentiment_status"],
                 "sentiment_estimated": True,
-                "risk_status": (
-                    "suppressed_low_sample"
-                    if low_sample
-                    else "model_only_derived"
-                ),
+                "risk_status": b_metric["risk_status"],
                 "risk_score_estimated": True,
                 "trend_interpretation_eligible": not low_sample,
                 "data_provenance": {
@@ -1066,6 +1124,18 @@ def build_dashboard(
     b_all = records["B站"]
     h_all = records["小黑盒"]
     sentiment = _sentiment(b_all)
+    b_week_sentiment = _platform_metric(
+        b_all, None, platform="B站", simulated=simulated
+    )
+    h_week_sentiment = _platform_metric(
+        h_all, None, platform="小黑盒", simulated=simulated
+    )
+    combined_week_sentiment = _combined_metric(
+        b_week_sentiment, h_week_sentiment, simulated=simulated
+    )
+    event_result = generate_events(b_all + h_all, week_id=week_id)
+    if not str(event_result.get("status") or "").startswith("success_"):
+        raise ValueError("current-week event generation failed")
     b_count = len(b_all)
     h_count = len(h_all)
     observed = b_count + h_count
@@ -1075,7 +1145,13 @@ def build_dashboard(
         "start": start.isoformat(),
         "end": end.isoformat(),
         "topics": topics,
-        "events": [],
+        "events": event_result["events"],
+        "event_generation": {
+            "status": event_result["status"],
+            "candidate_count": event_result["candidate_count"],
+            "qualified_count": event_result["qualified_count"],
+            "rule_version": EVENT_RULE_VERSION,
+        },
         "kpis": {
             "total_volume": b_count,
             "topic_count": len(topics),
@@ -1119,22 +1195,64 @@ def build_dashboard(
             "low_sample_week": low_sample,
             "sample_quality": b_quality,
         },
+        "platform_sentiment_metrics": {
+            "B站": {
+                key: b_week_sentiment.get(key)
+                for key in (
+                    "comment_count", "sentiment_valid_count", "sentiment_invalid_count",
+                    "positive_count", "neutral_count", "negative_count",
+                    "positive_rate", "neutral_rate", "negative_rate",
+                    "positive", "neutral", "negative", "sentiment",
+                    "sentiment_model", "sentiment_model_version", "sentiment_status",
+                    "low_sample_status", "sentiment_sample_band",
+                )
+            },
+            "小黑盒": {
+                key: h_week_sentiment.get(key)
+                for key in (
+                    "comment_count", "sentiment_valid_count", "sentiment_invalid_count",
+                    "positive_count", "neutral_count", "negative_count",
+                    "positive_rate", "neutral_rate", "negative_rate",
+                    "positive", "neutral", "negative", "sentiment",
+                    "sentiment_model", "sentiment_model_version", "sentiment_status",
+                    "low_sample_status", "sentiment_sample_band",
+                )
+            },
+            "综合": {
+                key: combined_week_sentiment.get(key)
+                for key in (
+                    "comment_count", "sentiment_valid_count", "sentiment_invalid_count",
+                    "positive_count", "neutral_count", "negative_count",
+                    "positive_rate", "neutral_rate", "negative_rate",
+                    "positive", "neutral", "negative", "sentiment",
+                    "sentiment_model", "sentiment_model_version", "sentiment_status",
+                    "low_sample_status", "sentiment_sample_band",
+                )
+            },
+        },
         "sentiment": {
             "week_id": week_id,
             "text_count": str(b_count),
-            "positive_count": str(
-                sum(r.get("sentiment_label") == "positive" for r in b_all)
+            "sentiment_valid_count": str(sentiment["sentiment_valid_count"]),
+            "positive_count": str(sentiment["positive_count"]),
+            "neutral_count": str(sentiment["neutral_count"]),
+            "negative_count": str(sentiment["negative_count"]),
+            "positive_rate": (
+                f"{sentiment['positive_rate'] / 100:.6f}"
+                if sentiment["positive_rate"] is not None else None
             ),
-            "neutral_count": str(
-                sum(r.get("sentiment_label") == "neutral" for r in b_all)
+            "neutral_rate": (
+                f"{sentiment['neutral_rate'] / 100:.6f}"
+                if sentiment["neutral_rate"] is not None else None
             ),
-            "negative_count": str(
-                sum(r.get("sentiment_label") == "negative" for r in b_all)
+            "negative_rate": (
+                f"{sentiment['negative_rate'] / 100:.6f}"
+                if sentiment["negative_rate"] is not None else None
             ),
-            "positive_rate": f"{sentiment['positive'] / 100:.6f}",
-            "neutral_rate": f"{sentiment['neutral'] / 100:.6f}",
-            "negative_rate": f"{sentiment['negative'] / 100:.6f}",
-            "avg_sentiment_score": f"{sentiment['sentiment']:.6f}",
+            "avg_sentiment_score": (
+                f"{sentiment['sentiment']:.6f}"
+                if sentiment["sentiment"] is not None else None
+            ),
             "sentiment_model": (
                 "fixture"
                 if simulated
@@ -1192,6 +1310,8 @@ def build_dashboard(
                     else "mixed_real_text_observations_sample_limited"
                 ),
             },
+            "rule_version": KEYWORD_RULE_VERSION,
+            "quality_gate": "passed_only_minimum_two_traceable_texts_with_valid_topic",
         },
         "data_provenance": SIMULATION_BOUNDARIES if simulated else DATA_BOUNDARIES,
         "sample_quality": sample_quality_by_platform,
@@ -1210,6 +1330,9 @@ def build_dashboard(
             ),
             "default_week_id": display_id,
             "platform_status": boundaries,
+            "keyword_rule_version": KEYWORD_RULE_VERSION,
+            "event_rule_version": EVENT_RULE_VERSION,
+            "sentiment_rule_version": SENTIMENT_RULE_VERSION,
             "week_boundary": {
                 "latest_complete_week": week_id,
                 "current_open_week": next_week_id(week_id),

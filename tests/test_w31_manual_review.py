@@ -65,7 +65,7 @@ class W31ManualReviewTests(unittest.TestCase):
                     "auxiliary_primary_independent_review_required",
                 )
 
-    def test_page_shows_keywords_and_reviewed_negative_rate(self):
+    def test_page_shows_keywords_and_count_backed_negative_rate(self):
         for path in HTML_PATHS:
             source = path.read_text(encoding="utf-8")
             with self.subTest(path=path.name):
@@ -74,8 +74,10 @@ class W31ManualReviewTests(unittest.TestCase):
                     source,
                 )
                 self.assertIn("function negativeRateHtml(", source)
-                self.assertIn("negative_rate_percent", source)
-                self.assertIn("人工核验", source)
+                self.assertIn("m?.negative_rate", source)
+                self.assertIn("sentiment_valid_count", source)
+                self.assertIn("情感数据不足", source)
+                self.assertNotIn("reviewedNegativeRate", source)
                 self.assertIn("const statusChinese=", source)
                 self.assertIn("function negativeRateCompact(", source)
                 self.assertIn("'皮肤与外观':'Skins & cosmetics'", source)

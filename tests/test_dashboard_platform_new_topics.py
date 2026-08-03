@@ -114,14 +114,16 @@ class PlatformNewTopicTests(unittest.TestCase):
             "freq[k]=(freq[k]||0)+(metricFor(t)?metricFor(t).count:0)",
             "关键词按本周主题声量加权汇总",
         )
-        for path in HTML_PATHS:
+        current_paths = [ROOT / "index.html", ROOT / "game_sentiment_dashboard_v5.html"]
+        for path in current_paths:
             with self.subTest(path=path.name):
                 source = path.read_text(encoding="utf-8")
-                self.assertIn("const KEYWORD_MIN_DOCUMENT_COVERAGE=.02", source)
-                self.assertIn("Number(x.document_count)>=2", source)
+                self.assertIn("x?.quality_status==='passed'", source)
+                self.assertNotIn("const KEYWORD_MIN_DOCUMENT_COVERAGE=.02", source)
+                self.assertNotIn("Number(x.document_count)>=2", source)
                 self.assertIn("有效关键词", source)
-                self.assertIn("实际出现次数", source)
-                self.assertIn("x.document_count", source)
+                self.assertIn("x.occurrence_count", source)
+                self.assertIn("x.text_coverage_count", source)
                 self.assertEqual(source.count("function dashboardKeywordStats("), 1)
                 for token in forbidden:
                     self.assertNotIn(token, source)

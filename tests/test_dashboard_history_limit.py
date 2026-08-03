@@ -5,7 +5,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 HTML_PATHS = [
     ROOT / "index.html",
-    ROOT / "game_sentiment_dashboard_apex_W25_W30_mixed_sample.html",
+    ROOT / "game_sentiment_dashboard_v5.html",
 ]
 
 
@@ -23,11 +23,12 @@ class DashboardHistoryLimitTests(unittest.TestCase):
                 )
                 self.assertIn("weeks:normalizedWeeks", source)
 
-    def test_loaded_history_is_compacted_and_wrong_version_is_removed(self):
+    def test_embedded_history_is_authoritative_and_wrong_version_is_removed(self):
         for path in HTML_PATHS:
             source = path.read_text(encoding="utf-8")
             with self.subTest(path=path.name):
-                self.assertIn(
+                self.assertNotIn("Object.assign(dashboardData", source)
+                self.assertNotIn(
                     "dashboardData.weeks=mergeDashboardWeeks(dashboardData.weeks,storedDashboardHistory.weeks);",
                     source,
                 )

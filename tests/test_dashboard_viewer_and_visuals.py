@@ -127,20 +127,19 @@ class DashboardViewerAndVisualTests(unittest.TestCase):
                 )
 
     def test_english_mode_has_canonical_topic_and_event_translations(self):
-        for path in HTML_PATHS:
+        current_paths = [ROOT / "index.html", ROOT / "game_sentiment_dashboard_v5.html"]
+        for path in current_paths:
             source = path.read_text(encoding="utf-8")
             with self.subTest(path=path.name):
                 self.assertIn("'APEX-T001':'Ranked Play & Matchmaking'", source)
                 self.assertIn("'APEX-T013':'Weapon & Legend Strength'", source)
-                self.assertIn(
-                    "'PLQ 期间服务器异常讨论':'Server issue discussion during PLQ'",
-                    source,
-                )
+                self.assertIn("(e.title_en||e.title)", source)
+                self.assertIn("(e.summary_en||e.summary)", source)
                 self.assertIn(
                     "canonicalTopicTranslations[t.id]",
                     source,
                 )
-                self.assertIn("displayKeyword(x.keyword)", source)
+                self.assertIn("displayKeyword(x.normalized_keyword)", source)
 
     def test_t006_uses_presentation_only_clearer_display_name(self):
         expected_alias = "const canonicalTopicDisplayNames={'APEX-T006':'联动活动与体验'};"
