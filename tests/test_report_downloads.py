@@ -9,7 +9,12 @@ ROOT = Path(__file__).resolve().parents[1]
 GUIDE = ROOT / "templates/APEX_Dashboard_Data_and_Narrative_Guide.md"
 LONG_CAPTURE = ROOT / "reports/APEX_W29_Combined_Dashboard_Long_Capture.png"
 EXCEL = ROOT / "reports/APEX_CHINA_W30_Weekly_Community_Report.xlsx"
+CURRENT_EXCEL = ROOT / "reports/APEX_CHINA_W31_Weekly_Community_Report.xlsx"
 W29_EXCEL = ROOT / "reports/APEX_CHINA_W29_Weekly_Community_Report.xlsx"
+CURRENT_WEEKLY_DATA = (
+    ROOT / "outputs/bilibili_apex_2026_W31.json",
+    ROOT / "outputs/heybox_apex_2026_W31_public_search.json",
+)
 WEEKLY_DATA = (
     ROOT / "outputs/bilibili_apex_2026_W30.json",
     ROOT / "outputs/heybox_apex_2026_W30_public_search.json",
@@ -20,6 +25,9 @@ REPORT_VALIDATOR = ROOT / "scripts/validate_weekly_report_contract.py"
 REPORT_PREVIEW = (
     ROOT / "reports/APEX_CHINA_W30_Weekly_Community_Report.preview.json"
 )
+CURRENT_REPORT_PREVIEW = (
+    ROOT / "reports/APEX_CHINA_W31_Weekly_Community_Report.preview.json"
+)
 REPORT_PREVIEW_BUILDER = ROOT / "scripts/build_weekly_report_preview.py"
 HTML_PATHS = [
     ROOT / "index.html",
@@ -29,13 +37,14 @@ HTML_PATHS = [
 
 class ReportDownloadTests(unittest.TestCase):
     def test_current_artifacts_exist(self):
+        self.assertTrue(CURRENT_EXCEL.is_file())
         self.assertTrue(EXCEL.is_file())
         self.assertTrue(W29_EXCEL.is_file())
         self.assertTrue(LONG_CAPTURE.is_file())
         self.assertTrue(GUIDE.is_file())
-        self.assertTrue(REPORT_PREVIEW.is_file())
+        self.assertTrue(CURRENT_REPORT_PREVIEW.is_file())
         self.assertTrue(REPORT_PREVIEW_BUILDER.is_file())
-        for path in WEEKLY_DATA:
+        for path in CURRENT_WEEKLY_DATA:
             with self.subTest(path=path.name):
                 self.assertTrue(path.is_file())
 
@@ -76,7 +85,9 @@ class ReportDownloadTests(unittest.TestCase):
                 self.assertEqual(source.count("async function openReportPreview()"), 1)
                 self.assertEqual(
                     source.count(
-                        "reports/APEX_CHINA_W30_Weekly_Community_Report.preview.json"
+                        "reports/APEX_CHINA_W31_Weekly_Community_Report.preview.json"
+                        if path.name == "index.html"
+                        else "reports/APEX_CHINA_W30_Weekly_Community_Report.preview.json"
                     ),
                     1,
                 )
@@ -163,10 +174,34 @@ class ReportDownloadTests(unittest.TestCase):
             __import__("hashlib").sha256(EXCEL.read_bytes()).hexdigest(),
         )
 
+    def test_w31_report_preview_matches_the_validated_workbook(self):
+        preview = json.loads(CURRENT_REPORT_PREVIEW.read_text(encoding="utf-8"))
+        self.assertEqual(preview["week_id"], "2026_W31")
+        self.assertEqual(preview["period"]["label"], "7.27—8.2")
+        self.assertEqual(preview["driver_count"], 8)
+        self.assertEqual(preview["driver_count"], len(preview["drivers"]))
+        self.assertEqual(
+            [item["sentiment_en"] for item in preview["drivers"][:3]],
+            ["Positive", "Neutral", "Negative"],
+        )
+        self.assertEqual(
+            preview["drivers"][0]["topic_en"],
+            "Legend and Weapon Strength (APEX-T008)",
+        )
+        self.assertEqual(
+            preview["drivers"][0]["topic_zh"],
+            "英雄与武器强度（APEX-T008）",
+        )
+        self.assertEqual(
+            preview["source"]["sha256"],
+            __import__("hashlib").sha256(CURRENT_EXCEL.read_bytes()).hexdigest(),
+        )
+
     def test_download_center_exposes_excel_png_guide_and_combined_data(self):
         source = (ROOT / "index.html").read_text(encoding="utf-8")
         for element_id in (
-            "downloadW30Report",
+            "downloadW31Report",
+            "downloadW30HistoricalReport",
             "downloadReportInput",
             "downloadFullDashboard",
             "downloadDashboardLongCapture",
@@ -177,14 +212,14 @@ class ReportDownloadTests(unittest.TestCase):
                 self.assertEqual(source.count(f'id="{element_id}"'), 1)
         self.assertNotIn("Word", source[source.index('<div class="download-grid">'):source.index('<div class="download-spec">')])
         download_grid = source[source.index('<div class="download-grid">'):source.index('<div class="download-spec">')]
-        self.assertIn("bilibili_apex_2026_W30.json", download_grid)
-        self.assertIn("heybox_apex_2026_W30_public_search.json", download_grid)
-        self.assertNotIn("bilibili_apex_2026_W29.json", download_grid)
-        self.assertNotIn("heybox_apex_2026_W29_public_search.json", download_grid)
-        self.assertIn("APEX_CHINA_W29_Weekly_Community_Report.xlsx", download_grid)
+        self.assertIn("bilibili_apex_2026_W31.json", download_grid)
+        self.assertIn("heybox_apex_2026_W31_public_search.json", download_grid)
+        self.assertNotIn("bilibili_apex_2026_W30.json", download_grid)
+        self.assertNotIn("heybox_apex_2026_W30_public_search.json", download_grid)
+        self.assertIn("APEX_CHINA_W30_Weekly_Community_Report.xlsx", download_grid)
         self.assertNotIn("APEX_CHINA_W29_Weekly_Community_Report.md", download_grid)
         self.assertEqual(
-            download_grid.count("APEX_CHINA_W30_Weekly_Community_Report.md"),
+            download_grid.count("APEX_CHINA_W31_Weekly_Community_Report.md"),
             1,
         )
         self.assertEqual(source.count('id="downloadDashboardGuide"'), 1)

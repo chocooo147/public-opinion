@@ -1,0 +1,92 @@
+{
+  "schema_version": "apex_weekly_report_preview_v1",
+  "week_id": "2026_W31",
+  "week_label": "W31",
+  "period": {
+    "label": "7.27—8.2",
+    "start": "2026-07-27",
+    "end": "2026-08-02"
+  },
+  "region": "China",
+  "layout": "single_sheet_bilingual_side_by_side",
+  "sample_summary": {
+    "en": "Weekly bounded observations: 76 Bilibili comments; 8 Heybox search-visible posts. The platform units are different and are not a combined total.",
+    "zh": "每周有限观察：76条B站评论；8篇小黑盒公开搜索可见帖子。两平台计数单位不同，不构成跨平台总量。"
+  },
+  "driver_count": 8,
+  "drivers": [
+    {
+      "topic_en": "Legend and Weapon Strength (APEX-T008)",
+      "sentiment_en": "Positive",
+      "narrative_en": "Within this bounded weekly sample, 2 Bilibili comment(s) and 0 Heybox search-visible post(s) were assigned to Legend and Weapon Strength. Representative evidence concerned this specific weekly driver and is traceable by text ID and source URL in the cell comment. The positive direction is model-derived and exploratory; it is not a platform-wide sentiment estimate or a formally validated fact.",
+      "topic_zh": "英雄与武器强度（APEX-T008）",
+      "sentiment_zh": "正向",
+      "narrative_zh": "在本周有限样本中，2条B站评论与0篇小黑盒公开搜索可见帖子被归入“英雄与武器强度”。代表性观察涉及“重回超长tkk时代吧”。该正向方向来自模型推断，仅用于探索，不代表平台总体情绪，也不是经正式验证的统计事实。"
+    },
+    {
+      "topic_en": "Legend Abilities and Weapon Balance (APEX-T004)",
+      "sentiment_en": "Neutral",
+      "narrative_en": "Within this bounded weekly sample, 4 Bilibili comment(s) and 1 Heybox search-visible post(s) were assigned to Legend Abilities and Weapon Balance. Representative evidence concerned this specific weekly driver and is traceable by text ID and source URL in the cell comment. The neutral direction is model-derived and exploratory; it is not a platform-wide sentiment estimate or a formally validated fact.",
+      "topic_zh": "英雄技能与武器平衡（APEX-T004）",
+      "sentiment_zh": "中性",
+      "narrative_zh": "在本周有限样本中，4条B站评论与1篇小黑盒公开搜索可见帖子被归入“英雄技能与武器平衡”。代表性观察涉及“Season30更新全笔记来了！：⚡️赛季30⚡️ 【早期补丁笔记全信息！】🗓️8月5日开幕✅️传奇增强：・寻血猎犬（重做）・罗芭加强：✅️战术技能・发动时间 0.6秒→0.4秒・移动速度 30%上升・射程距离 15%扩”。该中性方向来自模型推断，仅用于探索，不代表平台总体情绪，也不是经正式验证的统计事实。"
+    },
+    {
+      "topic_en": "Season Updates and Gameplay Mechanics (APEX-T002)",
+      "sentiment_en": "Negative",
+      "narrative_en": "Within this bounded weekly sample, 11 Bilibili comment(s) and 0 Heybox search-visible post(s) were assigned to Season Updates and Gameplay Mechanics. Representative evidence concerned this specific weekly driver and is traceable by text ID and source URL in the cell comment. The negative direction is model-derived and exploratory; it is not a platform-wide sentiment estimate or a formally validated fact.",
+      "topic_zh": "赛季更新与玩法机制（APEX-T002）",
+      "sentiment_zh": "负向",
+      "narrative_zh": "在本周有限样本中，11条B站评论与0篇小黑盒公开搜索可见帖子被归入“赛季更新与玩法机制”。代表性观察涉及“我说实话这改动真的有画蛇添足之嫌吧，总体来说原本都这么多个赛季缩短搜集物资快速进入战斗已经成为共识了，在大家眼里apex就是这么玩的，很爽。现在削物资点肥度说得过去，凭什么备受好评得武器台也要削？还有区分传奇特色的拓展补”。该负向方向来自模型推断，仅用于探索，不代表平台总体情绪，也不是经正式验证的统计事实。"
+    },
+    {
+      "topic_en": "Mixed Version, Ranked and Esports Discussion (APEX-T011)",
+      "sentiment_en": "Negative",
+      "narrative_en": "Within this bounded weekly sample, 6 Bilibili comment(s) and 1 Heybox search-visible post(s) were assigned to Mixed Version, Ranked and Esports Discussion. Representative evidence concerned this specific weekly driver and is traceable by text ID and source URL in the cell comment. The negative direction is model-derived and exploratory; it is not a platform-wide sentiment estimate or a formally validated fact.",
+      "topic_zh": "版本、排位与赛事混合（APEX-T011）",
+      "sentiment_zh": "负向",
+      "narrative_zh": "在本周有限样本中，6条B站评论与1篇小黑盒公开搜索可见帖子被归入“版本、排位与赛事混合”。代表性观察涉及“虽然是几年卡奴但一直觉得炸白金算恶劣行为。 他玩水友白金号，那么对于排位本地人来说就和有一个外挂没区别，就是不公平竞技，举报栏里面是有“恶意开小号”这个选项的，说明官方和玩家并不认同小号炸鱼行为。 而他的经济实力也不需要”。该负向方向来自模型推断，仅用于探索，不代表平台总体情绪，也不是经正式验证的统计事实。"
+    },
+    {
+      "topic_en": "Ranked and Matchmaking (APEX-T001)",
+      "sentiment_en": "Negative",
+      "narrative_en": "Within this bounded weekly sample, 3 Bilibili comment(s) and 2 Heybox search-visible post(s) were assigned to Ranked and Matchmaking. Representative evidence concerned this specific weekly driver and is traceable by text ID and source URL in the cell comment. The negative direction is model-derived and exploratory; it is not a platform-wide sentiment estimate or a formally validated fact.",
+      "topic_zh": "排位与匹配（APEX-T001）",
+      "sentiment_zh": "负向",
+      "narrative_zh": "在本周有限样本中，3条B站评论与2篇小黑盒公开搜索可见帖子被归入“排位与匹配”。代表性观察涉及“apex找固排匹配：想找打匹配的队友，希望不要日抛。”。该负向方向来自模型推断，仅用于探索，不代表平台总体情绪，也不是经正式验证的统计事实。"
+    },
+    {
+      "topic_en": "Esports and Creators (APEX-T003)",
+      "sentiment_en": "Negative",
+      "narrative_en": "Within this bounded weekly sample, 4 Bilibili comment(s) and 0 Heybox search-visible post(s) were assigned to Esports and Creators. Representative evidence concerned this specific weekly driver and is traceable by text ID and source URL in the cell comment. The negative direction is model-derived and exploratory; it is not a platform-wide sentiment estimate or a formally validated fact.",
+      "topic_zh": "赛事与主播（APEX-T003）",
+      "sentiment_zh": "负向",
+      "narrative_zh": "在本周有限样本中，4条B站评论与0篇小黑盒公开搜索可见帖子被归入“赛事与主播”。代表性观察涉及“这也太毁灭了 无名克莱伯真的太恐怖了”。该负向方向来自模型推断，仅用于探索，不代表平台总体情绪，也不是经正式验证的统计事实。"
+    },
+    {
+      "topic_en": "Creator Video Feedback and Settings Help (APEX-T007)",
+      "sentiment_en": "Negative",
+      "narrative_en": "Within this bounded weekly sample, 3 Bilibili comment(s) and 0 Heybox search-visible post(s) were assigned to Creator Video Feedback and Settings Help. Representative evidence concerned this specific weekly driver and is traceable by text ID and source URL in the cell comment. The negative direction is model-derived and exploratory; it is not a platform-wide sentiment estimate or a formally validated fact.",
+      "topic_zh": "UP主视频反馈与设置求助（APEX-T007）",
+      "sentiment_zh": "负向",
+      "narrative_zh": "在本周有限样本中，3条B站评论与0篇小黑盒公开搜索可见帖子被归入“UP主视频反馈与设置求助”。代表性观察涉及“求Blinkzr的视角和设置”。该负向方向来自模型推断，仅用于探索，不代表平台总体情绪，也不是经正式验证的统计事实。"
+    },
+    {
+      "topic_en": "Competitive Esports and Creator Discussion (APEX-T010)",
+      "sentiment_en": "Negative",
+      "narrative_en": "Within this bounded weekly sample, 3 Bilibili comment(s) and 0 Heybox search-visible post(s) were assigned to Competitive Esports and Creator Discussion. Representative evidence concerned this specific weekly driver and is traceable by text ID and source URL in the cell comment. The negative direction is model-derived and exploratory; it is not a platform-wide sentiment estimate or a formally validated fact.",
+      "topic_zh": "赛事与主播竞技讨论（APEX-T010）",
+      "sentiment_zh": "负向",
+      "narrative_zh": "在本周有限样本中，3条B站评论与0篇小黑盒公开搜索可见帖子被归入“赛事与主播竞技讨论”。代表性观察涉及“虎哥没进去我倒是松了口气，要真混进去了那画面我都不敢想”。该负向方向来自模型推断，仅用于探索，不代表平台总体情绪，也不是经正式验证的统计事实。"
+    }
+  ],
+  "source": {
+    "workbook": "reports/APEX_CHINA_W31_Weekly_Community_Report.xlsx",
+    "sha256": "6e4d9051d6fbd1b3cde595b26b8a5684b2a167f8a2ad73e56966a8132a901439",
+    "contract": "config/weekly_bilingual_report_contract.json"
+  },
+  "limitations": {
+    "en": "Bounded real samples only. Bilibili comment counts and Heybox search-visible post counts use different units and are not additive.",
+    "zh": "仅使用有限真实样本。B站评论计数与小黑盒公开搜索可见帖子计数使用不同单位，不得相加。"
+  }
+}

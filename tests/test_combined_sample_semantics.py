@@ -37,7 +37,7 @@ class CombinedSampleSemanticsTests(unittest.TestCase):
 
     def test_current_and_previous_week_copy_is_current(self):
         source = (ROOT / "index.html").read_text(encoding="utf-8")
-        self.assertIn("W25—W30为完整自然周；W31为开放周", source)
+        self.assertIn("W27—W31为最近五个完整自然周；W32为开放周，未纳入", source)
         self.assertNotIn("W29（7.13—7.19）截至2026-07-18未完成", source)
 
 
