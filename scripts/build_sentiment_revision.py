@@ -25,6 +25,13 @@ from content_integrity import (
     generate_events,
 )
 from sentiment_integrity import annotate_sentiment_record, summarize_sentiment
+from representative_content import (
+    REPRESENTATIVE_CONTENT_RULE_VERSION,
+    build_representative_contents,
+    enrich_bilibili_records,
+    load_bilibili_metadata,
+    validate_representative_contents,
+)
 from weekly_release_common import (
     _combined_metric,
     _platform_metric,
@@ -75,7 +82,16 @@ def clean_text(value: Any) -> str:
 
 def json_records(path: Path) -> list[dict[str, Any]]:
     payload = json.loads(path.read_text(encoding="utf-8"))
-    return list(payload.get("records") or [])
+    meta = payload.get("meta") or {}
+    source_version = clean_text(
+        meta.get("current_data_version")
+        or meta.get("data_version")
+        or Path(str(meta.get("raw_input") or path.stem)).stem
+    )
+    rows = [dict(row) for row in (payload.get("records") or [])]
+    for row in rows:
+        row.setdefault("source_data_version", source_version)
+    return rows
 
 
 def load_records(apex_root: Path, repo_root: Path) -> dict[tuple[str, str], list[dict[str, Any]]]:
@@ -102,6 +118,7 @@ def load_records(apex_root: Path, repo_root: Path) -> dict[tuple[str, str], list
         if str(row.get("canonical_topic_id") or "").strip() and str(row.get("is_outlier") or "0") not in {"1", "true", "True"}:
             row["platform"] = "小黑盒"
             row["sentiment_model_version"] = row.get("sentiment_version") or "0.12.3"
+            row["source_data_version"] = "heybox_apex_W25_W28_public_search_assignments"
             records[(display_week(str(row["week_id"])), "小黑盒")].append(row)
 
     for week in ("2026_W29", "2026_W30", "2026_W31"):
@@ -112,6 +129,10 @@ def load_records(apex_root: Path, repo_root: Path) -> dict[tuple[str, str], list
             for row in json_records(repo_root / "outputs" / filename):
                 if row.get("canonical_topic_id") and not row.get("is_outlier"):
                     records[(display_week(week), platform)].append(row)
+    metadata = load_bilibili_metadata(apex_root)
+    for (week_id, platform), rows in records.items():
+        if platform == "B站":
+            enrich_bilibili_records(rows, metadata)
     return records
 
 
@@ -243,6 +264,7 @@ def apply_historical_metrics(
         for topic in week.get("topics", []):
             platform_metrics = topic.get("platform_metrics") or {}
             recalculated: dict[str, dict[str, Any]] = {}
+            representative_by_platform: dict[str, list[dict[str, Any]]] = {}
             for platform in ("B站", "小黑盒"):
                 existing = platform_metrics.get(platform)
                 if existing is None:
@@ -262,10 +284,22 @@ def apply_historical_metrics(
                 )
                 for key in SENTIMENT_KEYS + ("risk_score", "risk_status", "risk_components"):
                     existing[key] = metric.get(key)
+                contents = build_representative_contents(
+                    evidence,
+                    platform=platform,
+                    source_data_version=f"{storage_week(week_id)}_{'bilibili' if platform == 'B站' else 'heybox'}_source",
+                )
+                existing["representative_contents"] = contents
+                existing["representative_content_count"] = len(contents)
+                representative_by_platform[platform] = contents
                 recalculated[platform] = metric
             if "B站" in recalculated and "小黑盒" in recalculated:
                 combined = _combined_metric(recalculated["B站"], recalculated["小黑盒"], simulated=False)
                 topic["combined_metrics"].update(combined)
+            combined_contents = representative_by_platform.get("B站", []) + representative_by_platform.get("小黑盒", [])
+            topic["representative_contents"] = combined_contents
+            topic["representative_content_count"] = len(combined_contents)
+            topic["representative_videos"] = representative_by_platform.get("B站", [])
             b_metric = platform_metrics.get("B站") or {}
             topic.update(
                 {
@@ -369,6 +403,111 @@ def apply_historical_metrics(
         }
 
 
+def audit_representative_content_history(
+    dashboards: dict[str, dict[str, Any]],
+    all_records: dict[tuple[str, str], list[dict[str, Any]]],
+) -> tuple[list[dict[str, Any]], dict[str, Any], list[dict[str, Any]]]:
+    rows: list[dict[str, Any]] = []
+    source_mapping_failures = 0
+    fixed_empty_placeholders = 0
+    for week_id in sorted(dashboards):
+        week = dashboards[week_id]
+        grouped = {
+            platform: grouped_by_topic(all_records.get((week_id, platform), []))
+            for platform in ("B站", "小黑盒")
+        }
+        for topic in week.get("topics", []):
+            topic_id = str(topic.get("id") or "")
+            bili = build_representative_contents(
+                grouped["B站"].get(topic_id, []), platform="B站",
+                source_data_version=f"{storage_week(week_id)}_bilibili_source",
+            )
+            heybox = build_representative_contents(
+                grouped["小黑盒"].get(topic_id, []), platform="小黑盒",
+                source_data_version=f"{storage_week(week_id)}_heybox_source",
+            )
+            legacy = topic.get("representative_videos") or []
+            if any(
+                not isinstance(item, dict)
+                or not (clean_text(item.get("title")) or clean_text(item.get("bvid")) or clean_text(item.get("url")))
+                for item in legacy
+            ):
+                fixed_empty_placeholders += sum(
+                    not isinstance(item, dict)
+                    or not (clean_text(item.get("title")) or clean_text(item.get("bvid")) or clean_text(item.get("url")))
+                    for item in legacy
+                )
+            if any(
+                isinstance(item, dict)
+                and (item.get("bvid") is None or item.get("comment_count") is None)
+                for item in legacy
+            ):
+                source_mapping_failures += 1
+            combined = sorted(
+                bili + heybox,
+                key=lambda item: (
+                    -int(item.get("topic_text_count") or 0),
+                    str(item.get("platform") or ""),
+                    str(item.get("content_id") or item.get("url") or ""),
+                ),
+            )[:3]
+            for view, contents in (
+                ("B站", bili),
+                ("小黑盒", heybox),
+                ("综合", combined),
+            ):
+                serialized = json.dumps(contents, ensure_ascii=False)
+                errors = validate_representative_contents(contents)
+                rows.append(
+                    {
+                        "week_id": week_id,
+                        "canonical_topic_id": topic_id,
+                        "topic_name": topic.get("name") or topic_id,
+                        "view": view,
+                        "representative_content_count": len(contents),
+                        "contents": contents,
+                        "schema_errors": errors,
+                        "contains_undefined": "undefined" in serialized.lower(),
+                        "contains_null_text": any(
+                            value in serialized.lower()
+                            for value in ('"title": "null"', '"content_id": "null"', '"url": "null"')
+                        ),
+                        "missing_title_count": sum(not clean_text(item.get("title")) for item in contents),
+                        "missing_link_count": sum(not clean_text(item.get("url")) for item in contents),
+                        "unverifiable_content": not contents,
+                    }
+                )
+    samples: list[dict[str, Any]] = []
+    sample_targets = (
+        ("2026-W25", "B站"),
+        ("2026-W27", "小黑盒"),
+        ("2026-W29", "综合"),
+        ("2026-W30", "B站"),
+        ("2026-W31", "B站"),
+        ("2026-W31", "小黑盒"),
+    )
+    for week_id, view in sample_targets:
+        candidates = [row for row in rows if row["week_id"] == week_id and row["view"] == view]
+        selected = next((row for row in candidates if row["contents"]), candidates[0] if candidates else None)
+        if selected:
+            samples.append(selected)
+    summary = {
+        "audited_week_range": [min(dashboards), max(dashboards)],
+        "topic_view_rows": len(rows),
+        "topics_with_undefined_after_fix": len({(r["week_id"], r["canonical_topic_id"]) for r in rows if r["contains_undefined"]}),
+        "topics_with_missing_bilibili_title_after_fix": len({(r["week_id"], r["canonical_topic_id"]) for r in rows if r["view"] == "B站" and r["missing_title_count"]}),
+        "topics_with_missing_link_after_fix": len({(r["week_id"], r["canonical_topic_id"], r["view"]) for r in rows if r["missing_link_count"]}),
+        "fixed_empty_placeholder_objects": fixed_empty_placeholders,
+        "topics_without_verifiable_content_by_view": {
+            view: sum(r["view"] == view and r["unverifiable_content"] for r in rows)
+            for view in ("B站", "小黑盒", "综合")
+        },
+        "successfully_repaired_legacy_mapping_topics": source_mapping_failures,
+        "schema_error_rows": sum(bool(r["schema_errors"]) for r in rows),
+    }
+    return rows, summary, samples
+
+
 def file_hashes(root: Path) -> list[dict[str, Any]]:
     return [
         {"path": path.relative_to(root).as_posix(), "bytes": path.stat().st_size, "sha256": sha256(path)}
@@ -404,11 +543,14 @@ def main() -> int:
     if not revision_match:
         raise ValueError("data version must contain revisionN")
     revision_tag = revision_match.group(1)
-    revision_reason = "Restore evidence-backed key events, replace untraceable keyword fragments with normalized domain entities, and regression-check count-backed sentiment display without changing backend sentiment calculation."
+    revision_reason = "Repair representative content from traceable topic evidence with one platform-independent schema; retain the event, keyword, and count-backed sentiment integrity fixes without changing backend sentiment calculation."
 
     all_records = load_records(apex_root, repo_root)
     dashboards = dashboard_sources(apex_root, repo_root)
     audit_rows, audit_summary = audit_history(all_records, dashboards)
+    representative_audit_rows, representative_audit_summary, representative_samples = (
+        audit_representative_content_history(dashboards, all_records)
+    )
 
     baseline = json.loads((apex_root / "outputs/dashboard_data_apex_W25_W30.json").read_text(encoding="utf-8"))
     bili_path = repo_root / "outputs/bilibili_apex_2026_W31.json"
@@ -443,6 +585,7 @@ def main() -> int:
             "keyword_rule_version": KEYWORD_RULE_VERSION,
             "event_rule_version": EVENT_RULE_VERSION,
             "sentiment_rule_version": SENTIMENT_RULE_VERSION,
+            "representative_content_rule_version": REPRESENTATIVE_CONTENT_RULE_VERSION,
             "skill_version": report_rules["skill_version"],
             "narrative_rule_version": report_rules["narrative_rule_version"],
             "sentiment_model_version": bili["meta"].get("sentiment_model_version"),
@@ -469,6 +612,7 @@ def main() -> int:
                 "keyword_rule_version": KEYWORD_RULE_VERSION,
                 "event_rule_version": EVENT_RULE_VERSION,
                 "sentiment_rule_version": SENTIMENT_RULE_VERSION,
+                "representative_content_rule_version": REPRESENTATIVE_CONTENT_RULE_VERSION,
                 "publication_status": "internal_preview_not_published",
             }
         )
@@ -516,6 +660,17 @@ def main() -> int:
         "rule_version": KEYWORD_RULE_VERSION,
         "records": current_keywords["filter_log"],
     })
+    atomic_json(evidence_dir / "W25_W31_representative_content_audit.json", {
+        "data_version": args.data_version,
+        "rule_version": REPRESENTATIVE_CONTENT_RULE_VERSION,
+        "summary": representative_audit_summary,
+        "topic_views": representative_audit_rows,
+    })
+    atomic_json(evidence_dir / "representative_content_schema_samples.json", {
+        "data_version": args.data_version,
+        "rule_version": REPRESENTATIVE_CONTENT_RULE_VERSION,
+        "samples": representative_samples,
+    })
 
     report_input = {
         "schema_version": "apex_china_weekly_report_input_v5_dashboard_integrity",
@@ -533,6 +688,7 @@ def main() -> int:
             "keyword_rule_version": KEYWORD_RULE_VERSION,
             "event_rule_version": EVENT_RULE_VERSION,
             "sentiment_rule_version": SENTIMENT_RULE_VERSION,
+            "representative_content_rule_version": REPRESENTATIVE_CONTENT_RULE_VERSION,
             "skill_version": report_rules["skill_version"],
             "narrative_rule_version": report_rules["narrative_rule_version"],
             "generated_at": recalculated_at,
@@ -644,6 +800,14 @@ def main() -> int:
         "event_driven", "quality_status", "evidence_text_ids",
     }
     for week in dashboard["weeks"]:
+        week_evidence_ids = {
+            platform: {
+                clean_text(row.get("text_id") or row.get("comment_id"))
+                or hashlib.sha256(clean_text(row.get("text")).encode()).hexdigest()[:24]
+                for row in all_records.get((week["week_id"], platform), [])
+            }
+            for platform in ("B站", "小黑盒")
+        }
         assertions.extend(
             [
                 {
@@ -680,6 +844,51 @@ def main() -> int:
                         for metric in [topic.get("combined_metrics") or {}]
                     ),
                 },
+                {
+                    "check": "representative_contents_schema_valid",
+                    "scope": week["week_id"],
+                    "passed": all(
+                        not validate_representative_contents(topic.get("representative_contents"))
+                        and all(
+                            not validate_representative_contents(metric.get("representative_contents"))
+                            for metric in [
+                                (topic.get("platform_metrics") or {}).get("B站") or {},
+                                (topic.get("platform_metrics") or {}).get("小黑盒") or {},
+                                topic.get("combined_metrics") or {},
+                            ]
+                        )
+                        for topic in week.get("topics", [])
+                    ),
+                },
+                {
+                    "check": "representative_content_count_matches_array",
+                    "scope": week["week_id"],
+                    "passed": all(
+                        int(topic.get("representative_content_count") or 0)
+                        == len(topic.get("representative_contents") or [])
+                        and all(
+                            int(metric.get("representative_content_count") or 0)
+                            == len(metric.get("representative_contents") or [])
+                            for metric in [
+                                (topic.get("platform_metrics") or {}).get("B站") or {},
+                                (topic.get("platform_metrics") or {}).get("小黑盒") or {},
+                                topic.get("combined_metrics") or {},
+                            ]
+                        )
+                        for topic in week.get("topics", [])
+                    ),
+                },
+                {
+                    "check": "representative_contents_trace_to_topic_evidence",
+                    "scope": week["week_id"],
+                    "passed": all(
+                        set(item.get("evidence_text_ids") or []).issubset(
+                            week_evidence_ids["B站" if item.get("platform") == "bilibili" else "小黑盒"]
+                        )
+                        for topic in week.get("topics", [])
+                        for item in topic.get("representative_contents") or []
+                    ),
+                },
             ]
         )
     assertions.extend(
@@ -709,6 +918,18 @@ def main() -> int:
                 "scope": "2026-W31",
                 "passed": report_input["sentiment_contract"] == current["platform_sentiment_metrics"],
             },
+            {
+                "check": "dashboard_contains_no_undefined_or_null_text",
+                "scope": "W27-W31",
+                "passed": "undefined" not in json.dumps(dashboard, ensure_ascii=False).lower()
+                and '"null"' not in json.dumps(dashboard, ensure_ascii=False).lower(),
+            },
+            {
+                "check": "historical_representative_content_audit_passed",
+                "scope": "W25-W31",
+                "passed": representative_audit_summary["topics_with_undefined_after_fix"] == 0
+                and representative_audit_summary["schema_error_rows"] == 0,
+            },
         ]
     )
     html_source = (repo_root / "index.html").read_text(encoding="utf-8")
@@ -720,6 +941,12 @@ def main() -> int:
         {"check": "frontend_missing_sentiment_uses_dash", "passed": "value===null||valid===0" in html_source},
         {"check": "local_storage_cannot_override_embedded_version", "passed": "Object.assign(dashboardData" not in html_source},
         {"check": "frontend_does_not_recalculate_negative_rate", "passed": "negative_count / sentiment_valid_count" not in html_source and "negative_count/sentiment_valid_count" not in html_source},
+        {"check": "frontend_reads_unified_representative_contents", "passed": "representative_contents" in html_source and "representativeContentsForTopic" in html_source},
+        {"check": "frontend_does_not_render_legacy_video_fields", "passed": "v.bvid" not in html_source and "v.comment_count" not in html_source},
+        {"check": "frontend_representative_empty_state_is_explicit", "passed": "暂无可验证的代表性B站视频" in html_source and "No verifiable representative content is available" in html_source},
+        {"check": "frontend_validates_representative_urls", "passed": "validRepresentativeUrl" in html_source and "APEX_REPRESENTATIVE_CONTENT_URL_INVALID" in html_source},
+        {"check": "frontend_fails_closed_on_representative_schema", "passed": "assertRepresentativeContentSchema" in html_source and "APEX_REPRESENTATIVE_CONTENT_SCHEMA_ERROR" in html_source},
+        {"check": "frontend_does_not_pad_representative_contents", "passed": "representative_contents||[{" not in html_source and ".fill({" not in html_source},
     ]
     assertions.extend({**item, "scope": "index.html"} for item in page_assertions)
     validation = {
@@ -750,6 +977,7 @@ def main() -> int:
             "filtered_or_normalized_log_count": len(current_keywords["filter_log"]),
         },
         "sentiment_regression_summary": audit_summary,
+        "representative_content_summary": representative_audit_summary,
         "assertion_count": len(assertions),
         "failed_count": validation["failed_count"],
         "status": "passed" if validation["failed_count"] == 0 else "failed",
@@ -789,7 +1017,7 @@ def main() -> int:
                     "approver_role": None,
                     "approval_source": None,
                     "approval_statement": None,
-                    "scope": "dashboard_integrity_revision5",
+                    "scope": f"dashboard_integrity_{revision_tag}",
                 },
                 "dashboard_integrity": {
                     "data_version": args.data_version,
@@ -801,6 +1029,7 @@ def main() -> int:
                     "keyword_rule_version": KEYWORD_RULE_VERSION,
                     "event_rule_version": EVENT_RULE_VERSION,
                     "sentiment_rule_version": SENTIMENT_RULE_VERSION,
+                    "representative_content_rule_version": REPRESENTATIVE_CONTENT_RULE_VERSION,
                 },
             }
         )
@@ -855,6 +1084,7 @@ def main() -> int:
             for path in (
                 "scripts/sentiment_integrity.py",
                 "scripts/content_integrity.py",
+                "scripts/representative_content.py",
                 "scripts/weekly_release_common.py",
                 "scripts/build_sentiment_revision.py",
                 "scripts/build_dashboard_integrity_revision.py",
@@ -867,6 +1097,7 @@ def main() -> int:
         "keyword_rule_version": KEYWORD_RULE_VERSION,
         "event_rule_version": EVENT_RULE_VERSION,
         "sentiment_rule_version": SENTIMENT_RULE_VERSION,
+        "representative_content_rule_version": REPRESENTATIVE_CONTENT_RULE_VERSION,
         "skill_version": report_rules["skill_version"],
         "narrative_rule_version": report_rules["narrative_rule_version"],
         "report_input": report_input_name,
@@ -875,7 +1106,12 @@ def main() -> int:
         "files": file_hashes(output),
     }
     atomic_json(output / "revision_manifest.json", manifest)
-    print(json.dumps({"output": output.as_posix(), "status": manifest["status"], "audit_summary": audit_summary}, ensure_ascii=False, indent=2))
+    print(json.dumps({
+        "output": output.as_posix(),
+        "status": manifest["status"],
+        "sentiment_audit_summary": audit_summary,
+        "representative_content_summary": representative_audit_summary,
+    }, ensure_ascii=False, indent=2))
     return 0 if validation["failed_count"] == 0 else 1
 
 

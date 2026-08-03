@@ -1094,7 +1094,7 @@ function writeDashboardHistory(meta,weeks){
 const storedDashboardHistory=readDashboardHistory();
 if(storedDashboardHistory?.meta?.data_version!==dashboardData.meta?.data_version){ try{ localStorage.removeItem(DASHBOARD_HISTORY_KEY); }catch(err){} }
 writeDashboardHistory(dashboardData.meta,dashboardData.weeks);
-dashboardData.weeks.forEach(enrichWeekTopics);
+dashboardData.weeks.forEach(w=>{w.topics.forEach(t=>assertRepresentativeContentSchema(t,w.week_id));enrichWeekTopics(w);});
 let state = { weekIndex: dashboardData.weeks.findIndex(w=>w.week_id==='2026-W31')>=0?dashboardData.weeks.findIndex(w=>w.week_id==='2026-W31'):dashboardData.weeks.length-1, platform: "综合", search: "", sort: "risk", lang: "zh" };
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
@@ -1851,10 +1851,85 @@ function topicEvidenceHtml(t){
   const quotes=displayQuotes(t).slice(0,3);
   return `<div class="section-title">${tr('representative')}</div><p class="formula-text">${note}</p>${quotes.map(q=>`<div class="quote">“${q}”<small>${displayPlatform('B站')} · ${tr('sample')}</small></div>`).join('')||`<div class="chain-empty-evidence">${loc('当前周没有可用代表文本。','No representative text is available for the current week.')}</div>`}`;
 }
+function validRepresentativeUrl(value,platform){
+  if(typeof value!=='string'||!value.trim()) return '';
+  try{
+    const parsed=new URL(value.trim(),window.location.href);
+    if(!['http:','https:'].includes(parsed.protocol)) return '';
+    const host=parsed.hostname.toLowerCase();
+    if(platform==='bilibili'&&!(host==='b23.tv'||host==='bilibili.com'||host.endsWith('.bilibili.com'))) return '';
+    if(platform==='heybox'&&!(host==='xiaoheihe.cn'||host.endsWith('.xiaoheihe.cn'))) return '';
+    if(!['bilibili','heybox'].includes(platform)) return '';
+    if(/undefined|null|nan/i.test(parsed.href)) return '';
+    return parsed.href;
+  }catch(err){return '';}
+}
+function assertRepresentativeContentSchema(topic,weekId){
+  const collections=[
+    ['topic',topic?.representative_contents,topic?.representative_content_count],
+    ['bilibili',topic?.platform_metrics?.['B站']?.representative_contents,topic?.platform_metrics?.['B站']?.representative_content_count],
+    ['heybox',topic?.platform_metrics?.['小黑盒']?.representative_contents,topic?.platform_metrics?.['小黑盒']?.representative_content_count],
+    ['combined',topic?.combined_metrics?.representative_contents,topic?.combined_metrics?.representative_content_count]
+  ];
+  collections.forEach(([scope,items,count])=>{
+    if(!Array.isArray(items)||Number(count)!==items.length) throw new Error(`APEX_REPRESENTATIVE_CONTENT_SCHEMA_ERROR ${weekId} ${topic?.id} ${scope}`);
+    const seen=new Set();
+    items.forEach((item,index)=>{
+      if(!item||typeof item!=='object'||Array.isArray(item)) throw new Error(`APEX_REPRESENTATIVE_CONTENT_SCHEMA_ERROR ${weekId} ${topic?.id} ${scope} item_${index}`);
+      const contentId=typeof item.content_id==='string'?item.content_id.trim():'';
+      const title=typeof item.title==='string'?item.title.trim():'';
+      const rawUrl=typeof (item.url||item.source_url)==='string'?String(item.url||item.source_url).trim():'';
+      if(!['bilibili','heybox'].includes(item.platform)||(!title&&!contentId&&!rawUrl)||!Number.isFinite(item.topic_text_count)) throw new Error(`APEX_REPRESENTATIVE_CONTENT_SCHEMA_ERROR ${weekId} ${topic?.id} ${scope} item_${index}`);
+      if(item.platform==='bilibili'&&!/^(?:BV[0-9A-Za-z]{10}|av\d+)$/i.test(contentId)) throw new Error(`APEX_REPRESENTATIVE_CONTENT_SCHEMA_ERROR ${weekId} ${topic?.id} invalid_bilibili_id`);
+      if(rawUrl&&!validRepresentativeUrl(rawUrl,item.platform)) throw new Error(`APEX_REPRESENTATIVE_CONTENT_SCHEMA_ERROR ${weekId} ${topic?.id} invalid_url`);
+      const key=`${item.platform}|${contentId||rawUrl}`;
+      if(seen.has(key)) throw new Error(`APEX_REPRESENTATIVE_CONTENT_SCHEMA_ERROR ${weekId} ${topic?.id} duplicate_content`);
+      seen.add(key);
+    });
+  });
+  return true;
+}
+function representativeContentsForTopic(t){
+  const raw=state.platform==='B站'?t?.platform_metrics?.['B站']?.representative_contents:state.platform==='小黑盒'?t?.platform_metrics?.['小黑盒']?.representative_contents:t?.combined_metrics?.representative_contents;
+  if(!Array.isArray(raw)){
+    console.error('APEX_REPRESENTATIVE_CONTENT_SCHEMA_ERROR',{week:currentWeek()?.week_id,topic:t?.id,reason:'representative_contents_not_array'});
+    return null;
+  }
+  const platformCode=state.platform==='B站'?'bilibili':state.platform==='小黑盒'?'heybox':'combined';
+  return raw.filter(item=>{
+    if(!item||typeof item!=='object'||Array.isArray(item)) return false;
+    if(!['bilibili','heybox'].includes(item.platform)) return false;
+    if(platformCode!=='combined'&&item.platform!==platformCode) return false;
+    const title=typeof item.title==='string'?item.title.trim():'';
+    const contentId=typeof item.content_id==='string'?item.content_id.trim():'';
+    const sourceUrl=typeof (item.url||item.source_url)==='string'?String(item.url||item.source_url).trim():'';
+    if(!title&&!contentId&&!sourceUrl) return false;
+    if(item.platform==='bilibili'&&contentId&&!/^(?:BV[0-9A-Za-z]{10}|av\d+)$/i.test(contentId)) return false;
+    return true;
+  });
+}
 function topicVideoHtml(t){
-  if(state.platform==='小黑盒') return '';
-  const videos=(t.representative_videos||[]).map(v=>`<a class="video-link" href="${v.url}" target="_blank" rel="noopener noreferrer">${v.bvid} · ${v.comment_count}条相关文本 ↗</a>`).join('');
-  return `<div class="section-title">${loc('代表性B站视频','Representative Bilibili videos')}</div><div class="video-link-list">${videos||`<div class="chain-empty-evidence">${loc('当前周未形成可用B站视频链接。','No Bilibili video link is available for the current week.')}</div>`}</div>`;
+  const contents=representativeContentsForTopic(t);
+  const title=state.platform==='B站'?loc('代表性B站视频','Representative Bilibili videos'):state.platform==='小黑盒'?loc('代表性小黑盒帖子','Representative Heybox posts'):loc('代表性内容','Representative content');
+  if(contents===null) return `<div class="section-title">${title}</div><div class="video-link-list"><div class="chain-empty-evidence">${loc('代表性内容数据暂不可用','Representative content data is temporarily unavailable')}</div></div>`;
+  if(!contents.length) return `<div class="section-title">${title}</div><div class="video-link-list"><div class="chain-empty-evidence">${state.platform==='B站'?loc('暂无可验证的代表性B站视频','No verifiable representative Bilibili video is available'):state.platform==='小黑盒'?loc('暂无可验证的代表性小黑盒帖子','No verifiable representative Heybox post is available'):loc('暂无可验证的代表性内容','No verifiable representative content is available')}</div></div>`;
+  const cards=contents.map(item=>{
+    const contentId=typeof item.content_id==='string'?item.content_id.trim():'';
+    let itemTitle=typeof item.title==='string'?item.title.trim():'';
+    if(!itemTitle&&item.platform==='bilibili'&&contentId){itemTitle=`${loc('B站视频','Bilibili video')} ${contentId}`;console.warn('APEX_REPRESENTATIVE_CONTENT_TITLE_MISSING',{week:currentWeek()?.week_id,topic:t.id,content_id:contentId});}
+    if(!itemTitle&&item.platform==='heybox'&&contentId){itemTitle=`${loc('小黑盒帖子','Heybox post')} ${contentId}`;console.warn('APEX_REPRESENTATIVE_CONTENT_TITLE_MISSING',{week:currentWeek()?.week_id,topic:t.id,content_id:contentId});}
+    if(!itemTitle) return '';
+    const url=validRepresentativeUrl(item.url||item.source_url,item.platform);
+    if((item.url||item.source_url)&&!url) console.warn('APEX_REPRESENTATIVE_CONTENT_URL_INVALID',{week:currentWeek()?.week_id,topic:t.id,content_id:contentId});
+    const count=Number.isFinite(item.topic_text_count)?item.topic_text_count:null;
+    if(count===null) console.warn('APEX_REPRESENTATIVE_CONTENT_COUNT_MISSING',{week:currentWeek()?.week_id,topic:t.id,content_id:contentId});
+    const platformLabel=state.platform==='综合'?`${displayPlatform(item.platform==='bilibili'?'B站':'小黑盒')} · `:'';
+    const countLabel=count===null?'':` · ${count}${item.platform==='bilibili'?loc('条主题相关评论',' topic-related comments'):loc('条主题相关文本',' topic-related texts')}`;
+    const meta=`${platformLabel}${contentId||loc('来源内容','Source content')}${countLabel}`;
+    const body=`<strong>${escapeHtml(itemTitle)}</strong><small style="display:block;margin-top:5px;color:#aeb9bf">${escapeHtml(meta)}</small>`;
+    return url?`<a class="video-link" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">${body} ↗</a>`:`<div class="video-link" role="group">${body}</div>`;
+  }).filter(Boolean).join('');
+  return `<div class="section-title">${title}</div><div class="video-link-list">${cards||`<div class="chain-empty-evidence">${loc('暂无可验证的代表性内容','No verifiable representative content is available')}</div>`}</div>`;
 }
 function chainPlatformPanelHtml(chain,platform,rankMaps){
   const stats=platformChainStats(chain,currentWeek(),platform);
@@ -2220,7 +2295,7 @@ $("#fileInput").addEventListener('change',e=>{
   const file=e.target.files[0]; if(!file) return; const reader=new FileReader();
   reader.onload=()=>{ try{
     const obj=JSON.parse(reader.result); if(!obj.weeks||!Array.isArray(obj.weeks)||!obj.weeks.length) throw new Error(loc('缺少有效的 weeks 数组','Missing a valid weeks array'));
-    obj.weeks.forEach((w,wi)=>{if(!Array.isArray(w.topics)) throw new Error(loc(`第 ${wi+1} 周缺少 topics 数组`,`Week ${wi+1} is missing a topics array`)); w.topics.forEach((t,ti)=>{if(!t.id||!t.name||!Array.isArray(t.keywords)||!Array.isArray(t.quotes)) throw new Error(loc(`主题 ${t.id||ti+1} 缺少 id、name、keywords 或 quotes`,`Topic ${t.id||ti+1} is missing id, name, keywords, or quotes`)); ['B站','小黑盒'].forEach(platform=>{const metric=t.platform_metrics?.[platform]; if(!metric||metric.simulated===true||![metric.count,metric.video_count,metric.creator_count,metric.heat_score,metric.consensus_score].every(Number.isFinite)) throw new Error(loc(`主题 ${t.id||ti+1} 缺少${platform}真实核心指标`,`Topic ${t.id||ti+1} is missing core real ${platform} metrics`));});}); enrichWeekTopics(w);});
+    obj.weeks.forEach((w,wi)=>{if(!Array.isArray(w.topics)) throw new Error(loc(`第 ${wi+1} 周缺少 topics 数组`,`Week ${wi+1} is missing a topics array`)); w.topics.forEach((t,ti)=>{if(!t.id||!t.name||!Array.isArray(t.keywords)||!Array.isArray(t.quotes)) throw new Error(loc(`主题 ${t.id||ti+1} 缺少 id、name、keywords 或 quotes`,`Topic ${t.id||ti+1} is missing id, name, keywords, or quotes`)); ['B站','小黑盒'].forEach(platform=>{const metric=t.platform_metrics?.[platform]; if(!metric||metric.simulated===true||![metric.count,metric.video_count,metric.creator_count,metric.heat_score,metric.consensus_score].every(Number.isFinite)) throw new Error(loc(`主题 ${t.id||ti+1} 缺少${platform}真实核心指标`,`Topic ${t.id||ti+1} is missing core real ${platform} metrics`));});assertRepresentativeContentSchema(t,w.week_id);}); enrichWeekTopics(w);});
     dashboardData.meta={...dashboardData.meta,...(obj.meta||{})}; dashboardData.weeks=mergeDashboardWeeks([],obj.weeks); writeDashboardHistory(dashboardData.meta,dashboardData.weeks); state.weekIndex=dashboardData.weeks.findIndex(w=>w.week_id==='2026-W31'); if(state.weekIndex<0) state.weekIndex=dashboardData.weeks.length-1; state.platform='综合'; state.search=''; $("#topicSearch").value=''; $$("#platformChips .chip").forEach((c,i)=>c.classList.toggle('active',i===0)); renderAll(); alert(loc('B站与小黑盒真实数据导入成功。','Real Bilibili and Heybox data imported successfully.'));
   }catch(err){alert(loc('导入失败：','Import failed: ')+err.message);} finally{e.target.value='';}}; reader.readAsText(file,'utf-8');
 });

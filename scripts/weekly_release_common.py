@@ -21,6 +21,7 @@ from content_integrity import (
     generate_events,
 )
 from sentiment_integrity import summarize_sentiment
+from representative_content import build_representative_contents
 
 
 WEEK_ID_RE = re.compile(r"^(?P<year>\d{4})_W(?P<week>\d{2})$")
@@ -687,6 +688,19 @@ def _platform_metric(
         + volume_component
         + source_component
     )
+    source_data_version = next(
+        (
+            str(record.get("source_data_version") or record.get("data_version"))
+            for record in records
+            if record.get("source_data_version") or record.get("data_version")
+        ),
+        "",
+    )
+    representative_contents = build_representative_contents(
+        records,
+        platform=platform,
+        source_data_version=source_data_version,
+    )
     metric = {
         "count": count,
         "video_count": len(source_ids),
@@ -756,6 +770,8 @@ def _platform_metric(
             "source_coverage": round(source_component, 3),
         },
         "risk_score_estimated": True,
+        "representative_contents": representative_contents,
+        "representative_content_count": len(representative_contents),
     }
     if not is_bilibili:
         metric.update(
@@ -827,6 +843,15 @@ def _combined_metric(
     size = max(len(b_trend), len(h_trend))
     b_trend = [0] * (size - len(b_trend)) + b_trend
     h_trend = [0] * (size - len(h_trend)) + h_trend
+    representative_contents = sorted(
+        list(bilibili.get("representative_contents") or [])
+        + list(heybox.get("representative_contents") or []),
+        key=lambda item: (
+            -int(item.get("topic_text_count") or 0),
+            str(item.get("platform") or ""),
+            str(item.get("content_id") or item.get("url") or ""),
+        ),
+    )[:3]
     return {
         "negative": rate("negative_count"),
         "positive": rate("positive_count"),
@@ -873,6 +898,8 @@ def _combined_metric(
             "B站评论与小黑盒公开搜索可见帖子使用不同单位；综合观察值"
             "仅用于界面探索，不可作为跨平台总量。"
         ),
+        "representative_contents": representative_contents,
+        "representative_content_count": len(representative_contents),
     }
 
 
@@ -1054,13 +1081,9 @@ def build_dashboard(
                     str(row.get("text") or "")
                     for row in (b_rows + h_rows)[:3]
                 ],
-                "representative_videos": [
-                    {
-                        "title": str(row.get("text") or "")[:80],
-                        "url": row.get("url") or "",
-                    }
-                    for row in b_rows[:3]
-                ],
+                "representative_contents": list(combined.get("representative_contents") or []),
+                "representative_content_count": int(combined.get("representative_content_count") or 0),
+                "representative_videos": list(b_metric.get("representative_contents") or []),
                 "metrics_source": (
                     "simulated_fixture"
                     if simulated
