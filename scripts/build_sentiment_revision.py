@@ -391,7 +391,13 @@ def main() -> int:
     output.mkdir(parents=True)
     recalculated_at = datetime.now(ZoneInfo("Asia/Shanghai")).isoformat(timespec="seconds")
     base_commit = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=repo_root, text=True).strip()
-    dirty = bool(subprocess.check_output(["git", "status", "--porcelain"], cwd=repo_root, text=True).strip())
+    dirty = bool(
+        subprocess.check_output(
+            ["git", "status", "--porcelain", "--untracked-files=no"],
+            cwd=repo_root,
+            text=True,
+        ).strip()
+    )
     code_version = f"{base_commit}{'+working-tree-dashboard-integrity' if dirty else ''}"
     previous_data_version = args.previous_data_version
     revision_match = re.search(r"(revision\d+)", args.data_version)
