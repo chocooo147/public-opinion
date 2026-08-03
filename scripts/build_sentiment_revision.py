@@ -965,6 +965,7 @@ def main() -> int:
         "data_version": args.data_version,
         "code_version": code_version,
         "git_commit": base_commit,
+        "dashboard_json_hash": sha256(outputs / dashboard_name),
         "generated_at": recalculated_at,
         "event_summary": {
             "candidate_count": current_events["candidate_count"],
@@ -987,6 +988,7 @@ def main() -> int:
         "data_version": args.data_version,
         "code_version": code_version,
         "generated_at": recalculated_at,
+        "dashboard_json_hash": sha256(outputs / dashboard_name),
         "source_checks": page_assertions,
         "source_checks_passed": all(item["passed"] for item in page_assertions),
         "browser_execution_status": "pending_tencent_preview",
@@ -1079,6 +1081,7 @@ def main() -> int:
         "revision_reason": revision_reason,
         "recalculated_at": recalculated_at,
         "code_version": code_version,
+        "dashboard_json_hash": sha256(outputs / dashboard_name),
         "code_files": {
             path: sha256(repo_root / path)
             for path in (
