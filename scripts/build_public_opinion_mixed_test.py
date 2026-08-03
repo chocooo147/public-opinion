@@ -698,6 +698,17 @@ function enrichWeekTopics(w){
     current_schema_start = source.find("const schemaExample = dashboardData;", current_adapter_start if current_adapter_start >= 0 else 0)
     if current_adapter_start >= 0 and current_schema_start >= 0:
         ui_js = source[current_adapter_start:current_schema_start].rstrip()
+    # Keep the observed-keyword card visible in the arranged dashboard. W31
+    # already contains topic/weekly keyword statistics, so hiding this card
+    # incorrectly makes the feature appear missing.
+    ui_js = ui_js.replace(
+        'keywordCard&&keywordCard.classList.add("legacy-layout-hidden");',
+        'keywordCard&&keywordCard.classList.remove("legacy-layout-hidden");',
+    )
+    ui_js = ui_js.replace(
+        'order.append(pageHead,kpiGrid,method,coreCard,row,chainEventRow);',
+        'order.append(pageHead,kpiGrid,method,coreCard,row);if(keywordCard){keywordCard.classList.remove("span-6");order.append(keywordCard);}order.append(chainEventRow);',
+    )
     # The generated page is also a valid future input template. Replace the
     # adapter as one bounded block, instead of prepending it repeatedly on
     # each run (which previously duplicated UI functions in the preview).

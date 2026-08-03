@@ -1,0 +1,46 @@
+server {
+    listen 80;
+    listen [::]:80;
+    server_name __APEX_HOSTNAME__;
+
+    location /.well-known/acme-challenge/ {
+        root /var/www/letsencrypt;
+    }
+
+    location / {
+        return 301 https://$host$request_uri;
+    }
+}
+
+server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    server_name __APEX_HOSTNAME__;
+
+    ssl_certificate /etc/letsencrypt/live/__APEX_HOSTNAME__/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/__APEX_HOSTNAME__/privkey.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    add_header Strict-Transport-Security "max-age=31536000" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header Referrer-Policy "no-referrer" always;
+    add_header X-Frame-Options "DENY" always;
+    add_header Cache-Control "private, no-store" always;
+
+    location = /status/weekly.json {
+        auth_basic off;
+        alias /srv/apex-status/weekly.json;
+        default_type application/json;
+        add_header Cache-Control "no-store" always;
+        add_header Access-Control-Allow-Origin "https://chatgpt.com" always;
+    }
+
+    auth_basic "APEX weekly reports";
+    auth_basic_user_file /etc/nginx/apex-users.htpasswd;
+
+    root /srv/apex-site/current;
+    index index.html;
+
+    location / {
+        try_files $uri $uri/ =404;
+    }
+}

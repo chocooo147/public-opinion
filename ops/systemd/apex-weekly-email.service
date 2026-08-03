@@ -1,0 +1,15 @@
+[Unit]
+Description=Send the final APEX weekly result at Monday 09:00
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=apex
+Group=apex
+WorkingDirectory=/opt/apex
+EnvironmentFile=-/etc/apex/weekly.env
+ExecStart=/opt/apex/venv-analysis/bin/python /opt/apex/ops/production/send_weekly_email.py
+TimeoutStartSec=5min
+PrivateTmp=true
+NoNewPrivileges=true

@@ -73,13 +73,6 @@ def validate(path: Path, contract_path: Path = DEFAULT_CONTRACT) -> dict[str, ob
                 f"driver count {len(driver_rows)} is outside the allowed {minimum}–{maximum}"
             )
 
-        required_core = contract["driver_policy"]["core_sentiment_order"]
-        actual_core = [cells.get(f"B{row}") for row in driver_rows[: len(required_core)]]
-        if actual_core != required_core:
-            errors.append(
-                f"core sentiment order must be {required_core}, found {actual_core}"
-            )
-
         min_chars = contract["quality_gate"]["minimum_driver_narrative_characters"]
         for row in driver_rows:
             narrative_row = row + 1

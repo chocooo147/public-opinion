@@ -1,0 +1,21 @@
+{
+  "version": "1.0.0-2026-08-03",
+  "current_unified_entrypoint": "ops/production/weekly_pipeline.py",
+  "required_policy": "config/weekly_production_policy.json",
+  "stages": [
+    "collect_bilibili",
+    "collect_heybox",
+    "prepare_release",
+    "build_report",
+    "validate_release",
+    "publish_site",
+    "verify_live"
+  ],
+  "legacy_or_one_off_not_for_production": [
+    "scripts/build_public_opinion_mixed_test.py",
+    "scripts/patch_w29_dashboard.py",
+    "scripts/patch_w30_dashboard.py",
+    "outputs/*/build_*.mjs"
+  ],
+  "rule": "Only current_unified_entrypoint may produce a publishable release manifest. Legacy and one-off scripts are retained for audit evidence and must not publish."
+}

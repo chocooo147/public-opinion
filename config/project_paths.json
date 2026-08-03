@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "active_code_root": ".",
+  "data_root": "../../data",
+  "model_root": "../../models",
+  "historical_output_root": "../../outputs",
+  "default_revision_release_root": "../../outputs/release_revisions",
+  "environment_overrides": {
+    "data_root": "APEX_DATA_ROOT",
+    "model_root": "APEX_MODEL_ROOT",
+    "historical_output_root": "APEX_HISTORICAL_OUTPUT_ROOT",
+    "revision_release_root": "APEX_REVISION_RELEASE_ROOT"
+  },
+  "policy": "work/public-opinion is the only active code root; raw data, training data, and frozen models remain outside the publishable worktree."
+}

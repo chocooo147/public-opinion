@@ -1,6 +1,6 @@
 {
-  "contract_version": "1.0",
-  "template_reference": "reports/APEX_CHINA_W30_Weekly_Community_Report.xlsx",
+  "contract_version": "1.1-impact-order",
+  "template_reference": "templates/APEX_CHINA_W30_10_DRIVER_TEMPLATE.xlsx",
   "layout": {
     "worksheet_count": 1,
     "worksheet_structure": "single_sheet_bilingual_side_by_side",
@@ -20,7 +20,8 @@
     "minimum_count": 8,
     "maximum_count": 10,
     "core_driver_count": 3,
-    "core_sentiment_order": ["Positive", "Neutral", "Negative"],
+    "ordering_basis": "composite_influence_descending",
+    "fixed_sentiment_order_forbidden": true,
     "reduction_rule": "Use 8 or 9 drivers only when fewer than 10 independent evidence-qualified drivers remain after deduplication and misclassification review.",
     "forbidden_padding": [
       "duplicate_driver",

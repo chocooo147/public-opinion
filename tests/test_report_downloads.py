@@ -178,19 +178,19 @@ class ReportDownloadTests(unittest.TestCase):
         preview = json.loads(CURRENT_REPORT_PREVIEW.read_text(encoding="utf-8"))
         self.assertEqual(preview["week_id"], "2026_W31")
         self.assertEqual(preview["period"]["label"], "7.27—8.2")
-        self.assertEqual(preview["driver_count"], 8)
+        self.assertEqual(preview["driver_count"], 10)
         self.assertEqual(preview["driver_count"], len(preview["drivers"]))
         self.assertEqual(
             [item["sentiment_en"] for item in preview["drivers"][:3]],
-            ["Positive", "Neutral", "Negative"],
+            ["Positive", "Positive", "Negative"],
         )
         self.assertEqual(
             preview["drivers"][0]["topic_en"],
-            "Legend and Weapon Strength (APEX-T008)",
+            "ENC Qualifying Performance",
         )
         self.assertEqual(
             preview["drivers"][0]["topic_zh"],
-            "英雄与武器强度（APEX-T008）",
+            "ENC资格赛表现",
         )
         self.assertEqual(
             preview["source"]["sha256"],

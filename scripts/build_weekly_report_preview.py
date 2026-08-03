@@ -31,6 +31,7 @@ def build_preview(
     period_start: str,
     period_end: str,
     contract_path: Path = DEFAULT_CONTRACT,
+    week_id: str | None = None,
 ) -> dict[str, object]:
     validation = validate(workbook_path, contract_path)
     if not validation["valid"]:
@@ -64,9 +65,15 @@ def build_preview(
             }
         )
 
+    resolved_week_id = week_id or f"2026_{week_label}"
+    if not re.fullmatch(r"\d{4}_W\d{2}", resolved_week_id):
+        raise ValueError("week_id must use YYYY_WNN")
+    if resolved_week_id.split("_")[-1] != week_label:
+        raise ValueError("week_id does not match workbook title")
+
     payload: dict[str, object] = {
         "schema_version": "apex_weekly_report_preview_v1",
-        "week_id": f"2026_{week_label}",
+        "week_id": resolved_week_id,
         "week_label": week_label,
         "period": {
             "label": period_label,
@@ -115,6 +122,7 @@ def main() -> int:
     parser.add_argument("--period-start", default="2026-07-20")
     parser.add_argument("--period-end", default="2026-07-26")
     parser.add_argument("--contract", type=Path, default=DEFAULT_CONTRACT)
+    parser.add_argument("--week-id")
     args = parser.parse_args()
     result = build_preview(
         args.workbook,
@@ -123,6 +131,7 @@ def main() -> int:
         period_start=args.period_start,
         period_end=args.period_end,
         contract_path=args.contract,
+        week_id=args.week_id,
     )
     print(
         json.dumps(

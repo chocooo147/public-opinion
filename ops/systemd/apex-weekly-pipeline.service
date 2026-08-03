@@ -1,0 +1,19 @@
+[Unit]
+Description=APEX weekly collection, report, protected-site publish and verification
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=apex
+Group=apex
+WorkingDirectory=/opt/apex
+EnvironmentFile=/opt/apex/runtime.env
+EnvironmentFile=-/etc/apex/weekly.env
+ExecStart=/opt/apex/venv-analysis/bin/python /opt/apex/ops/production/weekly_pipeline.py
+TimeoutStartSec=8h30m
+Nice=10
+IOSchedulingClass=best-effort
+IOSchedulingPriority=6
+PrivateTmp=true
+NoNewPrivileges=true

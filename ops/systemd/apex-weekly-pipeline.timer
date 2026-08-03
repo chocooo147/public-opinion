@@ -1,0 +1,11 @@
+[Unit]
+Description=Start APEX weekly production pipeline after the previous natural week closes
+
+[Timer]
+OnCalendar=Mon *-*-* 00:15:00 Asia/Shanghai
+Persistent=true
+AccuracySec=1min
+Unit=apex-weekly-pipeline.service
+
+[Install]
+WantedBy=timers.target

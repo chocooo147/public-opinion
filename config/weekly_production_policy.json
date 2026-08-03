@@ -1,0 +1,42 @@
+{
+  "policy_version": "1.1.0-2026-08-03",
+  "timezone": "Asia/Shanghai",
+  "weekly_report": {
+    "skill_name": "apex-weekly-report-writing",
+    "skill_version": "w30-editorial-pattern-2026-08-03",
+    "skill_path": "skills/apex-weekly-report-writing/SKILL.md",
+    "writing_pattern_path": "skills/apex-weekly-report-writing/references/w30-writing-pattern.md",
+    "narrative_validator_path": "scripts/validate_narratives.py",
+    "narrative_rule_version": "impact-ranking-revision-2026-08-03",
+    "narrative_rule_path": "templates/社区话题驱动因素表单叙述规则.md",
+    "contract_path": "config/weekly_bilingual_report_contract.json",
+    "template_path": "templates/APEX_CHINA_W30_10_DRIVER_TEMPLATE.xlsx",
+    "target_driver_count": 10,
+    "minimum_driver_count": 8,
+    "approved_review_statuses": ["approved_for_release"],
+    "fixed_sentiment_order_forbidden": true
+  },
+  "bilibili_sample_gate": {
+    "minimum_effective_top_level_comments": 100,
+    "preferred_effective_comments_low": 150,
+    "preferred_effective_comments_high": 200,
+    "minimum_unique_videos": 15,
+    "minimum_unique_authors": 50,
+    "maximum_single_video_share": 0.3,
+    "maximum_outlier_rate": 0.4,
+    "maximum_low_assignment_strength_rate": 0.55,
+    "missing_author_data_blocks_release": true,
+    "below_gate_action": "generate_internal_low_sample_artifacts_and_block_publication"
+  },
+  "model_gate": {
+    "bertopic_model_path": "models/bertopic_apex_exploratory_v1/bertopic_model.pkl",
+    "bertopic_manifest_path": "models/bertopic_apex_exploratory_v1/model_manifest.json",
+    "topic_registry_path": "models/bertopic_apex_exploratory_v1/topic_registry_exploratory.json",
+    "topic_mapping_path": "outputs/bertopic_topic_mapping_final.csv",
+    "domain_sentiment_model_path": "models/domain_sentiment_apex_v1/sentiment_model.pkl",
+    "domain_sentiment_manifest_path": "models/domain_sentiment_apex_v1/model_manifest.json",
+    "domain_sentiment_review_threshold": 0.35,
+    "snownlp_role": "baseline_only_not_formal_truth",
+    "confidence_semantics": "HDBSCAN membership probability; topic -1 forced to 0.0; not a calibrated classification-correctness probability"
+  }
+}

@@ -10,83 +10,254 @@
   "region": "China",
   "layout": "single_sheet_bilingual_side_by_side",
   "sample_summary": {
-    "en": "Weekly bounded observations: 76 Bilibili comments; 8 Heybox search-visible posts. The platform units are different and are not a combined total.",
-    "zh": "每周有限观察：76条B站评论；8篇小黑盒公开搜索可见帖子。两平台计数单位不同，不构成跨平台总量。"
+    "en": "REVISED RELEASE · 105 Bilibili comments across 24 videos and 105 identified authors. Eight Heybox search-visible posts are a different unit and are not added to the comment count.",
+    "zh": "修订发布版 · B站105条评论覆盖24个视频与105名可识别作者。小黑盒8篇公开搜索可见帖子采用不同计数单位，不与评论数相加。"
   },
-  "driver_count": 8,
+  "driver_count": 10,
   "drivers": [
     {
-      "topic_en": "Legend and Weapon Strength (APEX-T008)",
+      "topic_en": "ENC Qualifying Performance",
+      "topic_zh": "ENC资格赛表现",
       "sentiment_en": "Positive",
-      "narrative_en": "Within this bounded weekly sample, 2 Bilibili comment(s) and 0 Heybox search-visible post(s) were assigned to Legend and Weapon Strength. Representative evidence concerned this specific weekly driver and is traceable by text ID and source URL in the cell comment. The positive direction is model-derived and exploratory; it is not a platform-wide sentiment estimate or a formally validated fact.",
-      "topic_zh": "英雄与武器强度（APEX-T008）",
       "sentiment_zh": "正向",
-      "narrative_zh": "在本周有限样本中，2条B站评论与0篇小黑盒公开搜索可见帖子被归入“英雄与武器强度”。代表性观察涉及“重回超长tkk时代吧”。该正向方向来自模型推断，仅用于探索，不代表平台总体情绪，也不是经正式验证的统计事实。"
+      "narrative_en": "Esports viewers welcomed Huoguo’s three-win ENC qualifying run, especially Wuming’s Kraber pressure and Huge’s decisive contribution. The sustained highlights helped the audience understand how the team secured the result and increased interest in its next competitive appearance.",
+      "narrative_zh": "赛事观众认可火锅在ENC资格赛连下三局的强势表现，尤其关注无名的克莱伯压制与Huge的关键贡献。连续高光帮助观众理解队伍取胜方式，也提升了对后续赛事内容的关注。",
+      "canonical_topic_ids": [
+        "APEX-T003",
+        "APEX-T010"
+      ],
+      "evidence_notes": [
+        "观众强调Huge关键贡献、无名克莱伯压制与三连胜结果。"
+      ],
+      "source_urls": [
+        "https://www.bilibili.com/video/BV12T3964Ejv/"
+      ]
     },
     {
-      "topic_en": "Legend Abilities and Weapon Balance (APEX-T004)",
+      "topic_en": "Return of Esports Highlights",
+      "topic_zh": "赛事切片内容回归",
+      "sentiment_en": "Positive",
+      "sentiment_zh": "正向",
+      "narrative_en": "Several viewers welcomed the return of a familiar esports highlights account, repeatedly describing it as a revival. Renewed access to edited match moments helped the audience catch up on key plays and restored interest in the account’s future updates.",
+      "narrative_zh": "多位观众欢迎赛事切片账号恢复更新，并用“复活”表达对熟悉内容重新出现的惊喜。稳定的高光供给帮助观众补看关键片段，也恢复了对该账号后续更新的关注。",
+      "canonical_topic_ids": [
+        "APEX-T007"
+      ],
+      "evidence_notes": [
+        "多条评论以“复活”欢迎切片账号恢复更新。"
+      ],
+      "source_urls": [
+        "https://www.bilibili.com/video/BV12T3964Ejv/"
+      ]
+    },
+    {
+      "topic_en": "Ranked Smurfing Fairness",
+      "topic_zh": "排位炸鱼公平性",
+      "sentiment_en": "Negative",
+      "sentiment_zh": "负向",
+      "narrative_en": "Some ranked players rejected high-skill streamers entering Platinum lobbies on borrowed or secondary accounts, arguing that the mismatch wastes ordinary players’ matches. The presence of a smurfing report option reinforced their fairness concern and weakened trust in ranked competition.",
+      "narrative_zh": "部分排位玩家明确反感高水平主播使用白金账号“炸鱼”，认为这种实力错配会让普通玩家的整局努力失去意义。官方举报项也被用于说明该行为并非公平竞技，进一步削弱了对排位环境的信任。",
+      "canonical_topic_ids": [
+        "APEX-T011"
+      ],
+      "evidence_notes": [
+        "评论将高水平主播进入白金局视为不公平，并提及“恶意开小号”举报项。"
+      ],
+      "source_urls": [
+        "https://www.bilibili.com/video/BV1LhGN66EDa/"
+      ]
+    },
+    {
+      "topic_en": "Cheat Reports and Ban Feedback",
+      "topic_zh": "外挂举报与封禁反馈",
+      "sentiment_en": "Negative",
+      "sentiment_zh": "负向",
+      "narrative_en": "One ranked post reported receiving multiple ban confirmations after flagging suspicious accounts, while remaining worried about unusually accurate opponents in Platinum and Diamond. The enforcement feedback increased confidence that reports can matter, but continuing cheat concerns still weakened trust in the ladder.",
+      "narrative_zh": "一篇排位帖子报告称，发起多次可疑账号举报后收到了多项封禁反馈，同时仍担忧白金与钻石段位的异常准度。封禁结果增加了举报有效性的可见度，但持续的外挂疑虑仍削弱排位信任。",
+      "canonical_topic_ids": [
+        "APEX-T001"
+      ],
+      "evidence_notes": [
+        "公开帖子称举报可疑账号后收到多项封禁反馈，同时继续担忧排位异常准度。"
+      ],
+      "source_urls": [
+        "https://www.xiaoheihe.cn/app/bbs/link/186868240"
+      ]
+    },
+    {
+      "topic_en": "Match Communication and Squad Continuity",
+      "topic_zh": "匹配沟通与固定队需求",
       "sentiment_en": "Neutral",
-      "narrative_en": "Within this bounded weekly sample, 4 Bilibili comment(s) and 1 Heybox search-visible post(s) were assigned to Legend Abilities and Weapon Balance. Representative evidence concerned this specific weekly driver and is traceable by text ID and source URL in the cell comment. The neutral direction is model-derived and exploratory; it is not a platform-wide sentiment estimate or a formally validated fact.",
-      "topic_zh": "英雄技能与武器平衡（APEX-T004）",
       "sentiment_zh": "中性",
-      "narrative_zh": "在本周有限样本中，4条B站评论与1篇小黑盒公开搜索可见帖子被归入“英雄技能与武器平衡”。代表性观察涉及“Season30更新全笔记来了！：⚡️赛季30⚡️ 【早期补丁笔记全信息！】🗓️8月5日开幕✅️传奇增强：・寻血猎犬（重做）・罗芭加强：✅️战术技能・发动时间 0.6秒→0.4秒・移动速度 30%上升・射程距离 15%扩”。该中性方向来自模型推断，仅用于探索，不代表平台总体情绪，也不是经正式验证的统计事实。"
+      "narrative_en": "A small number of players questioned which servers had more Chinese-speaking users, whether Southeast Asia remained active, and where to find teammates beyond a single session. Language and roster-continuity concerns limited comfortable matchmaking and showed demand for sustained communication and coordination.",
+      "narrative_zh": "少量玩家分别询问国人较多的服务器、东南亚活跃度，并寻找能够长期配合而非一次性组队的队友。语言与队伍稳定性顾虑限制了顺畅匹配，也反映出玩家对持续沟通和固定协作的需求。",
+      "canonical_topic_ids": [
+        "APEX-T001"
+      ],
+      "evidence_notes": [
+        "公开帖子询问中文沟通较多的服务器与长期固定队；另有评论询问东南亚活跃度。"
+      ],
+      "source_urls": [
+        "https://www.xiaoheihe.cn/app/bbs/link/187042296",
+        "https://www.xiaoheihe.cn/app/bbs/link/186993154",
+        "https://www.bilibili.com/video/BV1LK3X6uEfd/"
+      ]
     },
     {
-      "topic_en": "Season Updates and Gameplay Mechanics (APEX-T002)",
+      "topic_en": "Loot Scarcity and Combat Pace",
+      "topic_zh": "物资收紧与战斗节奏",
       "sentiment_en": "Negative",
-      "narrative_en": "Within this bounded weekly sample, 11 Bilibili comment(s) and 0 Heybox search-visible post(s) were assigned to Season Updates and Gameplay Mechanics. Representative evidence concerned this specific weekly driver and is traceable by text ID and source URL in the cell comment. The negative direction is model-derived and exploratory; it is not a platform-wide sentiment estimate or a formally validated fact.",
-      "topic_zh": "赛季更新与玩法机制（APEX-T002）",
       "sentiment_zh": "负向",
-      "narrative_zh": "在本周有限样本中，11条B站评论与0篇小黑盒公开搜索可见帖子被归入“赛季更新与玩法机制”。代表性观察涉及“我说实话这改动真的有画蛇添足之嫌吧，总体来说原本都这么多个赛季缩短搜集物资快速进入战斗已经成为共识了，在大家眼里apex就是这么玩的，很爽。现在削物资点肥度说得过去，凭什么备受好评得武器台也要削？还有区分传奇特色的拓展补”。该负向方向来自模型推断，仅用于探索，不代表平台总体情绪，也不是经正式验证的统计事实。"
+      "narrative_en": "Players discussing the season preview questioned lower loot quality and fewer attachment sources, warning that squads could clear several areas without a viable loadout. They expected longer gearing time to delay combat, and the concern weakened confidence in the fast-paced appeal built across recent seasons.",
+      "narrative_zh": "赛季前瞻下的玩家普遍质疑降低物资品质与配件来源，担心队伍搜过多个点位后仍难形成可用装备。更长的发育时间被认为会拖慢进入战斗的节奏，并削弱近几个赛季建立的爽快感。",
+      "canonical_topic_ids": [
+        "APEX-T002",
+        "APEX-T011"
+      ],
+      "evidence_notes": [
+        "多条评论担心物资品质、配件来源与武器台调整延长发育时间。"
+      ],
+      "source_urls": [
+        "https://www.bilibili.com/video/BV1YDGw6FE8y/",
+        "https://www.bilibili.com/video/BV1VqGN6iEAQ/",
+        "https://www.xiaoheihe.cn/app/bbs/link/186853284"
+      ]
     },
     {
-      "topic_en": "Mixed Version, Ranked and Esports Discussion (APEX-T011)",
+      "topic_en": "Supply and Recovery Systems",
+      "topic_zh": "补给与复苏机制移除",
       "sentiment_en": "Negative",
-      "narrative_en": "Within this bounded weekly sample, 6 Bilibili comment(s) and 1 Heybox search-visible post(s) were assigned to Mixed Version, Ranked and Esports Discussion. Representative evidence concerned this specific weekly driver and is traceable by text ID and source URL in the cell comment. The negative direction is model-derived and exploratory; it is not a platform-wide sentiment estimate or a formally validated fact.",
-      "topic_zh": "版本、排位与赛事混合（APEX-T011）",
       "sentiment_zh": "负向",
-      "narrative_zh": "在本周有限样本中，6条B站评论与1篇小黑盒公开搜索可见帖子被归入“版本、排位与赛事混合”。代表性观察涉及“虽然是几年卡奴但一直觉得炸白金算恶劣行为。 他玩水友白金号，那么对于排位本地人来说就和有一个外挂没区别，就是不公平竞技，举报栏里面是有“恶意开小号”这个选项的，说明官方和玩家并不认同小号炸鱼行为。 而他的经济实力也不需要”。该负向方向来自模型推断，仅用于探索，不代表平台总体情绪，也不是经正式验证的统计事实。"
+      "narrative_en": "Some players rejected the removal of class supply bins, wildlife drops, and round-three loot resets, viewing them as part of class identity, map memory, and squad recovery. Fewer replenishment paths limited confidence in rebuilding for disadvantaged teams and weakened the map’s distinctive ecology.",
+      "narrative_zh": "部分玩家反对移除扩展补给箱、野生生物掉落与三圈物资刷新，认为这些机制承担了职业特色、地图记忆和残队复苏功能。可用补给路径减少会限制落后队伍重整，也削弱地图生态的辨识度。",
+      "canonical_topic_ids": [
+        "APEX-T002",
+        "APEX-T010",
+        "APEX-T011"
+      ],
+      "evidence_notes": [
+        "评论分别反对移除扩展补给箱、野生生物掉落与三圈物资刷新，并解释其复苏和地图价值。"
+      ],
+      "source_urls": [
+        "https://www.bilibili.com/video/BV1YDGw6FE8y/",
+        "https://www.bilibili.com/video/BV1VqGN6iEAQ/",
+        "https://www.xiaoheihe.cn/app/bbs/link/186853284"
+      ]
     },
     {
-      "topic_en": "Ranked and Matchmaking (APEX-T001)",
-      "sentiment_en": "Negative",
-      "narrative_en": "Within this bounded weekly sample, 3 Bilibili comment(s) and 2 Heybox search-visible post(s) were assigned to Ranked and Matchmaking. Representative evidence concerned this specific weekly driver and is traceable by text ID and source URL in the cell comment. The negative direction is model-derived and exploratory; it is not a platform-wide sentiment estimate or a formally validated fact.",
-      "topic_zh": "排位与匹配（APEX-T001）",
-      "sentiment_zh": "负向",
-      "narrative_zh": "在本周有限样本中，3条B站评论与2篇小黑盒公开搜索可见帖子被归入“排位与匹配”。代表性观察涉及“apex找固排匹配：想找打匹配的队友，希望不要日抛。”。该负向方向来自模型推断，仅用于探索，不代表平台总体情绪，也不是经正式验证的统计事实。"
+      "topic_en": "Season 30 Legend Preview",
+      "topic_zh": "30赛季传奇调整前瞻",
+      "sentiment_en": "Neutral",
+      "sentiment_zh": "中性",
+      "narrative_en": "One Season 30 preview post highlighted Bloodhound’s rework, Loba’s faster tactical, and Rampart buffs, drawing substantial visible engagement. Because comment bodies were not collected, the report could not determine whether players welcomed or rejected the balance changes, although the post increased update visibility.",
+      "narrative_zh": "一篇赛季30更新帖重点介绍寻血猎犬重做、罗芭施法加速与兰帕特增强，并获得较高可见互动。由于未采集评论正文，玩家对具体强度调整的评价仍无法确定，但该帖提升了更新信息的可见度。",
+      "canonical_topic_ids": [
+        "APEX-T004"
+      ],
+      "evidence_notes": [
+        "公开搜索可见更新帖列出传奇调整并获得互动；未采集评论正文。"
+      ],
+      "source_urls": [
+        "https://www.xiaoheihe.cn/app/bbs/link/187219856"
+      ]
     },
     {
-      "topic_en": "Esports and Creators (APEX-T003)",
+      "topic_en": "Weapon Damage and TTK Shift",
+      "topic_zh": "武器伤害与TTK变化",
       "sentiment_en": "Negative",
-      "narrative_en": "Within this bounded weekly sample, 4 Bilibili comment(s) and 0 Heybox search-visible post(s) were assigned to Esports and Creators. Representative evidence concerned this specific weekly driver and is traceable by text ID and source URL in the cell comment. The negative direction is model-derived and exploratory; it is not a platform-wide sentiment estimate or a formally validated fact.",
-      "topic_zh": "赛事与主播（APEX-T003）",
       "sentiment_zh": "负向",
-      "narrative_zh": "在本周有限样本中，4条B站评论与0篇小黑盒公开搜索可见帖子被归入“赛事与主播”。代表性观察涉及“这也太毁灭了 无名克莱伯真的太恐怖了”。该负向方向来自模型推断，仅用于探索，不代表平台总体情绪，也不是经正式验证的统计事实。"
+      "narrative_en": "Players largely questioned lower SMG damage and a longer time-to-kill, worrying that the R-99, Alternator, and energy weapons would lose forgiveness and immediacy. Only a small minority expected shotguns to regain space, so negative concerns outweighed that expectation and weakened confidence in the new weapon environment.",
+      "narrative_zh": "多数玩家质疑冲锋枪降伤及TTK拉长，担忧R-99、转换者和能量武器失去容错与爽快感；只有少量讨论期待喷子重新获得空间。负向顾虑明显超过期待，并削弱了对新赛季武器环境的信心。",
+      "canonical_topic_ids": [
+        "APEX-T002",
+        "APEX-T008",
+        "APEX-T013"
+      ],
+      "evidence_notes": [
+        "评论一方面期待喷子环境回归，另一方面担忧冲锋枪、能量武器与整体TTK手感。"
+      ],
+      "source_urls": [
+        "https://www.bilibili.com/video/BV1YDGw6FE8y/",
+        "https://www.bilibili.com/video/BV1VqGN6iEAQ/"
+      ]
     },
     {
-      "topic_en": "Creator Video Feedback and Settings Help (APEX-T007)",
+      "topic_en": "Monetization and Balance Timing",
+      "topic_zh": "商业化与平衡时点",
       "sentiment_en": "Negative",
-      "narrative_en": "Within this bounded weekly sample, 3 Bilibili comment(s) and 0 Heybox search-visible post(s) were assigned to Creator Video Feedback and Settings Help. Representative evidence concerned this specific weekly driver and is traceable by text ID and source URL in the cell comment. The negative direction is model-derived and exploratory; it is not a platform-wide sentiment estimate or a formally validated fact.",
-      "topic_zh": "UP主视频反馈与设置求助（APEX-T007）",
       "sentiment_zh": "负向",
-      "narrative_zh": "在本周有限样本中，3条B站评论与0篇小黑盒公开搜索可见帖子被归入“UP主视频反馈与设置求助”。代表性观察涉及“求Blinkzr的视角和设置”。该负向方向来自模型推断，仅用于探索，不代表平台总体情绪，也不是经正式验证的统计事实。"
-    },
-    {
-      "topic_en": "Competitive Esports and Creator Discussion (APEX-T010)",
-      "sentiment_en": "Negative",
-      "narrative_en": "Within this bounded weekly sample, 3 Bilibili comment(s) and 0 Heybox search-visible post(s) were assigned to Competitive Esports and Creator Discussion. Representative evidence concerned this specific weekly driver and is traceable by text ID and source URL in the cell comment. The negative direction is model-derived and exploratory; it is not a platform-wide sentiment estimate or a formally validated fact.",
-      "topic_zh": "赛事与主播竞技讨论（APEX-T010）",
-      "sentiment_zh": "负向",
-      "narrative_zh": "在本周有限样本中，3条B站评论与0篇小黑盒公开搜索可见帖子被归入“赛事与主播竞技讨论”。代表性观察涉及“虎哥没进去我倒是松了口气，要真混进去了那画面我都不敢想”。该负向方向来自模型推断，仅用于探索，不代表平台总体情绪，也不是经正式验证的统计事实。"
+      "narrative_en": "Some players questioned the timing of an Alternator nerf after a crossover skin sale alongside a new C.A.R. mythic skin, interpreting monetization as a possible balance influence. The close sequencing increased suspicion about operating motives and weakened trust in the fairness of the change.",
+      "narrative_zh": "部分玩家质疑在转换者联动皮肤售卖后迅速削弱武器、同时推出C.A.R.神话皮肤的时点，认为商业化安排可能影响平衡决策。平衡与付费内容相邻出现增加了运营动机的猜疑，并削弱对调整公正性的信任。",
+      "canonical_topic_ids": [
+        "APEX-T006",
+        "APEX-T012"
+      ],
+      "evidence_notes": [
+        "评论将转换者联动皮肤售卖后的削弱与C.A.R.神话皮肤推出时点联系起来。"
+      ],
+      "source_urls": [
+        "https://www.bilibili.com/video/BV1VqGN6iEAQ/",
+        "https://www.xiaoheihe.cn/app/bbs/link/186853284"
+      ]
     }
   ],
   "source": {
     "workbook": "reports/APEX_CHINA_W31_Weekly_Community_Report.xlsx",
-    "sha256": "6e4d9051d6fbd1b3cde595b26b8a5684b2a167f8a2ad73e56966a8132a901439",
+    "sha256": "2015aaf6a45dba0f08d43076412dbace3d91e0887c4e488f08aada3fb89adc0d",
     "contract": "config/weekly_bilingual_report_contract.json"
   },
   "limitations": {
     "en": "Bounded real samples only. Bilibili comment counts and Heybox search-visible post counts use different units and are not additive.",
     "zh": "仅使用有限真实样本。B站评论计数与小黑盒公开搜索可见帖子计数使用不同单位，不得相加。"
+  },
+  "review_status": "approved_for_release",
+  "approval": {
+    "status": "approved_for_release",
+    "approved_at": "2026-08-03T06:14:01Z",
+    "approver_role": "project_owner",
+    "approval_source": "codex_task_user_message",
+    "approval_statement": "人工审核无误，可发布。",
+    "scope": "2026_W31 revision1 editorial package and formal publication"
+  },
+  "revision_reason": "Rebuilt from W31 revision1 raw data after adding 29 strictly in-week comments from 17 additional videos; previous editorial findings were rechecked against the expanded evidence.",
+  "previous_data_version": "bilibili_apex_2026_W31_consolidated_20260803.jsonl",
+  "current_data_version": "bilibili_apex_2026_W31_consolidated_revision1_20260803.jsonl",
+  "driver_reduction": null,
+  "rule_provenance": {
+    "skill_name": "apex-weekly-report-writing",
+    "skill_version": "w30-editorial-pattern-2026-08-03",
+    "narrative_rule_version": "impact-ranking-revision-2026-08-03",
+    "files": {
+      "skill": {
+        "path": "skills/apex-weekly-report-writing/SKILL.md",
+        "bytes": 6324,
+        "sha256": "f35d2f51df7f53edf1ad232a7a40fe73263508022b5457e54d2868a045e76823"
+      },
+      "writing_pattern": {
+        "path": "skills/apex-weekly-report-writing/references/w30-writing-pattern.md",
+        "bytes": 5102,
+        "sha256": "5c91c70bca218baf56563ec152aa92974b16a503059933b2e58ca990cda123d8"
+      },
+      "narrative_rule": {
+        "path": "templates/社区话题驱动因素表单叙述规则.md",
+        "bytes": 25315,
+        "sha256": "aeb7d446aa8d09cb19535ae16a60bc17b609596a02884458686a21459e18897a"
+      },
+      "narrative_validator": {
+        "path": "scripts/validate_narratives.py",
+        "bytes": 8940,
+        "sha256": "2136657a99ae5f6b908c8c11aacaf2c50ec27e7f19e6cd3f8f7b6f87ca1dcddd"
+      },
+      "report_contract": {
+        "path": "config/weekly_bilingual_report_contract.json",
+        "bytes": 1689,
+        "sha256": "4365ab6e0bc665e18726ac414e1d7a544bd33a2c0a54806ddb45cac863dc94c4"
+      },
+      "workbook_template": {
+        "path": "templates/APEX_CHINA_W30_10_DRIVER_TEMPLATE.xlsx",
+        "bytes": 11381,
+        "sha256": "c58f6e71ed2ea47e7986481579bade02d567b5fa9716e8cdd3c906e44c13f400"
+      }
+    }
   }
 }
