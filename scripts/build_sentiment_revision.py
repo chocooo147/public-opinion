@@ -769,6 +769,8 @@ def main() -> int:
         "APEX_CHINA_W31_Weekly_Community_Report.xlsx",
         "APEX_CHINA_W31_Weekly_Community_Report.preview.json",
         "APEX_CHINA_W31_Weekly_Community_Report.md",
+        "APEX_CHINA_W30_Weekly_Community_Report.xlsx",
+        "APEX_W29_Combined_Dashboard_Long_Capture.png",
     ):
         source = repo_root / "reports" / filename
         if source.exists():
@@ -805,6 +807,10 @@ def main() -> int:
         atomic_json(report_preview_path, report_preview)
     if (repo_root / "assets").exists():
         shutil.copytree(repo_root / "assets", output / "assets")
+    guide_source = repo_root / "templates/APEX_Dashboard_Data_and_Narrative_Guide.md"
+    if guide_source.exists():
+        (output / "templates").mkdir(parents=True)
+        shutil.copy2(guide_source, output / "templates" / guide_source.name)
 
     html = patch_site_html(
         (repo_root / "index.html").read_text(encoding="utf-8"),
@@ -818,6 +824,24 @@ def main() -> int:
     )
     (output / "index.html").write_text(html, encoding="utf-8")
     (preview / "README.txt").write_text("Open ../index.html from the revision root.\n", encoding="utf-8")
+
+    relative_refs = {
+        ref.split("?", 1)[0].split("#", 1)[0]
+        for _, _, ref in re.findall(r"\b(href|src)=([\"'])(.*?)\2", html)
+        if ref and "${" not in ref and not re.match(r"^(?:#|https?:|data:|mailto:|javascript:)", ref)
+    }
+    missing_refs = sorted(ref for ref in relative_refs if not (output / ref).is_file())
+    page_report_path = reports / "page_automatic_check_report.json"
+    page_report = json.loads(page_report_path.read_text(encoding="utf-8"))
+    page_report["packaged_link_check"] = {
+        "checked_count": len(relative_refs),
+        "missing_count": len(missing_refs),
+        "missing": missing_refs,
+        "status": "passed" if not missing_refs else "failed",
+    }
+    atomic_json(page_report_path, page_report)
+    if missing_refs:
+        raise ValueError(f"preview package contains missing relative links: {missing_refs}")
 
     manifest = {
         "data_version": args.data_version,
