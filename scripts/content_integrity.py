@@ -7,34 +7,20 @@ import hashlib
 import re
 from collections import Counter, defaultdict
 from datetime import datetime
+from pathlib import Path
 from typing import Any, Iterable
 
+from canonical_rules import load_canonical_rules
 
-KEYWORD_RULE_VERSION = "apex_keyword_quality_v2.0.0"
+
+_CANONICAL_RULES = load_canonical_rules(Path(__file__).resolve().parents[1])
+KEYWORD_RULE_VERSION = _CANONICAL_RULES["keywords"]["rule_version"]
 EVENT_RULE_VERSION = "apex_event_evidence_v1.0.0"
 SENTIMENT_RULE_VERSION = "apex_sentiment_count_contract_v2.1.0"
-
-
-KEYWORD_RULES: tuple[dict[str, Any], ...] = (
-    {"normalized": "S30赛季", "entity_type": "season", "patterns": (r"\bs\s*[- ]?30\b", r"30\s*赛季", r"赛季\s*30", r"第\s*30\s*赛季", r"诸神烙印")},
-    {"normalized": "S29赛季", "entity_type": "season", "patterns": (r"\bs\s*[- ]?29\b", r"29\s*赛季", r"赛季\s*29", r"第\s*29\s*赛季")},
-    {"normalized": "R-99", "entity_type": "weapon", "patterns": (r"(?<![a-z0-9])r\s*[- ]?99(?![a-z0-9])",)},
-    {"normalized": "CAR冲锋枪", "entity_type": "weapon", "patterns": (r"(?<![a-z])c\.?a\.?r\.?(?![a-z])", r"car\s*冲锋枪")},
-    {"normalized": "RE-45", "entity_type": "weapon", "patterns": (r"(?<![a-z0-9])re\s*[- ]?45(?![a-z0-9])",)},
-    {"normalized": "EVA-8", "entity_type": "weapon", "patterns": (r"(?<![a-z0-9])eva\s*[- ]?8(?![a-z0-9])",)},
-    {"normalized": "30-30", "entity_type": "weapon", "patterns": (r"(?<!\d)30\s*[- ]?30(?!\d)", r"三零三零")},
-    {"normalized": "R-301", "entity_type": "weapon", "patterns": (r"(?<![a-z0-9])r\s*[- ]?301(?![a-z0-9])", r"(?<!\d)301(?!\d)")},
-    {"normalized": "武器平衡", "entity_type": "gameplay_issue", "patterns": (r"(?:武器|枪械|r99|car|re45|eva8).{0,12}(?:削弱|加强|平衡|伤害|强度|容错)", r"(?:削弱|加强|平衡).{0,12}(?:武器|枪械|r99|car|re45|eva8)")},
-    {"normalized": "补给箱改动", "entity_type": "gameplay_change", "patterns": (r"(?:补给箱|蓝红箱|黄金箱|神话箱|箱子).{0,14}(?:改|砍|移除|废除|刷新|掉落)", r"(?:改|砍|移除|废除).{0,14}(?:补给箱|蓝红箱|黄金箱|神话箱|箱子)")},
-    {"normalized": "战利品调整", "entity_type": "gameplay_change", "patterns": (r"(?:战利品|物资|配件|资源).{0,14}(?:改|砍|削|刷新|掉落|减少|调整)", r"(?:改|砍|削|减少|调整).{0,14}(?:战利品|物资|配件|资源)")},
-    {"normalized": "复活机制", "entity_type": "gameplay_system", "patterns": (r"复活(?:信标|机制|队友|重生)", r"重生机制")},
-    {"normalized": "联动活动", "entity_type": "live_service_event", "patterns": (r"赛博朋克.{0,8}联动", r"联动(?:活动|皮肤|上线)")},
-    {"normalized": "排位环境", "entity_type": "community_issue", "patterns": (r"(?:排位|单排|钻排|铂金).{0,18}(?:外挂|炸鱼|匹配|队友|公平|环境)", r"(?:外挂|炸鱼|匹配|公平).{0,18}(?:排位|单排|钻排|铂金)")},
-    {"normalized": "反作弊", "entity_type": "community_risk", "patterns": (r"外挂", r"作弊", r"举报.{0,8}(?:封|外挂|作弊)")},
-    {"normalized": "服务器稳定性", "entity_type": "technical_issue", "patterns": (r"服务器", r"(?:掉线|延迟|卡顿|排队).{0,8}(?:对局|游戏|服务器)")},
-    {"normalized": "赛事表现", "entity_type": "esports", "patterns": (r"\b(?:plq|algs|enc|ewc)\b", r"(?:赛事|比赛|门票|三连鸡)")},
-    {"normalized": "手柄与设置", "entity_type": "player_help", "patterns": (r"(?:手柄|视角|灵敏度|设置)",)},
+KEYWORD_RULES: tuple[dict[str, Any], ...] = tuple(
+    _CANONICAL_RULES["keywords"]["rules"]
 )
+STOPWORDS = set(_CANONICAL_RULES["keywords"]["stopwords"])
 
 
 EVENT_RULES: tuple[dict[str, Any], ...] = (
@@ -84,13 +70,6 @@ EVENT_RULES: tuple[dict[str, Any], ...] = (
         "patterns": (r"联动(?:皮|活动|上线)", r"赛博朋克", r"神话皮"),
     },
 )
-
-
-STOPWORDS = {
-    "不是", "现在", "感觉", "这个", "那个", "还是", "就是", "可以", "没有", "一个",
-    "时候", "然后", "其实", "真的", "很多", "什么", "怎么", "好像", "一直", "比较",
-    "huge", "lz", "nb", "复活了", "时间", "那个赛季", "对比现在", "这次的改",
-}
 
 
 def _text_id(row: dict[str, Any]) -> str:

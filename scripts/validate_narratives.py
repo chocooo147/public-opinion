@@ -12,6 +12,7 @@ from pathlib import Path
 
 TARGET_DRIVER_COUNT = 10
 MINIMUM_DRIVER_COUNT = 8
+ROOT = Path(__file__).resolve().parents[1]
 
 
 FORBIDDEN = {
@@ -58,6 +59,123 @@ COUNT_ZH = re.compile(r"\d+\s*(?:条B站评论|篇小黑盒)")
 COUNT_EN = re.compile(r"\d+\s+(?:Bilibili comment|Heybox)", re.I)
 
 
+def _ranking_expectations() -> dict[str, str]:
+    """Read the canonical rule versions without inventing a scoring model."""
+    policy = json.loads(
+        (ROOT / "config" / "weekly_production_policy.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    report_policy = policy["weekly_report"]
+    return {
+        "policy_version": str(policy["policy_version"]),
+        "skill_version": str(report_policy["skill_version"]),
+        "narrative_rule_version": str(report_policy["narrative_rule_version"]),
+    }
+
+
+def _narrative_length_contract() -> dict[str, int]:
+    """Read narrative length limits from the canonical workbook contract."""
+    contract = json.loads(
+        (ROOT / "config" / "weekly_bilingual_report_contract.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    policy = contract["narrative_policy"]
+    return {
+        "minimum_sentences_per_language": int(
+            policy["minimum_sentences_per_language"]
+        ),
+        "english_narrative_word_minimum": int(
+            policy["english_narrative_word_minimum"]
+        ),
+        "english_narrative_word_maximum": int(
+            policy["english_narrative_word_maximum"]
+        ),
+    }
+
+
+def validate_driver_ranking(
+    payload: dict[str, object], drivers: list[object], allow_legacy_reference: bool
+) -> list[str]:
+    """Require supplied editorial rank evidence; never create or recalculate it."""
+    errors: list[str] = []
+    if "driver_ranking" not in payload:
+        if allow_legacy_reference:
+            return []
+        return ["preview must contain driver_ranking evidence"]
+    ranking = payload["driver_ranking"]
+    if not isinstance(ranking, dict):
+        return ["driver_ranking evidence must be an object"]
+
+    simulation = payload.get("review_status") == "simulation_fixture_approved_for_test_only"
+    expected_method = (
+        "deterministic_simulation_only" if simulation else "skill_reviewed_editorial_judgment"
+    )
+    expected_source = (
+        "simulation_only_deterministic_editorial_fixture"
+        if simulation
+        else "pre_workbook_skill_reviewed_editorial_package"
+    )
+    if ranking.get("schema_version") != 1:
+        errors.append("driver_ranking.schema_version must be 1")
+    if ranking.get("ordering_basis") != "composite_influence_descending":
+        errors.append("driver_ranking.ordering_basis must be composite_influence_descending")
+    if ranking.get("ordering_method") != expected_method:
+        errors.append(f"driver_ranking.ordering_method must be {expected_method}")
+    if ranking.get("score_present") is not False:
+        errors.append("driver_ranking.score_present must be false; numerical scores are not supported")
+
+    ranked_ids = ranking.get("ranked_driver_ids")
+    if not isinstance(ranked_ids, list) or not ranked_ids:
+        errors.append("driver_ranking.ranked_driver_ids must be a nonempty ordered list")
+        ranked_ids = []
+    elif any(not isinstance(value, str) or not value.strip() for value in ranked_ids):
+        errors.append("driver_ranking.ranked_driver_ids must contain nonempty strings")
+    elif len(set(ranked_ids)) != len(ranked_ids):
+        errors.append("driver_ranking.ranked_driver_ids must be unique")
+
+    provenance = ranking.get("rank_provenance")
+    if not isinstance(provenance, dict):
+        errors.append("driver_ranking.rank_provenance is required")
+    else:
+        if provenance.get("source") != expected_source:
+            errors.append(f"driver_ranking.rank_provenance.source must be {expected_source}")
+        if provenance.get("review_status") != payload.get("review_status"):
+            errors.append("rank provenance review_status differs from payload review_status")
+        for field, expected in _ranking_expectations().items():
+            if provenance.get(field) != expected:
+                errors.append(f"rank provenance {field} does not match current policy")
+
+    driver_ids: list[str] = []
+    ranks: list[int] = []
+    for index, driver in enumerate(drivers, start=1):
+        if not isinstance(driver, dict):
+            continue
+        driver_id = driver.get("driver_id")
+        rank = driver.get("canonical_rank")
+        if not isinstance(driver_id, str) or not driver_id.strip():
+            errors.append(f"driver {index}: driver_id must be a nonempty string")
+        else:
+            driver_ids.append(driver_id)
+        if not isinstance(rank, int) or isinstance(rank, bool):
+            errors.append(f"driver {index}: canonical_rank must be an integer")
+        else:
+            ranks.append(rank)
+    if len(set(driver_ids)) != len(driver_ids):
+        errors.append("driver IDs must be unique")
+    if len(set(ranks)) != len(ranks):
+        errors.append("canonical ranks must be unique")
+    expected_ranks = list(range(1, len(drivers) + 1))
+    if sorted(ranks) != expected_ranks:
+        errors.append("canonical ranks must be continuous from 1 through driver count")
+    if ranks != expected_ranks:
+        errors.append("drivers must be ordered by ascending canonical_rank")
+    if driver_ids != ranked_ids:
+        errors.append("driver IDs must exactly equal driver_ranking.ranked_driver_ids in order")
+    return errors
+
+
 def sentence_count(text: str, language: str) -> int:
     marks = r"[。！？]" if language == "zh" else r"[.!?]"
     return len([part for part in re.split(marks, text) if part.strip()])
@@ -65,6 +183,7 @@ def sentence_count(text: str, language: str) -> int:
 
 def validate_driver(driver: dict[str, object], index: int) -> list[str]:
     errors: list[str] = []
+    length_contract = _narrative_length_contract()
     topic_zh = str(driver.get("topic_zh") or "")
     topic_en = str(driver.get("topic_en") or "")
     narrative_zh = str(driver.get("narrative_zh") or "").strip()
@@ -93,15 +212,23 @@ def validate_driver(driver: dict[str, object], index: int) -> list[str]:
             f"{label}: Chinese narrative length {len(narrative_zh)} is outside 45-150 characters"
         )
     word_count = len(re.findall(r"\b[\w’'-]+\b", narrative_en))
-    if not 25 <= word_count <= 75:
+    minimum_words = length_contract["english_narrative_word_minimum"]
+    maximum_words = length_contract["english_narrative_word_maximum"]
+    if not minimum_words <= word_count <= maximum_words:
         errors.append(
-            f"{label}: English narrative length {word_count} is outside 25-75 words"
+            f"{label}: English narrative length {word_count} is outside "
+            f"{minimum_words}-{maximum_words} words"
         )
 
-    if sentence_count(narrative_zh, "zh") < 2:
-        errors.append(f"{label}: Chinese narrative needs at least two sentences")
-    if sentence_count(narrative_en, "en") < 2:
-        errors.append(f"{label}: English narrative needs at least two sentences")
+    minimum_sentences = length_contract["minimum_sentences_per_language"]
+    if sentence_count(narrative_zh, "zh") < minimum_sentences:
+        errors.append(
+            f"{label}: Chinese narrative needs at least {minimum_sentences} sentence(s)"
+        )
+    if sentence_count(narrative_en, "en") < minimum_sentences:
+        errors.append(
+            f"{label}: English narrative needs at least {minimum_sentences} sentence(s)"
+        )
 
     if not ACTOR_ZH.search(narrative_zh):
         errors.append(f"{label}: Chinese narrative lacks a bounded audience or source")
@@ -179,6 +306,7 @@ def validate_payload(
     if not isinstance(drivers, list):
         return ["preview must contain a drivers list"]
     errors = validate_driver_count(payload, drivers, allow_legacy_reference)
+    errors.extend(validate_driver_ranking(payload, drivers, allow_legacy_reference))
     for index, driver in enumerate(drivers, start=1):
         if not isinstance(driver, dict):
             errors.append(f"driver {index}: expected an object")

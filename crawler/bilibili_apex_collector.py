@@ -230,9 +230,10 @@ def deduplicate(rows: list[dict], threshold: float = .90, window_minutes: int = 
         text = normalize_text(row.get("text", ""))
         hsh = row.get("content_hash") or content_hash(text)
         reason = ""
+        comment_key = (row.get("bvid", ""), row.get("comment_id", ""))
         if row.get("source_type") in ("video_title", "video_description") and row.get("bvid") and (row["bvid"], row["source_type"]) in seen_bvid:
             reason = "duplicate_bvid_source"
-        elif row.get("comment_id") and row["comment_id"] in seen_comment:
+        elif row.get("comment_id") and comment_key in seen_comment:
             reason = "duplicate_comment_id"
         elif text and text in seen_text:
             reason = "exact_text_duplicate"
@@ -248,7 +249,7 @@ def deduplicate(rows: list[dict], threshold: float = .90, window_minutes: int = 
         if row.get("bvid") and row.get("source_type") in ("video_title", "video_description"):
             seen_bvid.add(key)
         if row.get("comment_id"):
-            seen_comment.add(row["comment_id"])
+            seen_comment.add(comment_key)
         seen_text.add(text)
         if hsh:
             seen_hash.add(hsh)
@@ -269,6 +270,31 @@ def deduplicate(rows: list[dict], threshold: float = .90, window_minutes: int = 
         row["duplicate_reason"] = ""
         kept.append(row)
     return kept, filtered
+
+
+def select_candidates_round_robin(
+    candidates_by_keyword: dict[str, list[dict]],
+    keywords: list[str],
+    limit: int,
+) -> list[dict]:
+    """Select a bounded, deterministic candidate pool without first-query monopoly."""
+    selected: list[dict] = []
+    seen: set[str] = set()
+    max_depth = max((len(candidates_by_keyword.get(keyword, [])) for keyword in keywords), default=0)
+    for index in range(max_depth):
+        for keyword in keywords:
+            candidates = candidates_by_keyword.get(keyword, [])
+            if index >= len(candidates):
+                continue
+            item = candidates[index]
+            bvid = str(item.get("bvid") or "")
+            if not bvid or bvid in seen:
+                continue
+            selected.append(item)
+            seen.add(bvid)
+            if len(selected) >= limit:
+                return selected
+    return selected
 
 
 def filter_excluded(rows: list[dict], exclude_terms: list[str]) -> tuple[list[dict], list[dict]]:
@@ -294,6 +320,21 @@ def append_jsonl(path: Path, records: Iterable[dict]) -> None:
             f.flush()
 
 
+def read_jsonl(path: Path) -> list[dict]:
+    if not path.exists():
+        return []
+    records: list[dict] = []
+    with path.open("r", encoding="utf-8") as f:
+        for line_number, line in enumerate(f, start=1):
+            if not line.strip():
+                continue
+            record = json.loads(line)
+            if not isinstance(record, dict):
+                raise ValueError(f"{path}:{line_number} 不是 JSON 对象")
+            records.append(record)
+    return records
+
+
 def write_csv_new(path: Path, rows: list[dict]) -> Path:
     candidate, number = path, 2
     while candidate.exists():
@@ -317,10 +358,29 @@ class Paths:
 
 
 class Collector:
-    def __init__(self, keywords: dict, config: dict, start: datetime, end: datetime, week_id: str):
+    def __init__(
+        self,
+        keywords: dict,
+        config: dict,
+        start: datetime,
+        end: datetime,
+        week_id: str,
+        artifact_dir: Path | None = None,
+    ):
         self.keywords, self.config, self.start, self.end, self.week_id = keywords, config, start, end, week_id
-        raw = configured_root(ROOT, "data_root") / "raw" / "bilibili"
-        self.paths = Paths(raw / f"videos_{week_id}.jsonl", raw / f"comments_{week_id}.jsonl", raw / f"bilibili_apex_{week_id}.csv", ROOT / "logs" / f"bilibili_apex_{week_id}.log", raw / f"checkpoint_{week_id}.json")
+        self.artifact_dir = artifact_dir
+        raw = artifact_dir or configured_root(ROOT, "data_root") / "raw" / "bilibili"
+        log = (
+            raw / f"bilibili_apex_{week_id}.log"
+            if artifact_dir
+            else ROOT / "logs" / f"bilibili_apex_{week_id}.log"
+        )
+        self.report_path = (
+            raw / f"bilibili_apex_{week_id}_report.md"
+            if artifact_dir
+            else ROOT / "reports" / "bilibili_apex_pilot_report.md"
+        )
+        self.paths = Paths(raw / f"videos_{week_id}.jsonl", raw / f"comments_{week_id}.jsonl", raw / f"bilibili_apex_{week_id}.csv", log, raw / f"checkpoint_{week_id}.json")
         self.collected_at = datetime.now(timezone.utc).astimezone().isoformat()
         self.stats = Counter()
         self.failures: list[str] = []
@@ -353,13 +413,18 @@ class Collector:
             author_name = normalize_text(video.get("author_name", ""))
         wid, ws, we = assign_week(dt, self.config["timezone"]) if dt else ("", "", "")
         clean = normalize_text(text)
-        identity = comment.get("comment_id") or f"{video.get('bvid','')}:{source_type}"
+        comment_id = str(comment.get("comment_id") or "")
+        identity = (
+            f"{video.get('bvid', '')}:{comment_id}"
+            if source_type == "top_level_comment" and comment_id
+            else f"{video.get('bvid','')}:{source_type}"
+        )
         return {
             "text_id": f"bilibili:{identity}", "publish_time": dt.isoformat() if dt else "",
             "publish_time_raw": str(epoch or ""), "week_id": wid, "week_start": ws, "week_end": we,
             "platform": "B站", "source_type": source_type, "text": clean, "title": video.get("title", ""),
             "author_name": author_name, "author_uid": str(comment.get("author_uid", "")), "bvid": video.get("bvid", ""),
-            "comment_id": str(comment.get("comment_id", "")), "parent_id": str(comment.get("parent_id", "")),
+            "comment_id": comment_id, "parent_id": str(comment.get("parent_id", "")),
             "likes": comment.get("likes") if comment else video.get("likes"), "comments": video.get("comments"),
             "shares": video.get("shares"), "views": video.get("views"), "danmaku": video.get("danmaku"),
             "favorites": video.get("favorites"), "coins": video.get("coins"), "url": video.get("url", ""),
@@ -377,12 +442,63 @@ class Collector:
         except ImportError:
             return self.run_live_node()
         all_keywords = self.keywords["core_keywords"] + self.keywords["experience_keywords"]
-        checkpoint = {"completed_keywords": [], "completed_bvids": []}
+        checkpoint = {
+            "completed_keywords": [],
+            "completed_bvids": [],
+            "discovered_candidates_by_keyword": {},
+            "discovery_stats_by_keyword": {},
+        }
         if self.paths.checkpoint.exists():
             checkpoint.update(json.loads(self.paths.checkpoint.read_text(encoding="utf-8")))
-        videos_by_bvid: dict[str, dict] = {}
-        comments_raw: list[dict] = []
+        candidates_by_keyword = checkpoint.get("discovered_candidates_by_keyword")
+        if not isinstance(candidates_by_keyword, dict):
+            candidates_by_keyword = {}
+        checkpoint["discovered_candidates_by_keyword"] = candidates_by_keyword
+        discovery_stats_by_keyword = checkpoint.get("discovery_stats_by_keyword")
+        if not isinstance(discovery_stats_by_keyword, dict):
+            discovery_stats_by_keyword = {}
+        checkpoint["discovery_stats_by_keyword"] = discovery_stats_by_keyword
+        for keyword, keyword_stats in discovery_stats_by_keyword.items():
+            if (
+                keyword in checkpoint["completed_keywords"]
+                and isinstance(candidates_by_keyword.get(keyword), list)
+                and isinstance(keyword_stats, dict)
+            ):
+                self.stats["discovery_requests"] += int(keyword_stats.get("requests", 0))
+                self.stats["search_video_hits"] += int(keyword_stats.get("hits", 0))
+        completed_bvids = set(checkpoint["completed_bvids"])
+        existing_videos = {
+            video.get("bvid"): video
+            for video in read_jsonl(self.paths.videos)
+            if video.get("bvid")
+        }
+        completed_comments = [
+            comment
+            for comment in read_jsonl(self.paths.comments)
+            if comment.get("bvid") in completed_bvids
+        ]
+        self.stats["videos_read"] = len(completed_bvids.intersection(existing_videos))
+        self.stats["videos_with_comments_collected"] = len({
+            comment.get("bvid") for comment in completed_comments if comment.get("bvid")
+        })
+        self.stats["comments_collected"] = len(completed_comments)
         rows: list[dict] = []
+        for comment in completed_comments:
+            bvid = comment.get("bvid")
+            if bvid not in completed_bvids or bvid not in existing_videos:
+                continue
+            try:
+                row = self._row(
+                    "top_level_comment",
+                    comment.get("text", ""),
+                    existing_videos[bvid],
+                    comment,
+                )
+            except ValueError:
+                self.stats["comments_missing_exact_metadata"] += 1
+                continue
+            if row["week_id"] == self.week_id:
+                rows.append(row)
         with sync_playwright() as p:
             browser = None
             context = None
@@ -412,23 +528,49 @@ class Collector:
                 page = context.new_page()
             try:
                 for keyword in all_keywords:
-                    if keyword in checkpoint["completed_keywords"]:
+                    if (
+                        keyword in checkpoint["completed_keywords"]
+                        and isinstance(candidates_by_keyword.get(keyword), list)
+                        and isinstance(discovery_stats_by_keyword.get(keyword), dict)
+                    ):
                         continue
+                    keyword_candidates: dict[str, dict] = {}
+                    keyword_requests = 0
+                    keyword_hits = 0
                     for page_no in range(1, int(self.config["max_search_pages_per_keyword"]) + 1):
                         page.goto(f"https://search.bilibili.com/video?keyword={quote(keyword)}&page={page_no}", wait_until="domcontentloaded", timeout=45000)
                         detect_safety_block(page.title(), page.locator("body").inner_text(timeout=10000))
                         found = parse_search_html(page.content(), keyword)
+                        keyword_requests += 1
+                        keyword_hits += len(found)
+                        self.stats["discovery_requests"] += 1
                         self.stats["search_video_hits"] += len(found)
                         for item in found:
-                            videos_by_bvid.setdefault(item["bvid"], item)
-                        if len(videos_by_bvid) >= int(self.config["max_videos"]):
-                            break
+                            keyword_candidates.setdefault(item["bvid"], item)
                         self._sleep()
-                    checkpoint["completed_keywords"].append(keyword)
+                    candidates_by_keyword[keyword] = list(keyword_candidates.values())
+                    discovery_stats_by_keyword[keyword] = {
+                        "requests": keyword_requests,
+                        "hits": keyword_hits,
+                    }
+                    if keyword not in checkpoint["completed_keywords"]:
+                        checkpoint["completed_keywords"].append(keyword)
                     self.paths.checkpoint.write_text(json.dumps(checkpoint, ensure_ascii=False, indent=2), encoding="utf-8")
-                    if len(videos_by_bvid) >= int(self.config["max_videos"]):
-                        break
-                for bvid, hit in list(videos_by_bvid.items()):
+                candidates = select_candidates_round_robin(
+                    candidates_by_keyword,
+                    all_keywords,
+                    int(self.config["max_videos"]),
+                )
+                self.stats["candidate_videos_discovered"] = len({
+                    item.get("bvid")
+                    for items in candidates_by_keyword.values()
+                    if isinstance(items, list)
+                    for item in items
+                    if item.get("bvid")
+                })
+                self.stats["candidate_videos_selected"] = len(candidates)
+                for hit in candidates:
+                    bvid = hit["bvid"]
                     if bvid in checkpoint["completed_bvids"]:
                         continue
                     try:
@@ -439,27 +581,21 @@ class Collector:
                         video = parse_video_state(state, hit["url"], hit["query_keyword"])
                         if not video.get("title") or not video.get("publish_epoch"):
                             video = parse_video_html(page.content(), hit["url"], hit["query_keyword"])
-                        append_jsonl(self.paths.videos, [video])
+                        if bvid not in existing_videos:
+                            append_jsonl(self.paths.videos, [video])
+                            existing_videos[bvid] = video
                         self.stats["videos_read"] += 1
-                        page.mouse.wheel(0, 1600)
-                        page.wait_for_timeout(1800)
-                        visible_comments = page.evaluate("""() => {
-                          const root=document.querySelector('bili-comments')?.shadowRoot;
-                          return [...(root?.querySelectorAll('bili-comment-thread-renderer')||[])].map((thread,index)=>{
-                            const renderer=thread.shadowRoot?.querySelector('bili-comment-renderer');
-                            const sr=renderer?.shadowRoot;
-                            const user=sr?.querySelector('bili-comment-user-info')?.shadowRoot?.querySelector('#user-name');
-                            const rich=sr?.querySelector('bili-rich-text')?.shadowRoot?.querySelector('#contents');
-                            const actions=sr?.querySelector('bili-comment-action-buttons-renderer')?.shadowRoot;
-                            return {comment_id:renderer?.getAttribute('data-id')||`visible-${index}`,parent_id:'0',
-                              text:(rich?.textContent||'').trim(),publish_time:(actions?.querySelector('#pubdate')?.textContent||'').trim(),
-                              author_name:(user?.textContent||'').trim(),author_uid:user?.getAttribute('data-user-profile-id')||'',
-                              likes:(actions?.querySelector('#like #count')?.textContent||'').trim()};
-                          }).filter(x=>x.text);
-                        }""")
+                        visible_comments = self._extract_visible_comments(page)
+                        if visible_comments:
+                            self.stats["videos_with_comments_collected"] += 1
+                            self.stats["comments_collected"] += len(visible_comments[: int(self.config["max_comments_per_video"])])
                         for comment in visible_comments[: int(self.config["max_comments_per_video"])]:
                             comment["bvid"] = bvid
-                            comments_raw.append(comment)
+                        append_jsonl(
+                            self.paths.comments,
+                            visible_comments[: int(self.config["max_comments_per_video"])],
+                        )
+                        for comment in visible_comments[: int(self.config["max_comments_per_video"])]:
                             try:
                                 row = self._row("top_level_comment", comment.get("text", ""), video, comment)
                             except ValueError as exc:
@@ -484,10 +620,36 @@ class Collector:
                     context.close()
                 if browser is not None:
                     browser.close()
-        append_jsonl(self.paths.comments, comments_raw)
         included, excluded = filter_excluded(rows, self.keywords.get("exclude_terms", []))
         valid, duplicates = deduplicate(included, float(self.config["similarity_threshold"]), int(self.config["similarity_window_minutes"]))
         return valid, excluded + duplicates
+
+    def _extract_visible_comments(self, page) -> list[dict]:
+        script = """() => {
+          const root=document.querySelector('bili-comments')?.shadowRoot;
+          return [...(root?.querySelectorAll('bili-comment-thread-renderer')||[])].map((thread,index)=>{
+            const renderer=thread.shadowRoot?.querySelector('bili-comment-renderer');
+            const sr=renderer?.shadowRoot;
+            const user=sr?.querySelector('bili-comment-user-info')?.shadowRoot?.querySelector('#user-name');
+            const rich=sr?.querySelector('bili-rich-text')?.shadowRoot?.querySelector('#contents');
+            const actions=sr?.querySelector('bili-comment-action-buttons-renderer')?.shadowRoot;
+            return {comment_id:renderer?.getAttribute('data-id')||`visible-${index}`,parent_id:'0',
+              text:(rich?.textContent||'').trim(),publish_time:(actions?.querySelector('#pubdate')?.textContent||'').trim(),
+              author_name:(user?.textContent||'').trim(),author_uid:user?.getAttribute('data-user-profile-id')||'',
+              likes:(actions?.querySelector('#like #count')?.textContent||'').trim()};
+          }).filter(x=>x.text);
+        }"""
+        page.mouse.wheel(0, 1600)
+        page.wait_for_timeout(1800)
+        comments = page.evaluate(script)
+        for _ in range(int(self.config.get("retry_count", 0))):
+            if comments:
+                break
+            page.mouse.wheel(0, 1600)
+            page.wait_for_timeout(int(float(self.config.get("retry_backoff_seconds", 0)) * 1000))
+            detect_safety_block(page.title(), page.locator("body").inner_text(timeout=10000))
+            comments = page.evaluate(script)
+        return comments
 
     def run_live_node(self) -> tuple[list[dict], list[dict]]:
         configured_node = os.environ.get("APEX_NODE_EXECUTABLE", "").strip()
@@ -501,7 +663,7 @@ class Collector:
         worker = ROOT / "crawler" / "bilibili_playwright_worker.cjs"
         if node is None or not modules.is_dir() or not worker.is_file():
             raise RuntimeError("未找到可用的 Node Playwright 运行时。")
-        temp_dir = ROOT / "work"
+        temp_dir = self.artifact_dir or ROOT / "work"
         temp_dir.mkdir(parents=True, exist_ok=True)
         token = datetime.now().strftime("%Y%m%dT%H%M%S%f")
         request_path = temp_dir / f"bilibili_worker_request_{token}.json"
@@ -548,6 +710,7 @@ def main() -> int:
     parser.add_argument("--url", default="https://www.bilibili.com/video/BV0000000000")
     parser.add_argument("--keyword", default="Apex英雄")
     parser.add_argument("--week", help="目标完整自然周，格式 YYYY_Www；默认最近完整周")
+    parser.add_argument("--artifact-dir", type=Path, help="隔离保存本次运行的 checkpoint、原始文件、CSV、日志和报告")
     args = parser.parse_args()
     keywords = load_json_yaml(ROOT / "config" / "bilibili_apex_keywords.yaml")
     try:
@@ -567,7 +730,7 @@ def main() -> int:
         parsed = parse_video_html(args.parse_html.read_text(encoding="utf-8"), args.url, args.keyword)
         print(json.dumps(parsed, ensure_ascii=False, indent=2))
         return 0
-    collector = Collector(keywords, config, start, end, week_id)
+    collector = Collector(keywords, config, start, end, week_id, artifact_dir=args.artifact_dir)
     stop_reason = ""
     try:
         valid, filtered = collector.run_live()
@@ -577,7 +740,7 @@ def main() -> int:
         valid, filtered = [], []
         print(stop_reason, file=sys.stderr)
     csv_path = write_csv_new(collector.paths.csv, valid)
-    generate_report(ROOT / "reports" / "bilibili_apex_pilot_report.md", collector, valid, filtered, csv_path, stop_reason)
+    generate_report(collector.report_path, collector, valid, filtered, csv_path, stop_reason)
     return 2 if stop_reason else 0
 
 
@@ -604,7 +767,10 @@ def generate_report(path: Path, collector: Collector, valid: list[dict], filtere
         "# B站《Apex英雄》公开舆情试采集报告", "",
         f"- 目标自然周：{collector.week_id}（{collector.start.isoformat()} 至 {collector.end.isoformat()}）",
         f"- 实际采集时间：{collector.collected_at}", f"- 使用关键词：{', '.join(used) if used else '尚未成功执行页面采集'}",
-        f"- 搜索到的视频数量：{collector.stats['search_video_hits']}", f"- 成功读取视频数量：{collector.stats['videos_read']}",
+        f"- Discovery 请求数：{collector.stats['discovery_requests']}",
+        f"- 搜索结果命中数：{collector.stats['search_video_hits']}",
+        f"- 唯一候选视频数：{collector.stats['candidate_videos_discovered']}；按现有上限选取：{collector.stats['candidate_videos_selected']}",
+        f"- 成功读取视频数量：{collector.stats['videos_read']}；采到可见评论的视频数：{collector.stats['videos_with_comments_collected']}；可见评论数：{collector.stats['comments_collected']}",
         f"- 有效文本：{len(valid)}；过滤文本：{len(filtered)}；去重前：{total}；重复/过滤率：{(len(filtered)/total if total else 0):.2%}",
         f"- 空文本率：{(empty/total if total else 0):.2%}；发布时间缺失率：{(missing_time/total if total else 0):.2%}",
         f"- 安全停止或运行限制：{stop_reason or '无'}", f"- 统一 CSV：`{csv_path}`", "",

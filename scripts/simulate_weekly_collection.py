@@ -65,6 +65,8 @@ def build_fixture(
                 "platform": platform,
                 "source_type": source_type,
                 "bvid": f"SIMBV{index:04d}" if platform == "B站" else "",
+                "author_uid": f"sim-author-{platform_slug}-{index:04d}",
+                "views": index * 1000 if platform == "B站" else None,
                 "text": (
                     f"[SIMULATION] {text}。该记录仅用于 {week_id} "
                     "生产流水线联调，不代表任何平台真实观点。"

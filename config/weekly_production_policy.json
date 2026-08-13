@@ -1,20 +1,53 @@
 {
-  "policy_version": "1.1.0-2026-08-03",
+  "policy_version": "1.5.1-editorial-driver-selection-2026-08-12",
   "timezone": "Asia/Shanghai",
+  "workflow": {
+    "path": "config/workflow_v1.json",
+    "version": "apex-workflow-v1.0"
+  },
+  "canonical_business_rules": {
+    "path": "config/canonical_business_rules.json",
+    "version": "apex-business-rules-2026-08-12.1",
+    "sha256": "b8f8116107936e7d634d3a0f09c511916ab240649ea6753431a80069b02f7a09"
+  },
   "weekly_report": {
     "skill_name": "apex-weekly-report-writing",
-    "skill_version": "w30-editorial-pattern-2026-08-03",
+    "skill_version": "w30-editorial-driver-selection-mixed-sentiment-2026-08-12",
     "skill_path": "skills/apex-weekly-report-writing/SKILL.md",
     "writing_pattern_path": "skills/apex-weekly-report-writing/references/w30-writing-pattern.md",
     "narrative_validator_path": "scripts/validate_narratives.py",
-    "narrative_rule_version": "impact-ranking-revision-2026-08-03",
+    "narrative_rule_version": "event-driver-four-class-sentiment-2026-08-12",
     "narrative_rule_path": "templates/社区话题驱动因素表单叙述规则.md",
     "contract_path": "config/weekly_bilingual_report_contract.json",
     "template_path": "templates/APEX_CHINA_W30_10_DRIVER_TEMPLATE.xlsx",
     "target_driver_count": 10,
     "minimum_driver_count": 8,
-    "approved_review_statuses": ["approved_for_release"],
+    "approved_review_statuses": [
+      "approved_for_release"
+    ],
+    "candidate_review_statuses": [
+      "review_candidate"
+    ],
     "fixed_sentiment_order_forbidden": true
+  },
+  "editorial_workflow": {
+    "source": "apex_analyst_from_current_week_data_topics_and_evidence",
+    "product_chain": [
+      "raw_community_data",
+      "data_topics",
+      "evidence_and_editorial_synthesis",
+      "weekly_report_drivers"
+    ],
+    "human_approval_required": true,
+    "historical_or_default_package_forbidden": true,
+    "single_shot_systemd_integration_status": "checkpointed_workflow_v1",
+    "machine_phases": [
+      "prepare_to_analyst_checkpoint",
+      "candidate_build_validate_deploy_and_internal_review_email",
+      "publish_same_candidate_after_human_validator_and_sol_authorization"
+    ],
+    "analyst_checkpoint_state": "awaiting_analyst_synthesis",
+    "human_approval_checkpoint_state": "awaiting_human_approval"
   },
   "bilibili_sample_gate": {
     "minimum_effective_top_level_comments": 100,
@@ -32,11 +65,45 @@
     "bertopic_model_path": "models/bertopic_apex_exploratory_v1/bertopic_model.pkl",
     "bertopic_manifest_path": "models/bertopic_apex_exploratory_v1/model_manifest.json",
     "topic_registry_path": "models/bertopic_apex_exploratory_v1/topic_registry_exploratory.json",
+    "topic_registry_sha256": "a3dc679eb294945c2625689b1914af7e5540d6789b2d9082a38b8c36f5d4e88a",
     "topic_mapping_path": "outputs/bertopic_topic_mapping_final.csv",
+    "topic_mapping_sha256": "f150d2fd48f6efe8d54f3a351b76c76bb140c44e09845fa5ea05fbb3177aad3e",
     "domain_sentiment_model_path": "models/domain_sentiment_apex_v1/sentiment_model.pkl",
     "domain_sentiment_manifest_path": "models/domain_sentiment_apex_v1/model_manifest.json",
     "domain_sentiment_review_threshold": 0.35,
     "snownlp_role": "baseline_only_not_formal_truth",
     "confidence_semantics": "HDBSCAN membership probability; topic -1 forced to 0.0; not a calibrated classification-correctness probability"
+  },
+  "release_provenance": {
+    "clean_git_revision_required": true,
+    "source_revision_required": true,
+    "production_source_layout": "independent_clean_checkout_from_explicit_commit",
+    "development_dirty_worktree_must_not_be_used": true,
+    "checkpoint_source_revision_must_remain_unchanged": true,
+    "agent_runtime_receipt_required": true,
+    "manual_revision_provenance_required_for_revision_mode": true
+  },
+  "formal_agents": {
+    "runtime_integration_status": "external_sol_agent_orchestration_with_machine_checkpoints",
+    "systemd_is_custom_agent_orchestrator": false,
+    "collector": {
+      "agent": "apex_collector",
+      "model_family": "terra",
+      "reasoning_effort": "medium"
+    },
+    "analyst": {
+      "agent": "apex_analyst",
+      "model_family": "terra",
+      "reasoning_effort": "high"
+    },
+    "validator": {
+      "agent": "apex_validator",
+      "model_family": "terra",
+      "reasoning_effort": "high"
+    },
+    "final_review": {
+      "agent": "Sol",
+      "required": true
+    }
   }
 }

@@ -1,0 +1,203 @@
+{
+  "schema_version": 1,
+  "rule_version": "apex-heat-v1.0",
+  "status": "approved",
+  "effective_from_week": "2026_W32",
+  "legacy_through_week": "2026_W31",
+  "business_definition_zh": "Data Topic 在当前自然周社区中的相对讨论强度与传播广度；Heat 不是播放量排名。",
+  "business_definition_en": "The relative discussion intensity and breadth of a Data Topic in the current natural week; Heat is not a view-count ranking.",
+  "score_range": [0, 100],
+  "formula": {
+    "expression": "0.35 * discussion_intensity + 0.30 * discussion_breadth + 0.20 * engagement_depth + 0.10 * reach + 0.05 * momentum",
+    "weights": {
+      "discussion_intensity": 0.35,
+      "discussion_breadth": 0.3,
+      "engagement_depth": 0.2,
+      "reach": 0.1,
+      "momentum": 0.05
+    },
+    "rounding_decimals": 6
+  },
+  "components": {
+    "discussion_intensity": {
+      "raw_metric": "effective_topic_record_count",
+      "long_tail_count": true,
+      "definition": "Count of non-outlier records with a canonical Data Topic assignment for the platform and week."
+    },
+    "discussion_breadth": {
+      "expression": "0.60 * independent_content_source_score + 0.40 * independent_participant_score",
+      "weights": {
+        "independent_content_source_score": 0.6,
+        "independent_participant_score": 0.4
+      },
+      "long_tail_count": true,
+      "definition": "Breadth across independent content sources and independent participants; both inputs are required."
+    },
+    "engagement_depth": {
+      "raw_metric": "real_engagement_actions_per_effective_record",
+      "long_tail_count": true,
+      "definition": "Actual interaction efficiency or depth. Discussion count and count-derived proxies are forbidden."
+    },
+    "reach": {
+      "raw_metric": "sum_of_reliable_reach_once_per_independent_content_source",
+      "long_tail_count": true,
+      "definition": "Potential reach from real platform view or exposure observations. A platform-week with no proven reach observations is missing, not zero."
+    },
+    "momentum": {
+      "raw_metric": "relative_change_in_effective_discussion_share",
+      "long_tail_count": false,
+      "definition": "Relative change in the Topic share of platform effective discussion versus the previous complete week.",
+      "new_or_zero_baseline_policy": "missing_no_reliable_previous_baseline",
+      "low_base_protection": {
+        "method": "clip_relative_share_change",
+        "minimum": -2.0,
+        "maximum": 2.0
+      }
+    }
+  },
+  "platform_inputs": {
+    "B站": {
+      "record_unit": "effective_comment",
+      "content_source_id_priority": ["bvid"],
+      "participant_id_priority": ["author_uid", "author_id", "mid", "uid", "author_name"],
+      "participant_identity_complete_record_coverage_required": true,
+      "engagement": {
+        "method": "mean_real_comment_likes",
+        "fields": ["likes"],
+        "complete_record_coverage_required": true,
+        "forbidden_fields": ["comments", "shares", "danmaku", "favorites", "coins"],
+        "reason": "Those forbidden fields are source-level video totals repeated on comment rows in the canonical W32 schema."
+      },
+      "reach": {
+        "method": "sum_max_observed_value_per_content_source",
+        "fields": ["views"],
+        "positive_value_for_every_content_source_required": true
+      }
+    },
+    "小黑盒": {
+      "record_unit": "public_search_visible_post_card",
+      "content_source_id_priority": ["text_id", "post_id", "url"],
+      "participant_id_priority": ["author_uid", "author_id", "mid", "uid", "author_name"],
+      "participant_identity_complete_record_coverage_required": true,
+      "engagement": {
+        "method": "mean_real_post_likes_plus_comments",
+        "fields": ["likes", "comments"],
+        "complete_record_coverage_required": true
+      },
+      "reach": {
+        "method": "sum_max_observed_value_per_content_source",
+        "fields": ["views", "view_count", "exposure_count"],
+        "positive_value_for_every_content_source_required": true
+      }
+    }
+  },
+  "platform_eligibility": {
+    "policy_version": "apex-heat-platform-eligibility-v1.0",
+    "effective_from_week": "2026_W32",
+    "qualification_rule": "all_five_real_components_required",
+    "required_components": [
+      "discussion_intensity",
+      "discussion_breadth",
+      "engagement_depth",
+      "reach",
+      "momentum"
+    ],
+    "platforms": {
+      "B站": {
+        "status": "ELIGIBLE",
+        "reason": "All five Heat v1.0 components have approved real inputs.",
+        "restoration_requires_business_approval": false
+      },
+      "小黑盒": {
+        "status": "INELIGIBLE_REACH_UNAVAILABLE",
+        "reason": "The approved Xiaoheihe web collection surface does not provide reliable views, exposure, or reach.",
+        "disqualifying_component": "reach",
+        "heat_display": "N/A",
+        "excluded_from_composite": true,
+        "non_heat_participation": [
+          "data_topics",
+          "keywords",
+          "sentiment",
+          "evidence",
+          "weekly_report_drivers"
+        ],
+        "restoration_requires_business_approval": true
+      }
+    },
+    "ineligible_platform_score": null,
+    "ineligible_platform_never_enters_weight_denominator": true,
+    "default_value_forbidden": true,
+    "proxy_forbidden": true
+  },
+  "transformation_and_normalization": {
+    "order": [
+      "raw_metric",
+      "outlier_control",
+      "log_transform_for_long_tail_metrics",
+      "same_platform_same_week_standardization",
+      "zero_to_one_hundred_component",
+      "weighted_heat"
+    ],
+    "outlier_control": {
+      "method": "tukey_iqr_winsorization",
+      "quantile_interpolation": "linear_type_7",
+      "lower_quantile": 0.25,
+      "upper_quantile": 0.75,
+      "iqr_multiplier": 1.5,
+      "applied_before_log": true
+    },
+    "log_transform": {
+      "method": "natural_log1p",
+      "applies_to": [
+        "discussion_intensity",
+        "breadth_independent_content_sources",
+        "breadth_independent_participants",
+        "engagement_depth",
+        "reach"
+      ]
+    },
+    "standardization": {
+      "cohort": "same_platform_same_week_topics_with_available_raw_metric",
+      "method": "population_z_score",
+      "z_clip": [-3.0, 3.0],
+      "score_mapping": "clamp(50 + clipped_z * (50 / 3), 0, 100)",
+      "zero_dispersion_score": 50.0
+    }
+  },
+  "platform_aggregation": {
+    "platform_heat_must_be_calculated_independently": true,
+    "weight_expression": "sqrt(valid_evidence_count) / sum(sqrt(valid_evidence_count))",
+    "platform_with_zero_evidence": "excluded",
+    "eligible_platform_with_evidence_but_missing_component": "composite_blocked",
+    "ineligible_platform": "excluded_before_weight_calculation",
+    "single_eligible_platform": "topic_heat_equals_eligible_platform_heat",
+    "partial_platform_coverage_must_be_recorded": true,
+    "raw_cross_platform_metric_mixing_forbidden": true
+  },
+  "missing_value_policy": {
+    "zero_is_not_a_reach_observation_without_positive_platform_week_evidence": true,
+    "platform_heat_requires_all_five_components": true,
+    "partial_weight_renormalization_for_eligible_platforms_with_missing_components_forbidden": true,
+    "ineligible_platform_exclusion_is_not_missing_component_renormalization": true,
+    "proxy_or_fallback_forbidden": true,
+    "stored_score_when_blocked": null
+  },
+  "provenance_requirements": {
+    "source_artifact_sha256_required": true,
+    "component_raw_inputs_required": true,
+    "normalization_parameters_required": true,
+    "platform_weights_required": true,
+    "rule_version_required": true,
+    "rule_hash_required": true
+  },
+  "history_boundary": {
+    "legacy_weeks": "W25-W31",
+    "legacy_recalculation_forbidden": true,
+    "legacy_artifact_mutation_forbidden": true,
+    "cross_version_trend_must_show_break": true
+  },
+  "frontend_recalculation_allowed": false,
+  "builder_supplied_unreproducible_heat_allowed": false,
+  "task_specific_heat_allowed": false,
+  "fallback_to_legacy_heat_allowed": false
+}

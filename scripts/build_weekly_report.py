@@ -57,6 +57,7 @@ TOPIC_EN = {
 
 def _simulation_editorial_package(
     report_input: dict[str, object],
+    policy: dict[str, object],
 ) -> dict[str, object]:
     """Create a deterministic, explicitly simulated package for E2E testing."""
     records = report_input["evidence"]["B站"]
@@ -76,7 +77,7 @@ def _simulation_editorial_package(
         "测试玩家担忧", "联调用户讨论", "模拟群体认为", "测试新玩家期待", "联调参与者评价",
     ]
     drivers = []
-    for index, topic_id in enumerate(sorted(by_topic)[:10]):
+    for index, topic_id in enumerate(sorted(by_topic)[:10], start=1):
         row = by_topic[topic_id]
         sentiment = str(row.get("sentiment_label") or "neutral")
         topic_zh = str(row.get("canonical_topic_name") or "联调主题")
@@ -85,16 +86,18 @@ def _simulation_editorial_package(
             {
                 "topic_en": topic_en,
                 "topic_zh": topic_zh,
+                "driver_id": f"simulation-driver-{index:02d}",
+                "canonical_rank": index,
                 "sentiment_en": SENTIMENT_EN[sentiment],
                 "sentiment_zh": SENTIMENT_ZH[sentiment],
                 "narrative_en": (
-                    f"{openings_en[index]} the clearly labelled {topic_en.lower()} fixture and "
+                    f"{openings_en[index - 1]} the clearly labelled {topic_en.lower()} fixture and "
                     "reported how its bounded scenario behaved during the pipeline rehearsal. "
                     "The synthetic reaction helped verify narrative placement and increased "
                     "confidence in the test flow, but it cannot support a real community verdict."
                 ),
                 "narrative_zh": (
-                    f"{openings_zh[index]}已明确标注的“{topic_zh}”联调情境，并说明该情境在流水线演练中的表现。"
+                    f"{openings_zh[index - 1]}已明确标注的“{topic_zh}”联调情境，并说明该情境在流水线演练中的表现。"
                     "这类合成反馈帮助检查叙述排版和流程衔接，也限制了任何真实社区结论。"
                 ),
                 "canonical_topic_ids": [topic_id],
@@ -103,6 +106,27 @@ def _simulation_editorial_package(
             }
         )
     meta = report_input["meta"]
+    driver_ids = [str(driver["driver_id"]) for driver in drivers]
+    topic_review = {
+        "schema_version": 1,
+        "status": "simulation_fixture_only",
+        "entries": [
+            {
+                "data_topic_ids": list(driver["canonical_topic_ids"]),
+                "disposition": "direct",
+                "weekly_driver_ids": [driver["driver_id"]],
+                "rationale": "Deterministic simulation mapping; no live-platform claim.",
+            }
+            for driver in drivers
+        ],
+        "important_omission_review": {
+            "status": "simulation_fixture_only",
+            "method": "editorial_judgment_no_numeric_threshold",
+            "omitted_data_topic_ids": [],
+            "rationale": "Every simulated Data Topic is represented directly.",
+        },
+    }
+    report_policy = policy["weekly_report"]
     return {
         "schema": "apex_weekly_report_preview_v1",
         "review_status": "simulation_fixture_approved_for_test_only",
@@ -114,6 +138,21 @@ def _simulation_editorial_package(
         },
         "driver_count": len(drivers),
         "drivers": drivers,
+        "data_topic_editorial_review": topic_review,
+        "driver_ranking": {
+            "schema_version": 1,
+            "ordering_basis": "composite_influence_descending",
+            "ordering_method": "deterministic_simulation_only",
+            "score_present": False,
+            "ranked_driver_ids": driver_ids,
+            "rank_provenance": {
+                "source": "simulation_only_deterministic_editorial_fixture",
+                "policy_version": policy["policy_version"],
+                "skill_version": report_policy["skill_version"],
+                "narrative_rule_version": report_policy["narrative_rule_version"],
+                "review_status": "simulation_fixture_approved_for_test_only",
+            },
+        },
     }
 
 
@@ -199,6 +238,39 @@ def _copy_cell_style(
         target.set("s", source.attrib["s"])
     else:
         target.attrib.pop("s", None)
+
+
+def _cell_style_id(root: ET.Element, reference: str) -> str | None:
+    cell = next(
+        (
+            node
+            for node in root.iter(f"{{{SHEET_NS}}}c")
+            if node.attrib.get("r") == reference
+        ),
+        None,
+    )
+    if cell is None:
+        raise ValueError(f"template workbook is missing cell {reference}")
+    return cell.attrib.get("s")
+
+
+def _set_cell_style_id(
+    root: ET.Element, reference: str, style_id: str | None
+) -> None:
+    cell = next(
+        (
+            node
+            for node in root.iter(f"{{{SHEET_NS}}}c")
+            if node.attrib.get("r") == reference
+        ),
+        None,
+    )
+    if cell is None:
+        raise ValueError(f"template workbook is missing cell {reference}")
+    if style_id is None:
+        cell.attrib.pop("s", None)
+    else:
+        cell.set("s", style_id)
 
 
 def _comment_text(
@@ -349,22 +421,23 @@ def build_workbook(
                     "Mixed": 6,
                     "Negative": 8,
                 }
+                sentiment_styles = {
+                    sentiment: {
+                        "en": _cell_style_id(root, f"B{source_row}"),
+                        "zh": _cell_style_id(root, f"E{source_row}"),
+                    }
+                    for sentiment, source_row in style_rows.items()
+                }
                 for row, driver in zip(
                     [4, 6, 8, 11, 13, 15, 17, 19, 21, 23],
                     drivers,
                 ):
-                    source_row = style_rows[
-                        str(driver["sentiment_en"])
-                    ]
-                    _copy_cell_style(
-                        root,
-                        target_reference=f"B{row}",
-                        source_reference=f"B{source_row}",
+                    sentiment = str(driver["sentiment_en"])
+                    _set_cell_style_id(
+                        root, f"B{row}", sentiment_styles[sentiment]["en"]
                     )
-                    _copy_cell_style(
-                        root,
-                        target_reference=f"E{row}",
-                        source_reference=f"E{source_row}",
+                    _set_cell_style_id(
+                        root, f"E{row}", sentiment_styles[sentiment]["zh"]
                     )
                 data = ET.tostring(root, encoding="utf-8", xml_declaration=True)
             elif info.filename == "xl/threadedcomments/threadedcomment.xml":
@@ -414,7 +487,7 @@ def main() -> int:
         editorial_package = (
             json.loads(args.editorial_package.read_text(encoding="utf-8"))
             if args.editorial_package
-            else _simulation_editorial_package(report_input)
+            else _simulation_editorial_package(report_input, policy)
         )
         editorial_source = "generated_deterministic_simulation_fixture"
     else:
@@ -464,7 +537,11 @@ def main() -> int:
             "current_data_version": editorial_package.get("current_data_version"),
             "driver_count": len(drivers),
             "drivers": drivers,
+            "driver_ranking": editorial_package.get("driver_ranking"),
             "driver_reduction": editorial_package.get("driver_reduction"),
+            "data_topic_editorial_review": editorial_package.get(
+                "data_topic_editorial_review"
+            ),
             "rule_provenance": context["report_rules"],
         }
     )
@@ -502,7 +579,11 @@ def main() -> int:
                 sha256(args.editorial_package) if args.editorial_package else None
             ),
             "review_status": editorial_package.get("review_status"),
+            "driver_ranking": editorial_package.get("driver_ranking"),
             "approval": editorial_package.get("approval"),
+            "data_topic_editorial_review": editorial_package.get(
+                "data_topic_editorial_review"
+            ),
             "skill_name": context["report_rules"]["skill_name"],
             "skill_version": context["report_rules"]["skill_version"],
             "narrative_rule_version": context["report_rules"]["narrative_rule_version"],

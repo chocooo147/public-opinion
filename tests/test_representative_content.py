@@ -76,7 +76,14 @@ class RepresentativeContentTests(unittest.TestCase):
                 self.assertIn("representative_contents", source)
                 self.assertIn("暂无可验证的代表性B站视频", source)
                 self.assertIn("APEX_REPRESENTATIVE_CONTENT_SCHEMA_ERROR", source)
-                self.assertIn("validRepresentativeUrl", source)
+                if path.name == "index.html":
+                    self.assertIn("代表性内容来源", source)
+                    self.assertIn("source_available", source)
+                    self.assertIn("source_href", source)
+                    self.assertIn("原始来源链接不可用", source)
+                    self.assertNotIn("validRepresentativeUrl", source)
+                else:
+                    self.assertIn("validRepresentativeUrl", source)
                 self.assertNotIn("${v.bvid}", source)
                 self.assertNotIn("${v.comment_count}", source)
                 self.assertNotIn("/video/undefined", source)

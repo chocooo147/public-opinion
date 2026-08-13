@@ -56,8 +56,12 @@ class ReportDownloadTests(unittest.TestCase):
                 self.assertEqual(source.count("function buildReportInputPackage()"), 1)
                 self.assertEqual(source.count("function openDownloadCenter()"), 1)
                 self.assertNotIn("APAC_Weekly_Community_Sentiment_Report_Template", source)
-                self.assertIn("templates/APEX_Dashboard_Data_and_Narrative_Guide.md", source)
-                self.assertIn("reports/APEX_W29_Combined_Dashboard_Long_Capture.png", source)
+                if path.name == "index.html":
+                    self.assertNotIn('href="templates/', source)
+                    self.assertNotIn('href="outputs/', source)
+                else:
+                    self.assertIn("templates/APEX_Dashboard_Data_and_Narrative_Guide.md", source)
+                    self.assertIn("reports/APEX_W29_Combined_Dashboard_Long_Capture.png", source)
                 self.assertNotIn("reports/APEX_W29_Combined_Dashboard_Landscape.pdf", source)
                 self.assertIn("apac_china_weekly_sentiment_report_input_v4", source)
                 self.assertIn("export_status:'draft_input_only_not_a_complete_report'", source)
@@ -204,16 +208,14 @@ class ReportDownloadTests(unittest.TestCase):
             "downloadW30HistoricalReport",
             "downloadReportInput",
             "downloadFullDashboard",
-            "downloadDashboardLongCapture",
             "downloadCurrentMethodology",
-            "downloadDashboardGuide",
         ):
             with self.subTest(element_id=element_id):
                 self.assertEqual(source.count(f'id="{element_id}"'), 1)
         self.assertNotIn("Word", source[source.index('<div class="download-grid">'):source.index('<div class="download-spec">')])
         download_grid = source[source.index('<div class="download-grid">'):source.index('<div class="download-spec">')]
-        self.assertIn("bilibili_apex_2026_W31.json", download_grid)
-        self.assertIn("heybox_apex_2026_W31_public_search.json", download_grid)
+        self.assertNotIn("bilibili_apex_2026_W31.json", download_grid)
+        self.assertNotIn("heybox_apex_2026_W31_public_search.json", download_grid)
         self.assertNotIn("bilibili_apex_2026_W30.json", download_grid)
         self.assertNotIn("heybox_apex_2026_W30_public_search.json", download_grid)
         self.assertIn("APEX_CHINA_W30_Weekly_Community_Report.xlsx", download_grid)
@@ -222,7 +224,7 @@ class ReportDownloadTests(unittest.TestCase):
             download_grid.count("APEX_CHINA_W31_Weekly_Community_Report.md"),
             1,
         )
-        self.assertEqual(source.count('id="downloadDashboardGuide"'), 1)
+        self.assertEqual(source.count('id="downloadDashboardGuide"'), 0)
         self.assertNotIn('id="downloadDashboardPdf"', source)
         self.assertIn("download-actions", source)
 

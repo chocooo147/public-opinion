@@ -1,5 +1,5 @@
 {
-  "contract_version": "1.1-impact-order",
+  "contract_version": "1.2-narrative-length",
   "template_reference": "templates/APEX_CHINA_W30_10_DRIVER_TEMPLATE.xlsx",
   "layout": {
     "worksheet_count": 1,
@@ -41,7 +41,10 @@
     "bilingual_meaning_alignment_required": true,
     "evidence_comment_required_per_driver": true,
     "source_scope_and_limitations_required": true,
-    "causal_language_requires_direct_evidence": true
+    "causal_language_requires_direct_evidence": true,
+    "minimum_sentences_per_language": 1,
+    "english_narrative_word_minimum": 20,
+    "english_narrative_word_maximum": 75
   },
   "quality_gate": {
     "minimum_driver_narrative_characters": 80,

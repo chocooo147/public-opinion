@@ -1,5 +1,6 @@
 [Unit]
-Description=Send APEX weekly result at the Monday 09:00 delivery deadline
+Description=Legacy APEX email timer (disabled by Workflow v1.0 approval gates)
+ConditionPathExists=/etc/apex/enable-legacy-email-timer
 
 [Timer]
 OnCalendar=Mon *-*-* 09:00:00 Asia/Shanghai

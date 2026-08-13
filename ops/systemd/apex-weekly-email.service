@@ -1,5 +1,5 @@
 [Unit]
-Description=Send the final APEX weekly result at Monday 09:00
+Description=Legacy APEX final-email entrypoint (Workflow v1.0 pipeline owns delivery)
 After=network-online.target
 Wants=network-online.target
 

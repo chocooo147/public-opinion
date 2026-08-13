@@ -1,0 +1,13 @@
+{
+  "timezone": "Asia/Shanghai",
+  "keywords": ["apex服务器", "apex外挂", "apex新赛季"],
+  "max_keywords": 3,
+  "max_cards_per_keyword": 10,
+  "max_total_cards": 20,
+  "page_delay_seconds": [2.5, 4.0],
+  "headless": true,
+  "browser_channel": "chrome",
+  "stop_on_login": true,
+  "stop_on_captcha": true,
+  "stop_on_rate_limit": true
+}

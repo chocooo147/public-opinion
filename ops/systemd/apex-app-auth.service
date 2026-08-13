@@ -1,0 +1,22 @@
+[Unit]
+Description=APEX server-side application authentication and protected static site
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=apex
+Group=apex
+WorkingDirectory=/opt/apex
+ExecStart=/opt/apex/venv-analysis/bin/python /opt/apex/ops/production/app_auth_server.py --bind 127.0.0.1 --port 8765 --site-root /srv/apex-site/current --accounts /var/lib/apex/auth/accounts.json
+Restart=on-failure
+RestartSec=3s
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/var/lib/apex/auth
+ReadOnlyPaths=/srv/apex-site
+
+[Install]
+WantedBy=multi-user.target

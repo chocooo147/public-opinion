@@ -13,6 +13,11 @@ from pathlib import Path
 from typing import Any, Iterable
 
 from project_paths import resolve_project_asset
+from canonical_rules import (
+    load_canonical_rules,
+    public_rule_metadata,
+    sanitize_dashboard_keywords,
+)
 from content_integrity import (
     EVENT_RULE_VERSION,
     KEYWORD_RULE_VERSION,
@@ -20,6 +25,7 @@ from content_integrity import (
     extract_keywords,
     generate_events,
 )
+from heat_v1 import apply_heat_v1_to_week, atomic_json_artifact_sha256
 from sentiment_integrity import summarize_sentiment
 from representative_content import build_representative_contents
 
@@ -72,6 +78,29 @@ def load_production_policy(project_root: Path) -> dict[str, Any]:
     payload["_path"] = path.as_posix()
     payload["_sha256"] = sha256(path)
     return payload
+
+
+def verify_policy_asset_hashes(
+    project_root: Path, policy: dict[str, Any]
+) -> dict[str, dict[str, Any]]:
+    """Verify pinned registry/mapping assets without changing model state."""
+
+    verified: dict[str, dict[str, Any]] = {}
+    for name in ("topic_registry", "topic_mapping"):
+        path_key = f"{name}_path"
+        hash_key = f"{name}_sha256"
+        path = resolve_project_asset(project_root, policy["model_gate"][path_key])
+        expected = str(policy["model_gate"].get(hash_key) or "")
+        actual = sha256(path)
+        if not expected or actual != expected:
+            raise ValueError(
+                f"pinned {name} hash mismatch: {actual} != {expected or 'missing'}"
+            )
+        verified[name] = {
+            "path": policy["model_gate"][path_key],
+            "sha256": actual,
+        }
+    return verified
 
 
 def file_fingerprint(path: Path) -> dict[str, Any]:
@@ -636,7 +665,6 @@ def _platform_metric(
         if positive is not None and negative is not None
         else None
     )
-    heat = _clamp(18 + count * 8 + math.log1p(likes + comments) * 7)
     is_bilibili = platform == "B站"
     metrics_source = (
         "simulated_fixture"
@@ -712,13 +740,10 @@ def _platform_metric(
         "trend": trend,
         "video_coverage_score": _clamp(count / 40 * 100),
         "creator_coverage_score": _clamp(count / 30 * 100),
-        "discussion_coverage": _clamp(count / 35 * 100),
-        "discussion_volume_score": _clamp(count / 200 * 100),
-        "influence_score": _clamp(45 + count * 1.2),
-        "engagement_score": _clamp(50 + count * 0.8),
-        "growth_score": _clamp(50 + float(wow or 0) * 0.35),
         "consensus_score": consensus,
-        "heat_score": heat,
+        "heat_score": None,
+        "heat_rule_status": "pending_canonical_heat_v1_calculation",
+        "heat_score_status": "pending_canonical_heat_v1_calculation",
         "risk_score": risk,
         "metrics_source": metrics_source,
         "simulated": simulated,
@@ -871,7 +896,7 @@ def _combined_metric(
         "sentiment_status": "sentiment_data_unavailable" if valid_count == 0 else "mixed_platform_model_output",
         "sentiment_model": "mixed_platform_models" if valid_count else None,
         "sentiment_model_version": "see_platform_metrics" if valid_count else None,
-        "heat_score": weighted_by_count("heat_score"),
+        "heat_score": None,
         "consensus_score": weighted_by_valid("consensus_score"),
         "risk_score": weighted_by_count("risk_score"),
         "count": count,
@@ -932,7 +957,12 @@ def build_dashboard(
     end: date,
     simulated: bool,
     sample_quality_by_platform: dict[str, dict[str, Any]] | None = None,
+    business_rules: dict[str, Any] | None = None,
+    heat_source_artifact_hashes: dict[str, str] | None = None,
 ) -> dict[str, Any]:
+    business_rules = business_rules or load_canonical_rules(
+        Path(__file__).resolve().parents[1]
+    )
     sample_quality_by_platform = sample_quality_by_platform or {}
     b_quality = sample_quality_by_platform.get("B站", {})
     low_sample = bool(b_quality.get("low_sample_week")) and not simulated
@@ -970,9 +1000,15 @@ def build_dashboard(
             if rows
         }
     )
-    if len(active_ids) < 8:
+    minimum_topics = int(
+        business_rules["data_topics"]["qualification"][
+            "minimum_active_topic_count"
+        ]
+    )
+    if len(active_ids) < minimum_topics:
         raise ValueError(
-            f"fewer than eight evidence-qualified topics: {len(active_ids)}"
+            f"fewer than {minimum_topics} evidence-qualified topics: "
+            f"{len(active_ids)}"
         )
 
     topics: list[dict[str, Any]] = []
@@ -1061,7 +1097,7 @@ def build_dashboard(
                 "low_sample_status": b_metric["low_sample_status"],
                 "wow": wow,
                 "trend": list(b_metric["trend"]),
-                "heat_score": int(b_metric["heat_score"]),
+                "heat_score": None,
                 "consensus_score": (
                     int(b_metric["consensus_score"])
                     if b_metric["consensus_score"] is not None
@@ -1342,6 +1378,33 @@ def build_dashboard(
         "trend_interpretation_eligible": not low_sample,
         "evolution": evolution,
     }
+    if week_id >= business_rules["heat"]["effective_from_week"]:
+        apply_heat_v1_to_week(
+            current_week,
+            previous_week,
+            bilibili_payload,
+            heybox_payload,
+            policy=business_rules["_heat_policy"],
+            policy_hash=business_rules["_heat_policy_sha256"],
+            source_artifact_hashes=heat_source_artifact_hashes
+            or {
+                "B站": atomic_json_artifact_sha256(bilibili_payload),
+                "小黑盒": atomic_json_artifact_sha256(heybox_payload),
+            },
+        )
+    else:
+        current_week["heat_version_status"] = "legacy_week_not_recalculated"
+        for topic in current_week["topics"]:
+            topic["heat_score"] = None
+            topic["heat_status"] = "legacy_week_not_recalculated"
+            for metric in (topic.get("platform_metrics") or {}).values():
+                metric["heat_score"] = None
+                metric["heat_status"] = "legacy_week_not_recalculated"
+                metric["heat_score_status"] = "legacy_week_not_recalculated"
+            combined = topic.get("combined_metrics") or {}
+            combined["heat_score"] = None
+            combined["heat_status"] = "legacy_week_not_recalculated"
+            combined["heat_score_status"] = "legacy_week_not_recalculated"
     weeks = (prior_weeks + [current_week])[-5:]
     boundaries = SIMULATION_BOUNDARIES if simulated else DATA_BOUNDARIES
     result = copy.deepcopy(baseline)
@@ -1381,6 +1444,13 @@ def build_dashboard(
             "low_sample_week": low_sample,
             "publication_gate_passed": simulated or not low_sample,
             "sample_quality": sample_quality_by_platform,
+            "canonical_rules": public_rule_metadata(business_rules),
+            "heat_version_boundary": {
+                "legacy_through_week": business_rules["heat"]["legacy_through_week"].replace("_", "-"),
+                "canonical_from_week": business_rules["heat"]["effective_from_week"].replace("_", "-"),
+                "legacy_recalculated": False,
+                "cross_version_scores_directly_comparable": False,
+            },
         }
     )
     result["meta"][f"bilibili_w{week_number(week_id):02d}_sample"] = (
@@ -1389,6 +1459,7 @@ def build_dashboard(
     result["meta"][f"heybox_w{week_number(week_id):02d}_sample"] = (
         heybox_payload["meta"]
     )
+    sanitize_dashboard_keywords(result, business_rules)
     return result
 
 
@@ -1403,6 +1474,16 @@ def patch_site_html(
     bilibili_filename: str,
     heybox_filename: str,
 ) -> str:
+    # The publishing boundary must not trust a caller to have attached current
+    # rule metadata or applied visible-keyword exclusions.  Rebind both from
+    # the canonical policy immediately before embedding the dashboard.
+    project_root = Path(__file__).resolve().parents[1]
+    business_rules = load_canonical_rules(project_root)
+    dashboard = copy.deepcopy(dashboard)
+    dashboard.setdefault("meta", {})["canonical_rules"] = public_rule_metadata(
+        business_rules
+    )
+    sanitize_dashboard_keywords(dashboard, business_rules)
     old_display = str(
         json.loads(
             re.search(
@@ -1498,6 +1579,20 @@ def patch_site_html(
     )
     if count != 1:
         raise ValueError("could not replace embedded dashboard data")
+    public_rules = json.dumps(
+        dashboard["meta"]["canonical_rules"],
+        ensure_ascii=False,
+        separators=(",", ":"),
+    )
+    source, rule_count = re.subn(
+        r"const EMBEDDED_CANONICAL_RULE_METADATA = \{.*?\};\s*\n",
+        f"const EMBEDDED_CANONICAL_RULE_METADATA = {public_rules};\n",
+        source,
+        count=1,
+        flags=re.S,
+    )
+    if rule_count != 1:
+        raise ValueError("could not replace embedded canonical rule metadata")
     source = re.sub(
         r"const CURRENT_REPORT_PREVIEW_PATH='[^']+';",
         f"const CURRENT_REPORT_PREVIEW_PATH='reports/{preview_filename}';",

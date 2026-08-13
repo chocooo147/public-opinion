@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "workflow_version": "apex-workflow-v1.0",
+  "effective_from_week": "2026_W33",
+  "machine_phases": [
+    "prepare",
+    "candidate",
+    "publish"
+  ],
+  "states": {
+    "after_prepare": "awaiting_analyst_synthesis",
+    "after_candidate": "awaiting_human_approval",
+    "after_publish": "live_verified"
+  },
+  "candidate": {
+    "editorial_review_status": "review_candidate",
+    "machine_validator_required": true,
+    "deploy_before_internal_review_email": true,
+    "live_marker_forbidden": true,
+    "public_pointer": "candidate"
+  },
+  "approval": {
+    "human_approval_required": true,
+    "approved_status": "approved_for_release",
+    "agent_validator_receipt_required": true,
+    "sol_final_authority_required": true
+  },
+  "promotion": {
+    "reuse_candidate_public_artifact": true,
+    "recollection_forbidden": true,
+    "recalculation_forbidden": true,
+    "public_artifact_hash_must_match_candidate": true,
+    "live_pointer": "current"
+  },
+  "email": {
+    "internal_review": {
+      "required_state": "awaiting_human_approval",
+      "candidate_receipt_required": true,
+      "approval_required": false
+    },
+    "final_delivery": {
+      "required_state": "success",
+      "approval_required": true,
+      "live_verification_required": true
+    }
+  },
+  "exception_path": {
+    "mode": "revision",
+    "reuse_verified_artifacts": true,
+    "rerun_only_declared_stages": true,
+    "revision_provenance_required": true
+  },
+  "systemd_boundary": {
+    "timer_phase": "prepare",
+    "custom_agent_orchestration": "external_sol_orchestration",
+    "candidate_and_publish": "checkpoint_triggered_no_timer"
+  }
+}

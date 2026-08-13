@@ -69,10 +69,17 @@ class W31ManualReviewTests(unittest.TestCase):
         for path in HTML_PATHS:
             source = path.read_text(encoding="utf-8")
             with self.subTest(path=path.name):
-                self.assertIn(
-                    'keywordCard&&keywordCard.classList.remove("legacy-layout-hidden")',
-                    source,
-                )
+                if path.name == "index.html":
+                    self.assertNotIn('id="topKeywordOverview"', source)
+                    self.assertIn("function openKeywordDrawer(", source)
+                    self.assertNotIn(
+                        '<h3 class="panel-title">高频关键词</h3>', source
+                    )
+                else:
+                    self.assertIn(
+                        'keywordCard&&keywordCard.classList.remove("legacy-layout-hidden")',
+                        source,
+                    )
                 self.assertIn("function negativeRateHtml(", source)
                 self.assertIn("m?.negative_rate", source)
                 self.assertIn("sentiment_valid_count", source)

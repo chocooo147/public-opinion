@@ -40,12 +40,16 @@ def _csv_payload(
         for field in ("likes", "comments", "shares", "views"):
             value = row.get(field)
             if value in (None, ""):
-                row[field] = 0
+                row[field] = (
+                    None if platform == "小黑盒" and field == "views" else 0
+                )
             else:
                 try:
                     row[field] = int(float(str(value)))
                 except ValueError:
-                    row[field] = 0
+                    row[field] = (
+                        None if platform == "小黑盒" and field == "views" else 0
+                    )
     return {
         "meta": {
             "week_id": week_id,
@@ -96,9 +100,19 @@ def _jsonl_payload(
             for field in ("likes", "comments", "shares", "views"):
                 value = row.get(field)
                 try:
-                    row[field] = int(float(str(value))) if value not in (None, "") else 0
+                    row[field] = (
+                        int(float(str(value)))
+                        if value not in (None, "")
+                        else (
+                            None
+                            if platform == "小黑盒" and field == "views"
+                            else 0
+                        )
+                    )
                 except ValueError:
-                    row[field] = 0
+                    row[field] = (
+                        None if platform == "小黑盒" and field == "views" else 0
+                    )
             rows.append(row)
     return {
         "meta": {

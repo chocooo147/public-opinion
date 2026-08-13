@@ -1,0 +1,26 @@
+{
+  "model": "domain_char_tfidf_logistic_v1",
+  "version": "1.0.0",
+  "package": "scikit-learn",
+  "python": "3.12.13",
+  "source": "data/processed/bilibili_apex_W25_W28_snownlp_sentiment.csv",
+  "source_sha256": "b493b7cd4ea4c989df8086b5294eb8b539dfd0c70254f60374eba600fad150c4",
+  "model_path": "models/domain_sentiment_apex_v1/sentiment_model.pkl",
+  "model_sha256": "90201c16fad44016ba310f7f451824f0f7e9390175e86ea89b861110ebab8c76",
+  "random_seed": 2717,
+  "validation": {
+    "sample_count": 290,
+    "class_counts": {"积极": 59, "中性": 175, "负面": 56},
+    "accuracy": 0.5759,
+    "macro_f1": 0.493,
+    "cv": {"folds": 5, "shuffle": true, "random_state": 2717},
+    "baseline_snownlp_accuracy": 0.3966,
+    "baseline_snownlp_macro_f1": 0.3934,
+    "review_threshold": 0.35,
+    "review_required_rows": 240,
+    "qualification": "improved_over_snownlp_baseline_but_not_independent_formal_truth"
+  },
+  "deployment_scope": "Bilibili auxiliary dashboard only; independent review required",
+  "formal_reporting_qualified": false,
+  "copied_without_retraining": true
+}

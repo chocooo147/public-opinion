@@ -2,7 +2,8 @@
 """小黑盒网页端公开搜索结果卡片的有界采集器。
 
 仅读取已登录网页端搜索结果列表中可见的帖子卡片，不进入帖子详情页，
-不采集评论正文，也不绕过登录、验证码、限流或其他访问控制。
+不采集评论正文，也不绕过登录、验证码、限流或其他访问控制。作者身份
+仅来自卡片中公开可见的用户主页链接；页面没有可靠 Reach 字段时保持缺失。
 """
 from __future__ import annotations
 
@@ -35,18 +36,29 @@ CARD_SELECTOR = 'a[href^="/app/bbs/link/"]'
 DATE_RE = re.compile(r"^(?:(?P<year>\d{4})-)?(?P<month>\d{1,2})-(?P<day>\d{1,2})$")
 RELATIVE_DATE_RE = re.compile(r"^(?P<days>\d+)天前$")
 LEVEL_RE = re.compile(r"^Lv\.\d+", re.IGNORECASE)
+AUTHOR_PROFILE_RE = re.compile(r"^/app/user/profile/(?P<author_uid>\d+)$")
 
 CSV_FIELDS = [
     "text_id",
+    "post_id",
     "publish_time",
     "platform",
     "text",
+    "title",
+    "summary",
+    "community",
+    "displayed_date",
+    "author_name",
+    "author_uid",
     "likes",
     "comments",
     "shares",
+    "views",
     "url",
     "source_type",
     "query_keyword",
+    "collected_at",
+    "content_hash",
 ]
 
 
@@ -105,7 +117,12 @@ def parse_displayed_date(value: str, now: datetime, start: datetime, end: dateti
     return matches[0] if len(matches) == 1 else None
 
 
-def parse_card_text(card_text: str, href: str, keyword: str) -> dict | None:
+def parse_card_text(
+    card_text: str,
+    href: str,
+    keyword: str,
+    author_profile_href: str = "",
+) -> dict | None:
     lines = [normalize_text(line) for line in card_text.splitlines()]
     lines = [line for line in lines if line]
     if len(lines) < 6 or not re.fullmatch(r"/app/bbs/link/\d+", href or ""):
@@ -134,9 +151,11 @@ def parse_card_text(card_text: str, href: str, keyword: str) -> dict | None:
     title = content[0]
     summary = " ".join(content[1:])
     post_id = href.rstrip("/").split("/")[-1]
+    author_match = AUTHOR_PROFILE_RE.fullmatch(author_profile_href or "")
     return {
         "post_id": post_id,
         "author_name": " ".join(lines[:level_index] if level_index > 0 else lines[:1]),
+        "author_uid": author_match.group("author_uid") if author_match else "",
         "title": title,
         "summary": summary,
         "community": lines[date_index - 1],
@@ -208,10 +227,17 @@ def collect(config: dict, keywords: list[str], start: datetime, end: datetime, n
                 count = min(cards.count(), int(config["max_cards_per_keyword"]))
                 for index in range(count):
                     card = cards.nth(index)
+                    author_links = card.locator('a[href^="/app/user/profile/"]')
+                    author_profile_href = (
+                        author_links.first.get_attribute("href")
+                        if author_links.count()
+                        else ""
+                    )
                     parsed = parse_card_text(
                         card.inner_text(timeout=5000),
                         card.get_attribute("href") or "",
                         keyword,
+                        author_profile_href or "",
                     )
                     if not parsed:
                         continue
@@ -225,12 +251,14 @@ def collect(config: dict, keywords: list[str], start: datetime, end: datetime, n
                         parsed["post_id"],
                         {
                             "text_id": f"heybox:{parsed['post_id']}",
+                            "post_id": parsed["post_id"],
                             "publish_time": published.isoformat(),
                             "platform": "小黑盒",
                             "text": text,
                             "likes": parsed["likes"],
                             "comments": parsed["comments"],
                             "shares": "",
+                            "views": "",
                             "url": parsed["url"],
                             "source_type": "post_card",
                             "query_keyword": keyword,
@@ -240,6 +268,7 @@ def collect(config: dict, keywords: list[str], start: datetime, end: datetime, n
                             "summary": parsed["summary"],
                             "community": parsed["community"],
                             "author_name": parsed["author_name"],
+                            "author_uid": parsed["author_uid"],
                             "collected_at": now.isoformat(),
                         },
                     )
@@ -286,6 +315,18 @@ def main() -> int:
     except (SafetyStop, RuntimeError) as exc:
         print(str(exc), file=sys.stderr)
         return 2
+    incomplete_author_ids = [
+        row.get("post_id", "")
+        for row in selected
+        if not row.get("author_name") or not row.get("author_uid")
+    ]
+    if incomplete_author_ids:
+        print(
+            "小黑盒帖子作者身份不完整，停止输出 Heat v1.0 输入："
+            + ", ".join(incomplete_author_ids),
+            file=sys.stderr,
+        )
+        return 2
     append_jsonl(raw_path, visible)
     write_csv(csv_path, selected)
     manifest = {
@@ -303,6 +344,9 @@ def main() -> int:
         "collection_scope": "Logged-in Xiaoheihe web public-search result cards only; not a platform-wide census.",
         "comment_body_collection": False,
         "detail_page_collection": False,
+        "post_author_identity_collection": "visible_author_name_and_profile_uid",
+        "post_author_identity_complete": True,
+        "reach_collection_status": "missing_no_reliable_visible_web_field",
         "sample_limited": True,
         "formal_reporting_qualified": False,
         "date_rule": "Only cards whose displayed date resolves unambiguously into the last complete Asia/Shanghai natural week.",

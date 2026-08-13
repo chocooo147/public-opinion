@@ -1,0 +1,15 @@
+[Unit]
+Description=APEX Workflow v1.0 build, validate, and deploy Review Candidate
+After=network-online.target apex-app-auth.service
+Wants=network-online.target apex-app-auth.service
+[Service]
+Type=oneshot
+User=apex
+Group=apex
+WorkingDirectory=/opt/apex
+EnvironmentFile=/opt/apex/runtime.env
+EnvironmentFile=/etc/apex/candidate.env
+ExecStart=/opt/apex/venv-analysis/bin/python /opt/apex/ops/production/weekly_pipeline.py --workflow-phase candidate --checkpoint ${APEX_CHECKPOINT} --editorial-package ${APEX_EDITORIAL_PACKAGE} --agent-runtime-receipt ${APEX_AGENT_RUNTIME_RECEIPT}
+TimeoutStartSec=2h
+PrivateTmp=true
+NoNewPrivileges=true

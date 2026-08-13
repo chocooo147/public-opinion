@@ -97,15 +97,30 @@ def public_status(run: dict) -> dict:
             if key in item
         }
     simulated = run.get("mode") == "simulate"
+    latest_pipeline_run = {
+        "run_id": run.get("run_id"),
+        "week_id": run.get("week_id"),
+        "status": run.get("status"),
+        "mode": run.get("mode", "production"),
+        "workflow_phase": run.get("workflow_phase"),
+        "failed_stage": failed_stage,
+        "started_at": run.get("started_at"),
+        "finished_at": run.get("finished_at"),
+    }
     return {
-        "schema_version": 1,
+        "schema_version": 2,
         "service": "apex-weekly-report",
+        "current_live_release": run.get("current_live_release"),
+        "review_candidate": run.get("review_candidate"),
+        "latest_pipeline_run": latest_pipeline_run,
+        # Compatibility aliases retained for existing status consumers.
         "run_id": run.get("run_id"),
         "week_id": run.get("week_id"),
         "week_start": run.get("week_start"),
         "week_end": run.get("week_end"),
         "status": run.get("status"),
         "mode": run.get("mode", "production"),
+        "workflow_phase": run.get("workflow_phase"),
         "failed_stage": failed_stage,
         "started_at": run.get("started_at"),
         "finished_at": run.get("finished_at"),
@@ -140,6 +155,24 @@ def public_status(run: dict) -> dict:
             ),
             "formal_reporting_qualified": False,
         },
+    }
+
+
+def inspect_current_live_release(site_root: Path) -> dict | None:
+    current = site_root / "current"
+    if not current.is_symlink():
+        return None
+    resolved = current.resolve()
+    manifest_path = resolved / "manifest.json"
+    if not manifest_path.is_file():
+        return None
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    return {
+        "status": "live",
+        "target": resolved.name,
+        "week_id": manifest.get("week_id"),
+        "manifest_sha256": sha256(manifest_path),
+        "verified": bool(manifest.get("valid")),
     }
 
 
@@ -208,6 +241,19 @@ def main() -> int:
         default="production",
     )
     parser.add_argument(
+        "--workflow-phase",
+        choices=("full", "prepare", "candidate", "publish"),
+        help=(
+            "Machine workflow phase. Production/revision default to prepare; "
+            "simulation defaults to full."
+        ),
+    )
+    parser.add_argument(
+        "--checkpoint",
+        type=Path,
+        help="Immutable checkpoint required for candidate or publish",
+    )
+    parser.add_argument(
         "--bilibili-source",
         type=Path,
         help="Immutable existing Bilibili collection input for --mode revision",
@@ -228,8 +274,56 @@ def main() -> int:
         ),
         help="Skill-reviewed narrative package; required for production",
     )
+    parser.add_argument(
+        "--agent-runtime-receipt",
+        type=Path,
+        default=(
+            Path(os.environ["APEX_AGENT_RUNTIME_RECEIPT"])
+            if os.environ.get("APEX_AGENT_RUNTIME_RECEIPT")
+            else None
+        ),
+    )
+    parser.add_argument(
+        "--platform-readiness-receipt",
+        type=Path,
+        default=(
+            Path(os.environ["APEX_PLATFORM_READINESS_RECEIPT"])
+            if os.environ.get("APEX_PLATFORM_READINESS_RECEIPT")
+            else None
+        ),
+    )
+    parser.add_argument("--revision-provenance", type=Path)
+    parser.add_argument("--approval", type=Path)
+    parser.add_argument("--email-dry-run", action="store_true")
     parser.add_argument("--now", help="Test-only ISO timestamp")
     args = parser.parse_args()
+
+    workflow_phase = args.workflow_phase or (
+        "full" if args.mode == "simulate" else "prepare"
+    )
+    if (
+        args.mode == "simulate"
+        and workflow_phase != "full"
+        and not args.email_dry_run
+    ):
+        parser.error(
+            "checkpointed simulation phases require --email-dry-run rehearsal mode"
+        )
+    if args.mode != "simulate" and workflow_phase == "full":
+        parser.error(
+            "production/revision cannot run as a single shot; use prepare, "
+            "candidate, then publish checkpoints"
+        )
+    if workflow_phase in {"candidate", "publish"} and not args.checkpoint:
+        parser.error(f"--workflow-phase {workflow_phase} requires --checkpoint")
+    if workflow_phase == "candidate" and not args.editorial_package:
+        parser.error("--workflow-phase candidate requires --editorial-package")
+    if workflow_phase in {"candidate", "publish"} and not args.agent_runtime_receipt:
+        parser.error(
+            f"--workflow-phase {workflow_phase} requires --agent-runtime-receipt"
+        )
+    if workflow_phase == "publish" and not args.approval:
+        parser.error("--workflow-phase publish requires --approval")
 
     root = args.root.resolve()
     sys.path.insert(0, str(root / "scripts"))
@@ -246,6 +340,7 @@ def main() -> int:
         else (root / "release").resolve()
     )
     site_root = args.site_root.resolve()
+    prior_live = inspect_current_live_release(site_root)
     state_dir.mkdir(parents=True, exist_ok=True)
     lock_handle = (state_dir / "pipeline.lock").open("w")
     try:
@@ -257,7 +352,17 @@ def main() -> int:
     now = datetime.fromisoformat(args.now) if args.now else datetime.now(TIMEZONE)
     if now.tzinfo is None:
         now = now.replace(tzinfo=TIMEZONE)
-    week = previous_complete_week(now)
+    if args.checkpoint:
+        checkpoint_payload = json.loads(
+            args.checkpoint.resolve().read_text(encoding="utf-8")
+        )
+        week = Week(
+            str(checkpoint_payload["week_id"]),
+            str(checkpoint_payload["week_start"]),
+            str(checkpoint_payload["week_end"]),
+        )
+    else:
+        week = previous_complete_week(now)
     run_id = f"{week.week_id}_{now.astimezone(TIMEZONE):%Y%m%dT%H%M%S}"
     run_dir = state_dir / "runs" / run_id
     log_dir = run_dir / "logs"
@@ -274,6 +379,7 @@ def main() -> int:
         "timezone": "Asia/Shanghai",
         "deadline": f"{now.date().isoformat()}T08:45:00+08:00",
         "mode": args.mode,
+        "workflow_phase": workflow_phase,
         "status": "running",
         "started_at": datetime.now(TIMEZONE).isoformat(),
         "stages": [],
@@ -282,6 +388,7 @@ def main() -> int:
         "weekly_report_skill": policy["weekly_report"]["skill_name"],
         "weekly_report_skill_version": policy["weekly_report"]["skill_version"],
         "narrative_rule_version": policy["weekly_report"]["narrative_rule_version"],
+        "current_live_release": prior_live,
     }
     atomic_json(run_path, run)
     atomic_json(latest_path, run)
@@ -309,7 +416,11 @@ def main() -> int:
     allow_simulated: list[str] = (
         ["--allow-simulated"] if args.mode == "simulate" else []
     )
-    if args.mode == "simulate":
+    needs_collection = workflow_phase in {"full", "prepare"}
+    if not needs_collection:
+        collection_stages = []
+        analysis_python = python_analysis
+    elif args.mode == "simulate":
         collector = root / "scripts/simulate_weekly_collection.py"
         collection_stages = [
             (
@@ -460,92 +571,327 @@ def main() -> int:
         ]
         analysis_python = python_analysis
 
-    stages = collection_stages + [
-        (
-            "prepare_release",
-            [
-                str(analysis_python),
-                str(root / "scripts/prepare_weekly_release.py"),
-                "--week",
-                week.week_id,
-                "--project-root",
-                str(root),
-                "--release-root",
-                str(release_root),
-                "--bilibili",
-                str(bilibili_ingest),
-                "--heybox",
-                str(heybox_ingest),
-                *allow_simulated,
-            ],
-        ),
-        (
-            "build_report",
-            [
-                str(analysis_python),
-                str(root / "scripts/build_weekly_report.py"),
-                "--week",
-                week.week_id,
-                "--project-root",
-                str(root),
-                "--release-root",
-                str(release_root),
-                *(
-                    ["--editorial-package", str(args.editorial_package.resolve())]
-                    if args.editorial_package
-                    else []
-                ),
-            ],
-        ),
-        (
-            "validate_release",
-            [
-                str(analysis_python),
-                str(root / "scripts/validate_weekly_release.py"),
-                "--week",
-                week.week_id,
-                "--project-root",
-                str(root),
-                "--release-root",
-                str(release_root),
-            ],
-        ),
-        (
-            "publish_site",
-            [
-                str(analysis_python),
-                str(root / "scripts/publish_protected_site.py"),
-                "--week",
-                week.week_id,
-                "--release-root",
-                str(release_root),
-                "--site-root",
-                str(site_root),
-                *allow_simulated,
-            ],
-        ),
-        (
-            "verify_live",
-            [
-                str(analysis_python),
-                str(root / "scripts/verify_production_site.py"),
-                "--week",
-                week.week_id,
-                "--release-root",
-                str(release_root),
-                "--site-root",
-                str(site_root),
-                *(
-                    ["--base-url", args.base_url]
-                    if args.base_url
-                    else []
-                ),
-            ],
-        ),
-    ]
+    release_dir = release_root / week.week_id
+    checkpoint_tool = root / "scripts/workflow_checkpoint.py"
+    analyst_checkpoint = run_dir / "analyst_synthesis_checkpoint.json"
+    human_checkpoint = run_dir / "human_approval_checkpoint.json"
+    release_authorization = run_dir / "release_authorization.json"
+    candidate_receipt = release_dir / "candidate_deploy_receipt.json"
+
+    governance_preflight: list[tuple[str, list[str]]] = []
+    if args.mode != "simulate":
+        preflight_command = [
+            str(analysis_python),
+            str(root / "scripts/production_preflight.py"),
+            "--root",
+            str(root),
+            "--week",
+            week.week_id,
+            "--mode",
+            args.mode,
+            "--stage",
+            workflow_phase,
+            "--output",
+            str(run_dir / "production_preflight.json"),
+        ]
+        for option, path in (
+            ("--editorial-package", args.editorial_package),
+            ("--agent-runtime-receipt", args.agent_runtime_receipt),
+            ("--platform-readiness-receipt", args.platform_readiness_receipt),
+            ("--revision-provenance", args.revision_provenance),
+            ("--approval", args.approval),
+        ):
+            if path:
+                preflight_command.extend([option, str(path.resolve())])
+        governance_preflight.append(("production_preflight", preflight_command))
+
+    prepare_governance_args: list[str] = []
+    if args.revision_provenance:
+        prepare_governance_args.extend(
+            ["--revision-provenance", str(args.revision_provenance.resolve())]
+        )
+    prepare_stage = (
+        "prepare_release",
+        [
+            str(analysis_python),
+            str(root / "scripts/prepare_weekly_release.py"),
+            "--week",
+            week.week_id,
+            "--project-root",
+            str(root),
+            "--release-root",
+            str(release_root),
+            "--bilibili",
+            str(bilibili_ingest),
+            "--heybox",
+            str(heybox_ingest),
+            "--run-mode",
+            args.mode,
+            *allow_simulated,
+            *prepare_governance_args,
+        ],
+    )
+    build_stage = (
+        "build_report",
+        [
+            str(analysis_python),
+            str(root / "scripts/build_weekly_report.py"),
+            "--week",
+            week.week_id,
+            "--project-root",
+            str(root),
+            "--release-root",
+            str(release_root),
+            *(
+                ["--editorial-package", str(args.editorial_package.resolve())]
+                if args.editorial_package
+                else []
+            ),
+        ],
+    )
+    validate_stage = (
+        "validate_release",
+        [
+            str(analysis_python),
+            str(root / "scripts/validate_weekly_release.py"),
+            "--week",
+            week.week_id,
+            "--project-root",
+            str(root),
+            "--release-root",
+            str(release_root),
+            *(["--candidate-only"] if workflow_phase == "candidate" else []),
+        ],
+    )
+    publish_stage = (
+        "publish_site",
+        [
+            str(analysis_python),
+            str(root / "scripts/publish_protected_site.py"),
+            "--week",
+            week.week_id,
+            "--release-root",
+            str(release_root),
+            "--site-root",
+            str(site_root),
+            *(
+                ["--release-authorization", str(release_authorization)]
+                if workflow_phase == "publish"
+                else []
+            ),
+            *(["--candidate-only"] if workflow_phase == "candidate" else []),
+            *allow_simulated,
+        ],
+    )
+    verify_live_stage = (
+        "verify_live",
+        [
+            str(analysis_python),
+            str(root / "scripts/verify_production_site.py"),
+            "--week",
+            week.week_id,
+            "--release-root",
+            str(release_root),
+            "--site-root",
+            str(site_root),
+            *(["--base-url", args.base_url] if args.base_url else []),
+        ],
+    )
+    email_script = root / "ops/production/send_weekly_email.py"
+    email_dry_run = ["--dry-run"] if args.email_dry_run else []
+    internal_review_email_stage = (
+        "send_internal_review_email",
+        [
+            str(analysis_python),
+            str(email_script),
+            "--state",
+            str(latest_path),
+            "--kind",
+            "internal-review",
+            "--candidate-receipt",
+            str(candidate_receipt),
+            "--sent-dir",
+            str(state_dir / "sent"),
+            *email_dry_run,
+        ],
+    )
+    verify_candidate_stage = (
+        "verify_review_candidate",
+        [
+            str(analysis_python),
+            str(root / "scripts/verify_review_candidate.py"),
+            "--week",
+            week.week_id,
+            "--release-root",
+            str(release_root),
+            "--site-root",
+            str(site_root),
+        ],
+    )
+    final_delivery_email_stage = (
+        "send_final_delivery_email",
+        [
+            str(analysis_python),
+            str(email_script),
+            "--state",
+            str(latest_path),
+            "--kind",
+            "final-delivery",
+            "--approval",
+            str(args.approval.resolve()) if args.approval else "",
+            "--live-verification",
+            str(release_dir / "live_verification.json"),
+            "--sent-dir",
+            str(state_dir / "sent"),
+            *email_dry_run,
+        ],
+    )
+
+    if workflow_phase == "full":
+        stages = collection_stages + [
+            prepare_stage,
+            build_stage,
+            validate_stage,
+            publish_stage,
+            verify_live_stage,
+        ]
+    elif workflow_phase == "prepare":
+        stages = governance_preflight + collection_stages + [
+            prepare_stage,
+            (
+                "checkpoint_analyst_synthesis",
+                [
+                    str(analysis_python),
+                    str(checkpoint_tool),
+                    "create",
+                    "--root",
+                    str(root),
+                    "--release-dir",
+                    str(release_dir),
+                    "--week",
+                    week.week_id,
+                    "--state",
+                    "awaiting_analyst_synthesis",
+                    "--output",
+                    str(analyst_checkpoint),
+                ],
+            ),
+        ]
+    elif workflow_phase == "candidate":
+        stages = [
+            (
+                "verify_analyst_checkpoint",
+                [
+                    str(analysis_python),
+                    str(checkpoint_tool),
+                    "verify",
+                    "--root",
+                    str(root),
+                    "--release-dir",
+                    str(release_dir),
+                    "--checkpoint",
+                    str(args.checkpoint.resolve()),
+                    "--expected-state",
+                    "awaiting_analyst_synthesis",
+                    "--editorial-package",
+                    str(args.editorial_package.resolve()),
+                    "--expected-editorial-status",
+                    "review_candidate",
+                    "--output",
+                    str(run_dir / "analyst_checkpoint_verification.json"),
+                ],
+            ),
+            *governance_preflight,
+            build_stage,
+            validate_stage,
+            publish_stage,
+            verify_candidate_stage,
+            internal_review_email_stage,
+            (
+                "checkpoint_human_approval",
+                [
+                    str(analysis_python),
+                    str(checkpoint_tool),
+                    "create",
+                    "--root",
+                    str(root),
+                    "--release-dir",
+                    str(release_dir),
+                    "--week",
+                    week.week_id,
+                    "--state",
+                    "awaiting_human_approval",
+                    "--output",
+                    str(human_checkpoint),
+                ],
+            ),
+        ]
+    else:
+        stages = [
+            *governance_preflight,
+            (
+                "authorize_release",
+                [
+                    str(analysis_python),
+                    str(checkpoint_tool),
+                    "authorize",
+                    "--root",
+                    str(root),
+                    "--release-dir",
+                    str(release_dir),
+                    "--checkpoint",
+                    str(args.checkpoint.resolve()),
+                    "--agent-runtime-receipt",
+                    str(args.agent_runtime_receipt.resolve()),
+                    "--approval",
+                    str(args.approval.resolve()),
+                    "--output",
+                    str(release_authorization),
+                ],
+            ),
+            publish_stage,
+            verify_live_stage,
+            final_delivery_email_stage,
+        ]
 
     try:
         for name, command in stages:
+            if name == "send_internal_review_email":
+                run["status"] = "awaiting_human_approval"
+                run["review_candidate"] = {
+                    "status": "deployed_not_live",
+                    "receipt_sha256": sha256(candidate_receipt),
+                }
+                atomic_json(run_path, run)
+                atomic_json(latest_path, run)
+            elif name == "send_final_delivery_email":
+                report_path = (
+                    release_dir
+                    / "reports"
+                    / (
+                        "APEX_CHINA_"
+                        f"{week.week_id.split('_')[-1]}_Weekly_Community_Report.xlsx"
+                    )
+                )
+                run["status"] = "success"
+                run["artifacts"]["weekly_report"] = {
+                    "path": str(report_path),
+                    "bytes": report_path.stat().st_size,
+                    "sha256": sha256(report_path),
+                }
+                run["current_live_release"] = inspect_current_live_release(site_root)
+                promoted_candidate = json.loads(
+                    candidate_receipt.read_text(encoding="utf-8")
+                )
+                run["review_candidate"] = {
+                    "status": "promoted_to_live",
+                    "target": promoted_candidate.get("target"),
+                    "manifest_sha256": promoted_candidate.get(
+                        "public_manifest_sha256"
+                    ),
+                }
+                atomic_json(run_path, run)
+                atomic_json(latest_path, run)
             missing = [part for part in command[:2] if part.startswith("/") and not Path(part).exists()]
             if missing:
                 raise RuntimeError(f"stage {name} is not deployable; missing {missing}")
@@ -560,37 +906,81 @@ def main() -> int:
             atomic_json(run_path, run)
             atomic_json(latest_path, run)
 
-        site_manifest = release_root / week.week_id / "manifest.json"
-        report_path = (
-            release_root
-            / week.week_id
-            / "reports"
-            / (
-                "APEX_CHINA_"
-                f"{week.week_id.split('_')[-1]}_Weekly_Community_Report.xlsx"
+        if workflow_phase == "prepare":
+            expected_artifacts = (("analyst_synthesis_checkpoint", analyst_checkpoint),)
+            run["status"] = "awaiting_analyst_synthesis"
+        else:
+            site_manifest = release_dir / "manifest.json"
+            report_path = (
+                release_dir
+                / "reports"
+                / (
+                    "APEX_CHINA_"
+                    f"{week.week_id.split('_')[-1]}_Weekly_Community_Report.xlsx"
+                )
             )
-        )
-        for label, path in (("site_manifest", site_manifest), ("weekly_report", report_path)):
+            expected_artifacts = (
+                ("site_manifest", site_manifest),
+                ("weekly_report", report_path),
+            )
+            if workflow_phase == "candidate":
+                expected_artifacts += (
+                    ("review_candidate_receipt", candidate_receipt),
+                    ("human_approval_checkpoint", human_checkpoint),
+                )
+                run["status"] = "awaiting_human_approval"
+            else:
+                run["status"] = "success"
+        for label, path in expected_artifacts:
             if not path.is_file():
-                raise RuntimeError(f"final artifact missing: {path}")
+                raise RuntimeError(f"workflow artifact missing: {path}")
             run["artifacts"][label] = {
                 "path": str(path),
                 "bytes": path.stat().st_size,
                 "sha256": sha256(path),
             }
-        run["status"] = "success"
+        run["current_live_release"] = inspect_current_live_release(site_root)
     except Exception as exc:
         run["status"] = "failed"
         run["error"] = f"{type(exc).__name__}: {exc}"
+        failed_stage = next(
+            (stage["name"] for stage in run["stages"] if stage.get("status") == "failed"),
+            None,
+        )
+        if failed_stage == "verify_live":
+            rollback_command = [
+                str(analysis_python),
+                str(root / "scripts/rollback_protected_site.py"),
+                "--week",
+                week.week_id,
+                "--release-root",
+                str(release_root),
+                "--site-root",
+                str(site_root),
+            ]
+            rollback = subprocess.run(
+                rollback_command,
+                cwd=root,
+                env=env,
+                text=True,
+                capture_output=True,
+                check=False,
+            )
+            run["rollback"] = {
+                "required": True,
+                "status": "success" if rollback.returncode == 0 else "failed",
+                "exit_code": rollback.returncode,
+                "command": rollback_command,
+            }
+            if rollback.returncode:
+                run["error"] += "; canonical rollback failed; manual Sol intervention required"
         error_payload = {
             "schema_version": 1,
             "run_id": run_id,
             "week_id": week.week_id,
             "publication_blocked": True,
-            "failed_stage": next(
-                (stage["name"] for stage in run["stages"] if stage.get("status") == "failed"),
-                None,
-            ),
+            "failed_stage": failed_stage,
+            "rollback": run.get("rollback"),
             "error": run["error"],
         }
         atomic_json(run_dir / "error_report.json", error_payload)
@@ -602,6 +992,7 @@ def main() -> int:
             encoding="utf-8",
         )
     finally:
+        run["current_live_release"] = inspect_current_live_release(site_root) or prior_live
         run["finished_at"] = datetime.now(TIMEZONE).isoformat()
         run["duration_seconds"] = round(
             (
@@ -614,7 +1005,11 @@ def main() -> int:
         atomic_json(latest_path, run)
         atomic_json(args.public_status.resolve(), public_status(run))
 
-    return 0 if run["status"] == "success" else 1
+    return 0 if run["status"] in {
+        "success",
+        "awaiting_analyst_synthesis",
+        "awaiting_human_approval",
+    } else 1
 
 
 if __name__ == "__main__":

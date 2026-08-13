@@ -6,7 +6,9 @@ import subprocess
 import sys
 import tempfile
 import unittest
+import xml.etree.ElementTree as ET
 from pathlib import Path
+from zipfile import ZipFile
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -92,45 +94,170 @@ class RevisionSafetyTests(unittest.TestCase):
             root = Path(temp)
             release_root = root / "release"
             source = release_root / "2026_W31"
-            source.mkdir(parents=True)
-            manifest = {"valid": True, "week_id": "2026_W31", "simulation_only": False}
-            manifest_path = source / "manifest.json"
-            manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
-            module = load_module(
-                "publish_idempotency_hash",
-                ROOT / "scripts/weekly_release_common.py",
-            )
-            manifest_sha = module.sha256(manifest_path)
-            site_root = root / "site"
-            target = site_root / "releases" / f"2026_W31_{manifest_sha[:12]}"
-            target.mkdir(parents=True)
-            (source / "publish_receipt.json").write_text(
+            (source / "assets").mkdir(parents=True)
+            (source / "reports").mkdir()
+            manifest = {
+                "valid": True,
+                "week_id": "2026_W31",
+                "week_start": "2026-07-27",
+                "week_end": "2026-08-02",
+                "simulation_only": False,
+                "history_week_ids": ["2026-W31"],
+            }
+            (source / "manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
+            files = {
+                "dashboard": "dashboard_data_apex_W31.json",
+                "report": "APEX_CHINA_W31_Weekly_Community_Report.xlsx",
+                "report_preview": "APEX_CHINA_W31_Weekly_Community_Report.preview.json",
+                "report_markdown": "APEX_CHINA_W31_Weekly_Community_Report.md",
+            }
+            (source / "release_context.json").write_text(
                 json.dumps(
                     {
                         "week_id": "2026_W31",
-                        "manifest_sha256": manifest_sha,
-                        "target": target.name,
+                        "publication_gate_passed": True,
+                        "files": files,
                     }
                 ),
                 encoding="utf-8",
             )
-            completed = subprocess.run(
-                [
-                    sys.executable,
-                    str(ROOT / "scripts/publish_protected_site.py"),
-                    "--week",
-                    "2026_W31",
-                    "--release-root",
-                    str(release_root),
-                    "--site-root",
-                    str(site_root),
-                ],
+            dashboard = {
+                "meta": {
+                    "bilibili_w31_sample": {
+                        "canonical_collection_artifact": True,
+                        "merge_rule": "private controlled-recovery merge",
+                        "scheduled_source": {
+                            "path": "/" + "Users/choco/private/scheduled.json",
+                            "sha256": "private-scheduled-sha",
+                            "records": 21,
+                        },
+                        "controlled_recovery_source": {
+                            "path": "/" + "var/lib/apex/private/recovery.json",
+                            "sha256": "private-recovery-sha",
+                            "records": 207,
+                        },
+                        "provenance_counts": {"scheduled_only": 1},
+                        "effective_rows": 208,
+                    }
+                },
+                "weeks": [],
+            }
+            (source / files["dashboard"]).write_text(json.dumps(dashboard), encoding="utf-8")
+            (source / "index.html").write_text(
+                '<script>const REAL_DASHBOARD_DATA = {"old":true};\nconst dashboardData = REAL_DASHBOARD_DATA;</script>',
+                encoding="utf-8",
+            )
+            __import__("shutil").copyfile(
+                ROOT / "assets/sidebar-apex-character.png",
+                source / "assets/sidebar-apex-character.png",
+            )
+            for report_name in (
+                files["report"],
+                "APEX_CHINA_W30_Weekly_Community_Report.xlsx",
+            ):
+                __import__("shutil").copyfile(
+                    ROOT / "reports/APEX_CHINA_W30_Weekly_Community_Report.xlsx",
+                    source / "reports" / report_name,
+                )
+            (source / "reports" / files["report_preview"]).write_text(
+                json.dumps(
+                    {
+                        "drivers": [
+                            {
+                                "title": "approved narrative",
+                                "evidence_binding": {
+                                    "bilibili_comment_ids": [
+                                        "bilibili:BV1private:visible-0"
+                                    ],
+                                    "heybox_visible_post_ids": [
+                                        "heybox:private-post"
+                                    ],
+                                },
+                                "evidence_bindings": [
+                                    {
+                                        "record_id": "private-record",
+                                        "source_id": "private-source",
+                                        "source_url": "https://example.test/private",
+                                        "text": "private raw record",
+                                    }
+                                ],
+                                "source_urls": ["https://example.test/private"],
+                            }
+                        ]
+                    }
+                ),
+                encoding="utf-8",
+            )
+            (source / "reports" / files["report_markdown"]).write_text("approved", encoding="utf-8")
+            site_root = root / "site"
+            command = [
+                sys.executable,
+                str(ROOT / "scripts/publish_protected_site.py"),
+                "--week",
+                "2026_W31",
+                "--release-root",
+                str(release_root),
+                "--site-root",
+                str(site_root),
+                "--project-root",
+                str(ROOT),
+            ]
+            first = subprocess.run(
+                command,
                 text=True,
                 capture_output=True,
                 check=False,
             )
+            self.assertEqual(first.returncode, 0, first.stderr)
+            completed = subprocess.run(command, text=True, capture_output=True, check=False)
             self.assertEqual(completed.returncode, 0, completed.stderr)
             self.assertIn('"idempotent_noop": true', completed.stdout)
+            public_files = {
+                path.relative_to(site_root / "current").as_posix()
+                for path in (site_root / "current").rglob("*")
+                if path.is_file()
+            }
+            self.assertNotIn("release_context.json", public_files)
+            self.assertNotIn("archive/raw_inputs/bilibili.json", public_files)
+            public_dashboard = json.loads(
+                (site_root / "current" / files["dashboard"]).read_text(
+                    encoding="utf-8"
+                )
+            )
+            public_sample = public_dashboard["meta"]["bilibili_w31_sample"]
+            self.assertEqual(public_sample, {"effective_rows": 208})
+            public_html = (site_root / "current" / "index.html").read_text(
+                encoding="utf-8"
+            )
+            self.assertNotIn("/" + "Users/", public_html)
+            self.assertNotIn("/" + "var/lib/apex", public_html)
+            self.assertNotIn("choco", public_html.lower())
+            public_preview = json.loads(
+                (site_root / "current" / "reports" / files["report_preview"]).read_text(
+                    encoding="utf-8"
+                )
+            )
+            self.assertEqual(public_preview, {"drivers": [{"title": "approved narrative"}]})
+            public_workbook = site_root / "current" / "reports" / files["report"]
+            with ZipFile(public_workbook) as archive:
+                threaded = ET.fromstring(
+                    archive.read("xl/threadedcomments/threadedcomment.xml")
+                )
+                comments = [
+                    node
+                    for node in threaded.iter()
+                    if node.tag.endswith("}threadedComment")
+                ]
+                self.assertEqual(len(comments), 9)
+                person_xml = archive.read("xl/persons/person.xml").decode("utf-8")
+                comment_xml = archive.read(
+                    "xl/threadedcomments/threadedcomment.xml"
+                ).decode("utf-8")
+                self.assertIn("APEX Public Release", person_xml)
+                self.assertIn("Public evidence note", comment_xml)
+                self.assertNotIn("https://www.", comment_xml.lower())
+                self.assertNotIn("choco", person_xml.lower())
+                self.assertNotIn("APEX-T", comment_xml)
 
     def test_success_email_is_not_resent_for_same_week(self):
         with tempfile.TemporaryDirectory(prefix="apex-email-idempotent-") as temp:
@@ -148,7 +275,17 @@ class RevisionSafetyTests(unittest.TestCase):
             )
             sent = root / "sent"
             sent.mkdir()
-            (sent / "2026_W31_success.json").write_text("{}", encoding="utf-8")
+            (sent / "2026_W31_final-delivery.json").write_text("{}", encoding="utf-8")
+            approval = root / "approval.json"
+            approval.write_text(
+                json.dumps({"status": "approved_for_release"}),
+                encoding="utf-8",
+            )
+            live = root / "live.json"
+            live.write_text(
+                json.dumps({"week_id": "2026_W31", "hashes_verified": True}),
+                encoding="utf-8",
+            )
             completed = subprocess.run(
                 [
                     sys.executable,
@@ -157,6 +294,10 @@ class RevisionSafetyTests(unittest.TestCase):
                     str(state),
                     "--sent-dir",
                     str(sent),
+                    "--approval",
+                    str(approval),
+                    "--live-verification",
+                    str(live),
                 ],
                 text=True,
                 capture_output=True,

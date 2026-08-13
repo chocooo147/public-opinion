@@ -78,6 +78,12 @@ class WeeklyProductionOpsTests(unittest.TestCase):
         }
         status = module.public_status(run)
         rendered = str(status)
+        self.assertEqual(status["schema_version"], 2)
+        self.assertIsNone(status["current_live_release"])
+        self.assertEqual(
+            status["latest_pipeline_run"]["status"],
+            "failed",
+        )
         self.assertEqual(status["failed_stage"], "collect_bilibili")
         self.assertNotIn("/opt/apex", rendered)
         self.assertNotIn("/var/lib/apex", rendered)
@@ -223,6 +229,37 @@ class WeeklyProductionOpsTests(unittest.TestCase):
         self.assertIn("上一版生产网站保持不变", body)
         self.assertIn("SafetyStop: CAPTCHA", body)
 
+    def test_workflow_v1_email_products_have_separate_gates(self):
+        module = load_module(
+            "send_weekly_email_workflow_v1",
+            ROOT / "ops/production/send_weekly_email.py",
+        )
+        status = {
+            "run_id": "2026_W33_candidate",
+            "week_id": "2026_W33",
+            "week_start": "2026-08-10",
+            "week_end": "2026-08-16",
+            "status": "awaiting_human_approval",
+            "artifacts": {},
+        }
+        message = module.build_message(
+            status,
+            "review@example.invalid",
+            "review@example.invalid",
+            kind="internal-review",
+            candidate_receipt={"week_id": "2026_W33"},
+        )
+        self.assertIn("Review Candidate", message["Subject"])
+        self.assertIn("尚未 LIVE", message.get_body().get_content())
+        with self.assertRaises(ValueError):
+            module.build_message(
+                {**status, "status": "success"},
+                "review@example.invalid",
+                "review@example.invalid",
+                kind="internal-review",
+                candidate_receipt={"week_id": "2026_W33"},
+            )
+
     def test_systemd_deadlines_are_explicit(self):
         pipeline_timer = (
             ROOT / "ops/systemd/apex-weekly-pipeline.timer"
@@ -236,11 +273,30 @@ class WeeklyProductionOpsTests(unittest.TestCase):
         self.assertIn("00:15:00 Asia/Shanghai", pipeline_timer)
         self.assertIn("09:00:00 Asia/Shanghai", email_timer)
         self.assertIn("TimeoutStartSec=8h30m", service)
+        self.assertIn("--workflow-phase prepare", service)
+        self.assertIn("enable-legacy-email-timer", email_timer)
+        candidate_service = (
+            ROOT / "ops/systemd/apex-weekly-candidate.service"
+        ).read_text(encoding="utf-8")
+        publish_service = (
+            ROOT / "ops/systemd/apex-weekly-publish.service"
+        ).read_text(encoding="utf-8")
+        self.assertIn("--workflow-phase candidate", candidate_service)
+        self.assertIn("--workflow-phase publish", publish_service)
+        self.assertNotIn("[Timer]", candidate_service)
+        self.assertNotIn("[Timer]", publish_service)
         nginx = (
             ROOT / "ops/nginx/apex-protected-site.conf.template"
         ).read_text(encoding="utf-8")
         self.assertIn("location = /status/weekly.json", nginx)
         self.assertIn("auth_basic off", nginx)
+        self.assertNotIn("auth_basic_user_file", nginx)
+        self.assertIn("proxy_pass http://127.0.0.1:8765", nginx)
+        app_auth = (
+            ROOT / "ops/systemd/apex-app-auth.service"
+        ).read_text(encoding="utf-8")
+        self.assertIn("app_auth_server.py", app_auth)
+        self.assertIn("ReadOnlyPaths=/srv/apex-site", app_auth)
 
     def test_simulated_w31_runs_all_seven_stages_end_to_end(self):
         with tempfile.TemporaryDirectory(prefix="apex-weekly-e2e-") as temp:

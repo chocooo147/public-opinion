@@ -58,38 +58,25 @@ class DashboardViewerAndVisualTests(unittest.TestCase):
                     source,
                 )
 
-    def test_apex_is_seeded_as_fixed_read_only_viewer(self):
-        for path in HTML_PATHS:
-            source = path.read_text(encoding="utf-8")
-            with self.subTest(path=path.name):
-                self.assertEqual(source.count("const VIEWER_USERNAME='apex';"), 1)
-                self.assertEqual(
-                    source.count(
-                        "const VIEWER_PASSWORD_HASH='314ffd6162923d94123a7010c7c67be278592e5922ac5e3e404d65aa01608293';"
-                    ),
-                    1,
-                )
-                self.assertIn("viewer.role='viewer'", source)
-                self.assertIn("function requireContentManager()", source)
-                self.assertIn("body.viewer-mode #downloadBtn", source)
-                self.assertIn("body.viewer-mode #importBtn", source)
-                self.assertIn("body.viewer-mode #downloadSchema", source)
-                self.assertIn(
-                    'if(!requireContentManager()) return;\n  const file=e.target.files[0]',
-                    source,
-                )
+    def test_canonical_frontend_uses_server_side_account_authority(self):
+        source = (ROOT / "index.html").read_text(encoding="utf-8")
+        self.assertNotIn("PASSWORD_HASH", source)
+        self.assertNotIn("fallbackPassword", source)
+        self.assertNotIn("AUTH_ACCOUNTS_KEY", source)
+        self.assertIn("/api/auth", source)
+        self.assertIn("function requireContentManager()", source)
+        self.assertIn("body.viewer-mode #downloadBtn", source)
+        self.assertIn("body.viewer-mode #importBtn", source)
+        self.assertIn("body.viewer-mode #downloadSchema", source)
 
     def test_admin_can_assign_download_or_read_only_access(self):
-        for path in HTML_PATHS:
-            source = path.read_text(encoding="utf-8")
-            with self.subTest(path=path.name):
-                self.assertIn('id="accountRole"', source)
-                self.assertIn('<option value="manager">可下载与导入</option>', source)
-                self.assertIn('<option value="viewer">只读</option>', source)
-                self.assertIn("function canManageContent(account)", source)
-                self.assertIn("existing.role=role", source)
-                self.assertIn("accounts.push({username,passwordHash,role,active:true", source)
-                self.assertIn("$('#accountPassword').required=false", source)
+        source = (ROOT / "index.html").read_text(encoding="utf-8")
+        self.assertIn('id="accountRole"', source)
+        self.assertIn('<option value="manager">可下载与导入</option>', source)
+        self.assertIn('<option value="viewer">只读</option>', source)
+        self.assertIn("function canManageContent(account)", source)
+        self.assertIn("authApi('/accounts'", source)
+        self.assertIn("$('#accountPassword').required=false", source)
 
     def test_read_only_account_can_preview_but_not_download_report(self):
         for path in HTML_PATHS:
@@ -112,19 +99,13 @@ class DashboardViewerAndVisualTests(unittest.TestCase):
                     ],
                 )
 
-    def test_admin_password_hash_is_rotated(self):
-        expected = (
-            "const ADMIN_PASSWORD_HASH="
-            "'81fbb13319447db0b23f11ece014eeec6f2f661b3922b996bd0b46a9aa759c8c';"
-        )
-        for path in HTML_PATHS:
-            source = path.read_text(encoding="utf-8")
-            with self.subTest(path=path.name):
-                self.assertEqual(source.count(expected), 1)
-                self.assertEqual(
-                    source.count("const ADMIN_PASSWORD_FALLBACK_FINGERPRINT='71fa9ebc';"),
-                    1,
-                )
+    def test_canonical_frontend_contains_no_static_password_authority(self):
+        source = (ROOT / "index.html").read_text(encoding="utf-8")
+        self.assertNotIn("PASSWORD_HASH", source)
+        self.assertNotIn("FALLBACK_FINGERPRINT", source)
+        server = (ROOT / "ops/production/app_auth_server.py").read_text(encoding="utf-8")
+        self.assertIn('password_scheme") == "pbkdf2_sha256"', server)
+        self.assertIn("HttpOnly; Secure; SameSite=Strict", server)
 
     def test_english_mode_has_canonical_topic_and_event_translations(self):
         current_paths = [ROOT / "index.html", ROOT / "game_sentiment_dashboard_v5.html"]
@@ -220,8 +201,15 @@ class DashboardViewerAndVisualTests(unittest.TestCase):
                 )
                 self.assertIn("function platformChainHistory(", source)
                 self.assertIn("metricFor(t,platform)", source)
-                self.assertIn("if(state.platform==='小黑盒')", source)
-                self.assertIn("不使用B站文本补位", source)
+                if path.name == "index.html":
+                    self.assertIn(
+                        "representativeContentsForTopic(row.t,state.platform)",
+                        source,
+                    )
+                    self.assertIn("不回退展示评论正文", source)
+                else:
+                    self.assertIn("if(state.platform==='小黑盒')", source)
+                    self.assertIn("不使用B站文本补位", source)
                 self.assertIn("不合并为单一正式累计声量", source)
 
 

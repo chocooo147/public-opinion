@@ -10,6 +10,19 @@ function arg(name, fallback = "") {
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 function bvidOf(value) { return (String(value || "").match(/BV[0-9A-Za-z]{10}/) || [""])[0]; }
 function clean(value) { return String(value || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim(); }
+function roundRobin(candidatesByKeyword, keywords, limit) {
+  const selected = [], seen = new Set();
+  const depth = Math.max(0, ...keywords.map(keyword => (candidatesByKeyword.get(keyword) || []).length));
+  for (let index = 0; index < depth; index++) {
+    for (const keyword of keywords) {
+      const item = (candidatesByKeyword.get(keyword) || [])[index];
+      if (!item || !item.bvid || seen.has(item.bvid)) continue;
+      selected.push(item); seen.add(item.bvid);
+      if (selected.length >= limit) return selected;
+    }
+  }
+  return selected;
+}
 function count(value) {
   if (value == null || value === "") return null;
   const t = String(value).replace(/,/g, "").trim();
@@ -29,7 +42,7 @@ async function main() {
   const payload = JSON.parse(fs.readFileSync(arg("--input"), "utf8"));
   const outPath = arg("--output");
   const smoke = process.argv.includes("--smoke");
-  const result = { videos: [], comments: [], stats: { search_video_hits: 0, videos_read: 0 }, failures: [], stop_reason: "" };
+  const result = { videos: [], comments: [], stats: { discovery_requests: 0, search_video_hits: 0, videos_read: 0 }, failures: [], stop_reason: "" };
   let browser;
   try {
     const systemChrome = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
@@ -46,9 +59,10 @@ async function main() {
       result.stop_reason = safety(await page.title(), body);
       result.smoke = { url: page.url(), title: await page.title(), body_chars: body.length };
     } else {
-      const hits = new Map();
       const keywords = [...payload.keywords.core_keywords, ...payload.keywords.experience_keywords];
+      const candidatesByKeyword = new Map();
       for (const keyword of keywords) {
+        const keywordHits = new Map();
         for (let pageNo = 1; pageNo <= payload.config.max_search_pages_per_keyword; pageNo++) {
           try {
             await page.goto(`https://search.bilibili.com/video?keyword=${encodeURIComponent(keyword)}&page=${pageNo}`, { waitUntil: "domcontentloaded", timeout: 45000 });
@@ -56,18 +70,24 @@ async function main() {
             const blocked = safety(await page.title(), body);
             if (blocked) { result.stop_reason = blocked; break; }
             const links = await page.locator('a[href*="www.bilibili.com/video/BV"]').evaluateAll((nodes, kw) => nodes.map(a => ({ href: a.href, title: a.getAttribute("title") || a.textContent || "", keyword: kw })), keyword);
+            result.stats.discovery_requests++;
             result.stats.search_video_hits += links.length;
             for (const item of links) {
               const bv = bvidOf(item.href);
-              if (bv && !hits.has(bv)) hits.set(bv, { bvid: bv, url: `https://www.bilibili.com/video/${bv}`, query_keyword: keyword, search_title: clean(item.title) });
+              if (bv && !keywordHits.has(bv)) keywordHits.set(bv, { bvid: bv, url: `https://www.bilibili.com/video/${bv}`, query_keyword: keyword, search_title: clean(item.title) });
             }
           } catch (e) { result.failures.push(`search:${keyword}:${pageNo}:${e.name}:${e.message}`); }
-          if (result.stop_reason || hits.size >= payload.config.max_videos) break;
+          if (result.stop_reason) break;
           await sleep(1000 * (payload.config.page_delay_seconds[0] || 2.5));
         }
-        if (result.stop_reason || hits.size >= payload.config.max_videos) break;
+        candidatesByKeyword.set(keyword, [...keywordHits.values()]);
+        if (result.stop_reason) break;
       }
-      if (!result.stop_reason) for (const hit of [...hits.values()].slice(0, payload.config.max_videos)) {
+      const allDiscovered = new Set([...candidatesByKeyword.values()].flat().map(item => item.bvid));
+      const selected = roundRobin(candidatesByKeyword, keywords, payload.config.max_videos);
+      result.stats.candidate_videos_discovered = allDiscovered.size;
+      result.stats.candidate_videos_selected = selected.length;
+      if (!result.stop_reason) for (const hit of selected) {
         try {
           await page.goto(hit.url, { waitUntil: "domcontentloaded", timeout: 45000 });
           const body = await page.locator("body").innerText({ timeout: 10000 });
@@ -83,7 +103,7 @@ async function main() {
           result.videos.push(video); result.stats.videos_read++;
           await page.mouse.wheel(0, 1600);
           await page.waitForTimeout(1800);
-          const visible = await page.evaluate((bvid) => {
+          const readVisible = () => page.evaluate((bvid) => {
             const root=document.querySelector("bili-comments")?.shadowRoot;
             return [...(root?.querySelectorAll("bili-comment-thread-renderer")||[])].map((thread,index)=>{
               const renderer=thread.shadowRoot?.querySelector("bili-comment-renderer");
@@ -97,7 +117,20 @@ async function main() {
                 likes:(actions?.querySelector("#like #count")?.textContent||"").trim(),bvid};
             }).filter(x=>x.text && x.publish_time && x.author_name);
           }, video.bvid);
-          result.comments.push(...visible.slice(0, payload.config.max_comments_per_video));
+          let visible = await readVisible();
+          for (let attempt = 0; !visible.length && attempt < Number(payload.config.retry_count || 0); attempt++) {
+            await page.mouse.wheel(0, 1600);
+            await page.waitForTimeout(1000 * Number(payload.config.retry_backoff_seconds || 0));
+            const retryBody = await page.locator("body").innerText({ timeout: 10000 });
+            const retryBlocked = safety(await page.title(), retryBody);
+            if (retryBlocked) { result.stop_reason = retryBlocked; break; }
+            visible = await readVisible();
+          }
+          if (result.stop_reason) break;
+          const boundedVisible = visible.slice(0, payload.config.max_comments_per_video);
+          if (boundedVisible.length) result.stats.videos_with_comments_collected = (result.stats.videos_with_comments_collected || 0) + 1;
+          result.stats.comments_collected = (result.stats.comments_collected || 0) + boundedVisible.length;
+          result.comments.push(...boundedVisible);
         } catch (e) { result.failures.push(`${hit.bvid}:${e.name}:${e.message}`); }
         await sleep(1000 * (payload.config.page_delay_seconds[0] || 2.5));
       }

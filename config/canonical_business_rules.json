@@ -1,0 +1,191 @@
+{
+  "schema_version": 1,
+  "policy_version": "apex-business-rules-2026-08-12.1",
+  "status": "active",
+  "data_topics": {
+    "rule_version": "apex-data-topic-contract-v1.0.0",
+    "status": "approved_existing_production_rule",
+    "product_layer": "dashboard_data_topics",
+    "input_unit": "one cleaned non-technical community text record",
+    "inference": "frozen_bertopic_transform",
+    "mapping": "model_topic_id_to_canonical_topic_id",
+    "qualification": {
+      "canonical_topic_id_required": true,
+      "outlier_excluded": true,
+      "low_assignment_strength_action": "retain_with_flag_and_weekly_quality_gate",
+      "minimum_active_topic_count": 8
+    },
+    "frontend_topic_inference_forbidden": true,
+    "public_description_zh": "每条完成自然周的有效文本由冻结 BERTopic 模型转换并映射到唯一 canonical topic；未映射项和 outlier 不进入网站本周数据主题。Data Topic 是细粒度数据结构，不等同于 Weekly Report Driver。",
+    "public_description_en": "Each valid text from the completed natural week is transformed by the frozen BERTopic model and mapped to one canonical topic. Unmapped records and outliers do not enter dashboard Data Topics. A Data Topic is a fine-grained data structure and is not a Weekly Report Driver."
+  },
+  "weekly_report_drivers": {
+    "rule_version": "apex-driver-provenance-boundary-v1.0.0",
+    "product_layer": "editorial_weekly_report_driver",
+    "source_chain": [
+      "raw_community_data",
+      "data_topics",
+      "evidence_and_editorial_synthesis",
+      "weekly_report_drivers"
+    ],
+    "data_topic_title_count_granularity_match_required": false,
+    "merge_multiple_data_topics_allowed_under_existing_editorial_contract": true,
+    "split_broad_data_topic_allowed_under_existing_editorial_contract": true,
+    "data_topic_and_evidence_provenance_required": true,
+    "forced_alignment_forbidden": true,
+    "high_impact_topic_omission_rule": {
+      "status": "approved_editorial_review_only",
+      "machine_numeric_threshold": null,
+      "machine_hard_gate": false,
+      "editorial_review_required": true,
+      "rule": "Every Data Topic must have a recorded editorial disposition. Weekly Driver provenance and merge, split, exclusion, or omission rationale are machine-required; importance is not machine-scored.",
+      "future_hard_gate_requires_separate_approval": [
+        "high_impact_definition",
+        "measurement",
+        "allowed_omission_conditions"
+      ]
+    },
+    "editorial_topic_disposition_contract": {
+      "schema_version": 1,
+      "field": "data_topic_editorial_review",
+      "all_current_data_topics_covered": true,
+      "allowed_dispositions": [
+        "direct",
+        "merged",
+        "split",
+        "excluded",
+        "omitted"
+      ],
+      "rationale_required": true,
+      "driver_reference_required_for": [
+        "direct",
+        "merged",
+        "split"
+      ],
+      "numeric_impact_score_forbidden": true
+    }
+  },
+  "keywords": {
+    "rule_version": "apex_keyword_quality_v2.0.0",
+    "status": "approved_existing_rule_with_restored_exact_visible_exclusions",
+    "qualification": {
+      "minimum_traceable_text_count": 2,
+      "canonical_topic_required": true,
+      "traceable_evidence_required": true
+    },
+    "forbidden_visible_exact_terms": [
+      "以为",
+      "有没有",
+      "原来",
+      "问问",
+      "直接"
+    ],
+    "visible_paths": [
+      "topic.descriptor_keywords",
+      "topic.keywords",
+      "topic.platform_keyword_stats",
+      "week.keyword_stats",
+      "topic_search",
+      "historical_topic_chains"
+    ],
+    "stopwords": [
+      "不是",
+      "现在",
+      "感觉",
+      "这个",
+      "那个",
+      "还是",
+      "就是",
+      "可以",
+      "没有",
+      "一个",
+      "时候",
+      "然后",
+      "其实",
+      "真的",
+      "很多",
+      "什么",
+      "怎么",
+      "好像",
+      "一直",
+      "比较",
+      "huge",
+      "lz",
+      "nb",
+      "复活了",
+      "时间",
+      "那个赛季",
+      "对比现在",
+      "这次的改",
+      "以为",
+      "有没有",
+      "原来",
+      "问问",
+      "直接"
+    ],
+    "rules": [
+      {"normalized": "S30赛季", "entity_type": "season", "patterns": ["\\bs\\s*[- ]?30\\b", "30\\s*赛季", "赛季\\s*30", "第\\s*30\\s*赛季", "诸神烙印"]},
+      {"normalized": "S29赛季", "entity_type": "season", "patterns": ["\\bs\\s*[- ]?29\\b", "29\\s*赛季", "赛季\\s*29", "第\\s*29\\s*赛季"]},
+      {"normalized": "R-99", "entity_type": "weapon", "patterns": ["(?<![a-z0-9])r\\s*[- ]?99(?![a-z0-9])"]},
+      {"normalized": "CAR冲锋枪", "entity_type": "weapon", "patterns": ["(?<![a-z])c\\.?a\\.?r\\.?(?![a-z])", "car\\s*冲锋枪"]},
+      {"normalized": "RE-45", "entity_type": "weapon", "patterns": ["(?<![a-z0-9])re\\s*[- ]?45(?![a-z0-9])"]},
+      {"normalized": "EVA-8", "entity_type": "weapon", "patterns": ["(?<![a-z0-9])eva\\s*[- ]?8(?![a-z0-9])"]},
+      {"normalized": "30-30", "entity_type": "weapon", "patterns": ["(?<!\\d)30\\s*[- ]?30(?!\\d)", "三零三零"]},
+      {"normalized": "R-301", "entity_type": "weapon", "patterns": ["(?<![a-z0-9])r\\s*[- ]?301(?![a-z0-9])", "(?<!\\d)301(?!\\d)"]},
+      {"normalized": "武器平衡", "entity_type": "gameplay_issue", "patterns": ["(?:武器|枪械|r99|car|re45|eva8).{0,12}(?:削弱|加强|平衡|伤害|强度|容错)", "(?:削弱|加强|平衡).{0,12}(?:武器|枪械|r99|car|re45|eva8)"]},
+      {"normalized": "补给箱改动", "entity_type": "gameplay_change", "patterns": ["(?:补给箱|蓝红箱|黄金箱|神话箱|箱子).{0,14}(?:改|砍|移除|废除|刷新|掉落)", "(?:改|砍|移除|废除).{0,14}(?:补给箱|蓝红箱|黄金箱|神话箱|箱子)"]},
+      {"normalized": "战利品调整", "entity_type": "gameplay_change", "patterns": ["(?:战利品|物资|配件|资源).{0,14}(?:改|砍|削|刷新|掉落|减少|调整)", "(?:改|砍|削|减少|调整).{0,14}(?:战利品|物资|配件|资源)"]},
+      {"normalized": "复活机制", "entity_type": "gameplay_system", "patterns": ["复活(?:信标|机制|队友|重生)", "重生机制"]},
+      {"normalized": "联动活动", "entity_type": "live_service_event", "patterns": ["赛博朋克.{0,8}联动", "联动(?:活动|皮肤|上线)"]},
+      {"normalized": "排位环境", "entity_type": "community_issue", "patterns": ["(?:排位|单排|钻排|铂金).{0,18}(?:外挂|炸鱼|匹配|队友|公平|环境)", "(?:外挂|炸鱼|匹配|公平).{0,18}(?:排位|单排|钻排|铂金)"]},
+      {"normalized": "反作弊", "entity_type": "community_risk", "patterns": ["外挂", "作弊", "举报.{0,8}(?:封|外挂|作弊)"]},
+      {"normalized": "服务器稳定性", "entity_type": "technical_issue", "patterns": ["服务器", "(?:掉线|延迟|卡顿|排队).{0,8}(?:对局|游戏|服务器)"]},
+      {"normalized": "赛事表现", "entity_type": "esports", "patterns": ["\\b(?:plq|algs|enc|ewc)\\b", "(?:赛事|比赛|门票|三连鸡)"]},
+      {"normalized": "手柄与设置", "entity_type": "player_help", "patterns": ["(?:手柄|视角|灵敏度|设置)"]}
+    ],
+    "public_description_zh": "严格关键词仅来自真实文本中已配置的领域实体规则，并须覆盖至少两条可追溯、已映射到 Data Topic 的文本；已批准排除词不会进入任何可见关键词路径。",
+    "public_description_en": "Strict keywords come only from configured domain-entity rules over real text and must cover at least two traceable texts mapped to a Data Topic. Approved exclusions cannot enter any visible keyword path."
+  },
+  "heat": {
+    "rule_version": "apex-heat-v1.0",
+    "status": "approved",
+    "effective_from_week": "2026_W32",
+    "legacy_through_week": "2026_W31",
+    "policy_path": "config/heat_v1.json",
+    "policy_sha256": "6c5361f1b8c5437a970185c16cfb276242312f709fcd7703a98c546e97530601",
+    "canonical_formula": "0.35 * discussion_intensity + 0.30 * discussion_breadth + 0.20 * engagement_depth + 0.10 * reach + 0.05 * momentum",
+    "canonical_inputs": [
+      "effective_topic_record_count",
+      "independent_content_source_count",
+      "independent_participant_count",
+      "real_engagement_actions_per_effective_record",
+      "reliable_reach_once_per_independent_content_source",
+      "relative_change_in_effective_discussion_share"
+    ],
+    "canonical_weights": {
+      "discussion_intensity": 0.35,
+      "discussion_breadth": 0.3,
+      "engagement_depth": 0.2,
+      "reach": 0.1,
+      "momentum": 0.05
+    },
+    "platform_eligibility": {
+      "policy_version": "apex-heat-platform-eligibility-v1.0",
+      "effective_from_week": "2026_W32",
+      "qualification_rule": "all_five_real_components_required",
+      "platforms": {
+        "B站": "ELIGIBLE",
+        "小黑盒": "INELIGIBLE_REACH_UNAVAILABLE"
+      },
+      "ineligible_platform_heat_display": "N/A",
+      "ineligible_platform_excluded_from_composite": true,
+      "restoration_requires_business_approval": true
+    },
+    "production_release_allowed": true,
+    "frontend_recalculation_allowed": false,
+    "proxy_or_legacy_fallback_allowed": false,
+    "historical_boundary": "W25-W31 remain unchanged Legacy Heat; W32 and later use Heat v1.0.",
+    "public_description_zh": "Heat v1.0 衡量 Data Topic 在当前自然周的相对讨论强度与传播广度。仅同时具备五项真实 Component 的 Heat-eligible 平台进入综合 Heat；当前 B站为 ELIGIBLE，小黑盒因缺少可靠 Reach 为 INELIGIBLE_REACH_UNAVAILABLE 并显示 N/A。公式与权重不变，不使用代理值。",
+    "public_description_en": "Heat v1.0 measures the relative discussion intensity and breadth of a Data Topic in the current natural week. Only Heat-eligible platforms with all five real components enter Composite Heat. Bilibili is currently ELIGIBLE; Heybox is INELIGIBLE_REACH_UNAVAILABLE and displays N/A. The formula and weights are unchanged and no proxy is used."
+  }
+}

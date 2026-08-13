@@ -2,17 +2,19 @@
 
 ## 目标
 
-APEX 生产站采用“公网可达、服务端认证后可见”的模式，不再依赖静态
-GitHub Pages 中的前端账号逻辑保护数据。完整站点、看板 JSON 和周报下载均由
-Nginx 在 HTTPS 层执行账号验证；浏览器端脚本不保存有效凭据。
+APEX 生产站采用“公网可达、服务端应用认证后可见”的模式，不依赖静态
+GitHub Pages 中的前端密码保护数据。完整站点、看板 JSON 和周报下载由
+`app_auth_server.py` 的服务端会话控制；Nginx 不启用 Basic Auth，浏览器端脚本
+不保存有效凭据。
 
 ## 每周一交付时序（Asia/Shanghai）
 
 | 截点 | 生产动作 | 成功门槛 |
 |---|---|---|
 | 00:15 | 启动上一完整自然周流水线 | 目标周固定为前一周周一至周日 |
+| 生产预检 | 校验登录 readiness、Editorial 两阶段编排条件、Agent Receipt 路由、规则/模型资产 Hash 与 Git 来源 | 任一缺失即在采集前 fail closed；不替代后续质量门槛 |
 | 采集阶段 | 采集 B站有限可见样本与小黑盒公开搜索可见帖子卡片 | 两个平台均完成；登录、验证码、限流或安全验证触发时安全停止 |
-| 模型与看板阶段 | 使用冻结 BERTopic、B站领域情感辅助模型、SnowNLP 基线和既有计算规则生成周数据 | 不重训、不改写原始数据；模型哈希、看板数据、来源和样本边界一致 |
+| 模型与看板阶段 | 使用冻结 BERTopic、B站领域情感辅助模型、SnowNLP 基线和已获批机器规则生成周数据 | 不重训、不改写原始数据；模型/registry/mapping 哈希、看板数据、来源和样本边界一致；Heat 未批准时阻断 |
 | 周报阶段 | 生成稳定双语 Excel 周报和文字摘要 | 工作簿结构、驱动因素去重、叙述规则、禁用表述和证据引用全部通过 |
 | 08:45 | 原子发布并完成线上验收 | HTTPS、账号验证、五周窗口、周切换、下载、哈希和只读权限均通过 |
 | 09:00 | ChatGPT 网页结果与 Gmail 邮件 | 只读取最终状态；成功或明确失败，不把半成品标为成功 |
@@ -34,11 +36,18 @@ Nginx 在 HTTPS 层执行账号验证；浏览器端脚本不保存有效凭据�
 - B站评论数与小黑盒可见帖子数不得相加表述为平台总量。
 - 领域情感模型、SnowNLP 基线、风险和冻结 BERTopic 主题均标为模型推断，不表述为人工验证
   事实或正式统计真值。
-- B站有效一级评论少于 100、独立视频少于 10、独立作者少于 50、单视频占比
+- B站有效一级评论少于 100、独立视频少于 15、独立作者少于 50、单视频占比
   高于 30%、离群率高于 40%、低归属强度率高于 55%，或作者字段缺失时，
   只能生成低样本内部产物并停止发布；优先目标为 150—200 条有效评论。
 - 周报必须使用项目内 `skills/apex-weekly-report-writing/SKILL.md` 和影响力排序
   修订规则；生产构建需要内容负责人给出的 `approved_for_release` 叙述包。
+- 网站 Data Topic 与 Weekly Report Driver 是两个层级。Validator 分别检查冻结模型
+  Topic contract 和 Driver 的 Data Topic + evidence provenance；标题、数量或粒度
+  不一致本身不是 FAIL 条件，也不得为对齐而强行合并/拆分。
+- W32 起 Heat 使用 SHA-256 固定的 `apex-heat-v1.0`：讨论强度 35%、讨论广度
+  30%、参与深度 20%、触达 10%、升温 5%。两平台先独立标准化，再按有效证据量
+  平方根加权。缺少真实分项、版本/哈希不符、Stored Heat 无法独立复算或出现
+  proxy 时，生产预检和 release validator 必须阻断；W25–W31 Legacy Heat 不回算。
 - 禁止把有限样本表述为平台全量、总体趋势或代表性抽样。
 - Excel 契约、公式错误扫描、叙述禁用词扫描和视觉渲染任一失败时停止发布。
 
@@ -49,11 +58,12 @@ Nginx 在 HTTPS 层执行账号验证；浏览器端脚本不保存有效凭据�
 
 - 生产入口只使用 `https://`。
 - 80 端口只用于证书校验和跳转，不提供看板内容。
-- Nginx `auth_basic` 或后续独立身份层在服务端验证账号。
+- 独立应用身份层在服务端验证账号；不得重新启用 Nginx `auth_basic`。
 - 初始可提供共享 `user` 账号；正式同事使用时推荐改为每人独立账号，以便撤销、
   轮换和审计。
-- `/status/weekly.json` 是唯一无需账号的最小状态端点，只包含周次、成功/失败、
-  里程碑和产物哈希，不包含报告正文、账号、服务器路径或原始数据。
+- `/status/weekly.json` 是唯一无需账号的最小状态端点，明确分开
+  `current_live_release` 与 `latest_pipeline_run`。最近一次流水线失败不得覆盖仍在
+  线上的 current release；端点不包含报告正文、账号、服务器路径或原始数据。
 - 新版本先写入独立 release 目录，通过验收后再原子切换 `current`；失败时保留
   上一版。
 - 受保护生产站完成验收后，下线 GitHub Pages 上的完整数据和下载入口。
@@ -73,15 +83,23 @@ Nginx 在 HTTPS 层执行账号验证；浏览器端脚本不保存有效凭据�
 自然周，并将 `YYYY_WNN`、周一日期和周日日期传给全部阶段。跨年周次使用 ISO
 week-year，例如 2027-01-04 的目标周为 `2026_W53`。
 
-七个真实执行阶段为：
+正式 production/revision 不再允许单次直通，而是三个机器阶段：
 
-1. `collect_bilibili`
-2. `collect_heybox`
-3. `prepare_release`
-4. `build_report`
-5. `validate_release`
-6. `publish_site`
-7. `verify_live`
+1. `prepare`：`production_preflight → collect_bilibili → collect_heybox →
+   prepare_release → checkpoint_analyst_synthesis`。周一 systemd timer 只自动运行
+   这一段，不伪装成 Custom Agent 编排。
+2. `candidate`：Sol 编排 Collector/Analyst 后，使用 `review_candidate` Editorial
+   Package 执行 `verify_analyst_checkpoint → production_preflight → build_report →
+   validate_release → deploy_review_candidate → verify_review_candidate →
+   send_internal_review_email → checkpoint_human_approval`。Candidate 使用独立
+   `candidate` 指针，不能成为 `current`。
+3. `publish`：真实 Human Approval、独立 Validator receipt 和 Sol 最终批准齐备后，
+   执行 `production_preflight → authorize_release → promote_candidate_to_live →
+   verify_live → send_final_delivery_email`。提升过程只切换同一已验证 Public
+   Artifact，不重新采集、分析或构建。
+
+模拟模式跳过 production preflight，仍执行原七阶段隔离联调；模拟结果不创建
+正式审批事实。
 
 采集器原始 CSV 由 `run_platform_collector.py` 归一化为统一 JSON 契约。若采集器
 尚未提供主题与情感字段，`prepare_weekly_release.py` 只读加载冻结 BERTopic
@@ -89,9 +107,23 @@ week-year，例如 2027-01-04 的目标周为 `2026_W53`。
 小黑盒不跨域套用 B站领域模型。不训练模型、不修改注册表。BERTopic 的
 `assignment_confidence` 仅表示 HDBSCAN 聚类归属强度，不是校准后的分类正确概率。
 
+`production_preflight.py` 要求正式代码来自 clean Git revision，并核对 canonical
+business-rule Hash 与 registry/mapping Hash。prepare 阶段核对当周两平台登录
+readiness；candidate 阶段核对 Collector/Analyst receipt；publish 阶段核对真实
+Human Approval、独立 Validator receipt 和 Sol final approval。Editorial Package 必须由
+Analyst 基于该 checkpoint 内的当周 Data Topics 和 evidence 归纳，禁止使用历史
+默认包。systemd 不能生成或伪造 Custom Agent 或 Human Approval 证据。revision
+模式在 prepare 阶段还需提交介入原因、替代阶段、复用 artifact Hash 和重跑阶段的
+机器可读 provenance。
+
+开发中的 dirty worktree 不做 reset、删除或覆盖。生产机器 `/opt/apex` 必须是从
+明确 Git commit 部署的独立 clean checkout；checkpoint 固定 commit 和全部准备产物
+Hash，candidate/publish 如发现代码 revision 或候选文件变化即失败。
+
 发布验证要求最近五个完整周、无未来周泄漏、两平台计量边界、Excel 契约、报告
-预览哈希、全部下载路径和 release manifest 同时通过。`current` 仅在验证成功后
-通过符号链接原子切换。
+预览哈希、全部下载路径和 release manifest 同时通过。Review Candidate 部署到
+独立 `candidate` 符号链接；`current` 仅在 approval/authorization 通过后复用同一
+Candidate target 原子切换。
 
 ### 隔离模拟联调
 

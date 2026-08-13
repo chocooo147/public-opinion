@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "description": "Exact public package boundary for authenticated APEX weekly releases.",
+  "static_files": [
+    "assets/sidebar-apex-character.png"
+  ],
+  "release_context_files": [
+    "dashboard",
+    "report",
+    "report_preview",
+    "report_markdown"
+  ],
+  "historical_report_files": [
+    "reports/APEX_CHINA_W30_Weekly_Community_Report.xlsx"
+  ],
+  "sanitized_dashboard_keys": [
+    "author_name",
+    "author_id",
+    "uid",
+    "mid",
+    "evidence_text_ids",
+    "content_id",
+    "content_ids",
+    "record_id",
+    "source_id",
+    "source_url",
+    "source_urls",
+    "url",
+    "bvid",
+    "text",
+    "quotes",
+    "quotes_en",
+    "evidence_bindings",
+    "evidence_binding",
+    "data_topic_editorial_review",
+    "bilibili_comment_ids",
+    "heybox_visible_post_ids",
+    "aliases",
+    "raw_input",
+    "raw_sha256",
+    "source_counts",
+    "path",
+    "scheduled_source",
+    "controlled_recovery_source",
+    "provenance_counts",
+    "merge_rule",
+    "canonical_collection_artifact",
+    "fallback_position_overlap_records",
+    "stable_content_or_real_id_overlap_records",
+    "scheduled_source_records",
+    "recovery_source_records"
+  ],
+  "forbidden_public_prefixes": [
+    "archive/",
+    "raw_inputs/",
+    "diagnostics/",
+    "logs/",
+    "outputs/",
+    "templates/"
+  ],
+  "forbidden_public_names": [
+    "release_context.json",
+    "report_build.json",
+    "validation.json",
+    "publish_receipt.json",
+    "live_verification.json"
+  ]
+}

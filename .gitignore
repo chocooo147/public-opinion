@@ -1,5 +1,13 @@
 __pycache__/
 *.pyc
+.DS_Store
+*.inspect.ndjson
+/runtime.env
+/venv
+/venv-analysis
+/release
+/work
+/logs
 data/processed/*.csv
 data/processed/*.json
 outputs/quality_reports/*/

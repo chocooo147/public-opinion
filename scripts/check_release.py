@@ -17,6 +17,11 @@ REQUIRED = [
     "scripts/validate_weekly_report_contract.py", "reports/APEX_CHINA_W30_Weekly_Community_Report.xlsx",
     "scripts/build_weekly_report_preview.py",
     "reports/APEX_CHINA_W30_Weekly_Community_Report.preview.json",
+    "config/publication_whitelist.json",
+    "scripts/publish_protected_site.py",
+    "scripts/verify_production_site.py",
+    "ops/production/app_auth_server.py",
+    "ops/systemd/apex-app-auth.service",
 ]
 PUBLIC_TEXT_SUFFIXES = {
     ".css", ".csv", ".html", ".ini", ".js", ".json", ".md", ".mjs",
@@ -34,9 +39,6 @@ SCAN_EXCLUDES = {
 }
 AUTH_HTML_CANDIDATES = [
     "index.html",
-    "game_sentiment_dashboard_v3.html",
-    "game_sentiment_dashboard_v5.html",
-    "outputs/game_sentiment_dashboard_apex_W25_W28_mixed_test.html",
 ]
 
 
@@ -85,22 +87,28 @@ def main() -> int:
         if not path.exists():
             continue
         text = path.read_text(encoding="utf-8")
-        checks = {
-            "fallback password declaration": text.count("const USER_PASSWORD_FALLBACK_FINGERPRINT='bdda2306';"),
+        forbidden_checks = {
+            "fallback password declaration": text.count("USER_PASSWORD_FALLBACK_FINGERPRINT"),
+            "client-side password hash": text.count("ADMIN_PASSWORD_HASH"),
+            "client-side account store": text.count("AUTH_ACCOUNTS_KEY"),
+            "client-side session store": text.count("AUTH_SESSION_KEY"),
+        }
+        required_checks = {
             "login submit handler": text.count("$('#loginForm').addEventListener('submit'"),
-            "apex viewer declaration": text.count("const VIEWER_USERNAME='apex';"),
+            "server auth API": text.count("async function authApi("),
+            "server session bootstrap": text.count("authApi('/session')"),
             "viewer permission guard": text.count("function requireContentManager()"),
             "assignable account role": text.count('id="accountRole"'),
             "content permission helper": text.count("function canManageContent(account)"),
-            "current admin password hash": text.count(
-                "const ADMIN_PASSWORD_HASH='81fbb13319447db0b23f11ece014eeec6f2f661b3922b996bd0b46a9aa759c8c';"
-            ),
             "English canonical topic map": text.count("const canonicalTopicTranslations="),
             "report preview navigation": text.count('id="reportPreviewBtn"'),
             "report preview dialog": text.count('id="reportPreviewModal"'),
             "report preview loader": text.count("async function openReportPreview()"),
         }
-        for label, count in checks.items():
+        for label, count in forbidden_checks.items():
+            if count != 0:
+                auth_script_issues.append({"path": relative, "check": label, "count": count})
+        for label, count in required_checks.items():
             if count != 1:
                 auth_script_issues.append({"path": relative, "check": label, "count": count})
     result = {
