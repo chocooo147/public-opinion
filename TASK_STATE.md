@@ -19,8 +19,8 @@ data, a release artifact, or a production authorization.
 - Workspace path: `/Users/choco/Documents/APEX`
 - Canonical repository: `/Users/choco/Documents/APEX/work/public-opinion`
 - Current branch: `chore/development-worktree-recovery-20260813`
-- HEAD: `8a368cd648bde3b44daf675f8dc8fc3768d2ae2f`
-- HEAD subject: `feat: add side-effect-free weekly status reconciler`
+- HEAD at handoff metadata snapshot: `4a13e80afdc450929531ddd153df09f8b3dd1519`
+- HEAD subject: `docs: record status reconciler account handoff`
 - Implementation commit: `8a368cd648bde3b44daf675f8dc8fc3768d2ae2f`
 - Working tree after implementation commit: one intentional untracked metadata
   file, `TASK_STATE.md`
@@ -32,7 +32,7 @@ data, a release artifact, or a production authorization.
   as a product-code dirty state
 - Status-only reconciler implementation commit:
   `8a368cd648bde3b44daf675f8dc8fc3768d2ae2f`
-- Handoff metadata commit: pending
+- Handoff metadata commit: `4a13e80afdc450929531ddd153df09f8b3dd1519`
 
 Other existing worktrees are separate and were not changed:
 
@@ -273,8 +273,8 @@ server release state.
 
 ### Git and local state
 
-- Current branch and HEAD: `chore/development-worktree-recovery-20260813`,
-  `8a368cd648bde3b44daf675f8dc8fc3768d2ae2f`
+- Current branch and handoff metadata HEAD: `chore/development-worktree-recovery-20260813`,
+  `4a13e80afdc450929531ddd153df09f8b3dd1519`
 - Implementation commit: `8a368cd648bde3b44daf675f8dc8fc3768d2ae2f`
 - Key commits: `8d3ac63`, `5967788`, `ba1049c`
 - Remote baseline: `origin/main` at `143bd3b`
