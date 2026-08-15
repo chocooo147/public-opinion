@@ -16,6 +16,22 @@
       "publish_authority": true
     },
     {
+      "path": "scripts/reconcile_weekly_status.py",
+      "classification": "current_status_reconciler",
+      "allowed_operations": ["reconcile_public_status"],
+      "allowed_reads": [
+        "current",
+        "candidate",
+        "manifests",
+        "receipts",
+        "latest_pipeline_state",
+        "existing_public_status"
+      ],
+      "allowed_writes": ["weekly.json"],
+      "publish_authority": false,
+      "invocation_authority": "explicit_maintenance_invocation_only"
+    },
+    {
       "path": "scripts/workflow_checkpoint.py",
       "classification": "current_production_gate",
       "allowed_operations": ["create", "verify", "authorize"],
