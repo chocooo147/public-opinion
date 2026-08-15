@@ -238,9 +238,10 @@ def _latest_context(state: dict[str, Any]) -> tuple[dict[str, Any], dict[str, An
     week_id = _require_week_id(state, "latest pipeline state")
     status = _require_string(state, "status", "latest pipeline state")
     mode = _require_string(state, "mode", "latest pipeline state")
-    if "workflow_phase" not in state:
-        _fail("latest pipeline state.workflow_phase is missing")
-    workflow_phase = state["workflow_phase"]
+    # Historical successful pipeline states predate the phase field. The
+    # field is context only; its absence is compatible, while a present value
+    # must still have the expected scalar type.
+    workflow_phase = state.get("workflow_phase")
     if workflow_phase is not None and not isinstance(workflow_phase, str):
         _fail("latest pipeline state.workflow_phase is invalid")
     if "started_at" not in state or not isinstance(state["started_at"], str):

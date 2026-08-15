@@ -8,8 +8,9 @@
 - Purpose: Codex account handoff
 - ACCOUNT HANDOFF: PASS
 - PRODUCTION STATE RECONCILIATION: PENDING
-- Blocker: The reconciler is locally implemented and approved; Account B must
-  execute it on the server and perform the required read-only post-check.
+- Blocker: The corrected reconciler must be delivered to Account B; Jason-cloud
+  must then rerun the status-only reconciliation and perform the required
+  read-only post-check.
 
 This file is intentional handoff metadata. It is not product code, UI code,
 data, a release artifact, or a production authorization.
@@ -116,8 +117,12 @@ evidence boundaries:
 
 ## Status-only Reconciler Handoff
 
+- root cause: `latest.json` is the canonical pipeline state path. Current
+  pipeline runs write `workflow_phase`, but historical valid `state/latest.json`
+  files may omit it. The reconciler incorrectly required the context-only field
+  to exist and safely failed closed.
 - implementation: PASS
-- tests: PASS (17/17)
+- tests: PASS (19/19)
 - side-effect-free verification: PASS
 - changed files:
   - `config/automation_entrypoints.json`
@@ -132,10 +137,13 @@ evidence boundaries:
 - Latest pipeline state is context/safety evidence only; current and Candidate
   identities are independently cross-checked from their pointers, manifests,
   receipts, and verifications.
-- B next task: perform a read-only inventory of the five evidence paths, then
-  execute the registered status-only command. Afterward re-read current,
-  candidate, manifests, receipts, and `/srv/apex-status/weekly.json`. Do not
-  deploy, publish, rollback, or run the weekly pipeline.
+- Previous Jason-cloud execution: safe failure; `weekly.json` was not updated,
+  and current, candidate, and release artifacts were unchanged.
+- B next task: deliver this corrected revision, then perform a read-only
+  inventory of the five evidence paths and execute the registered status-only
+  command once. Afterward re-read current, candidate, manifests, receipts, and
+  `/srv/apex-status/weekly.json`. Do not deploy, publish, rollback, or run the
+  weekly pipeline.
 
 ## Current Implementation
 
@@ -166,7 +174,7 @@ evidence boundaries:
 | UI (newest dynamic-download Candidate) | PENDING | Login shell and anonymous boundary passed; authenticated page, download, Topic/Driver, and logout acceptance remain pending. |
 | interaction | PENDING | Earlier W32 live interaction evidence is recorded; newest dynamic-download Candidate still needs authenticated page, download, Topic/Driver, and logout checks. |
 | tests | FAIL | Focused checks passed, but the supported full selected set retains one pre-existing narrative-rules packaging mismatch and one environment skip. No test rerun in this audit. |
-| status-only reconciler | PASS (17/17) | Focused reconciler tests cover identity cross-checks, fail-closed behavior, atomic write cleanup, no release-side-effect dependencies, and registry authority. |
+| status-only reconciler | PASS (19/19) | Focused reconciler tests cover identity cross-checks, historical missing workflow_phase compatibility, invalid-type fail-closed behavior, atomic write cleanup, no release-side-effect dependencies, and registry authority. |
 | reports | PASS | W32 report build/contract evidence records a valid report with 8 drivers; W33 report generation was not run. |
 | deployment | PENDING | Filesystem pointers resolve to W32 LIVE/Candidate targets, but stale `/srv/apex-status/weekly.json` still needs the approved reconciler to be executed by B. |
 | production acceptance | BLOCKED | The newest dynamic-download Candidate remains pending authenticated acceptance; no server-side reconciliation was executed in this handoff. |
@@ -215,10 +223,10 @@ evidence boundaries:
 
 ## Pending Work
 
-1. Account A code handoff: commit and push the approved status-only reconciler
-   and the handoff metadata on this branch.
+1. Account A must commit and push this corrected status-only reconciler and the
+   handoff metadata on this branch.
 2. Account B may then perform a read-only inventory of the evidence paths and
-   execute that reconciler on the server.
+   execute the corrected reconciler once on the server.
 3. After execution, Account B must perform a fresh read-only check of
    `current`, `candidate`, `/srv/apex-status/weekly.json`, manifests, and
    receipts.
@@ -295,7 +303,10 @@ server release state.
 - `/Users/choco/Documents/APEX/outputs/w32_formal_release_20260811_v2/W32_FORMAL_RELEASE_AUDIT.md`
 - `/Users/choco/Documents/APEX/outputs/w32_page_candidate_20260814/release_corrected/2026_W32/candidate_verification.json`
 - `/Users/choco/Documents/APEX/outputs/w32_page_candidate_20260814/release_corrected/2026_W32/candidate_deploy_receipt.json`
-- Local validation: `/Users/choco/Documents/APEX/.venv-bertopic/bin/python -m unittest tests/test_status_reconciler.py tests/test_weekly_production_ops.py -v` — 17/17 passed.
+- Local validation: `/Users/choco/Documents/APEX/.venv-bertopic/bin/python -m unittest tests/test_status_reconciler.py tests/test_weekly_production_ops.py -q` — 19/19 passed.
+- Previous Jason-cloud execution was a safe fail-closed stop on missing
+  `workflow_phase`; `weekly.json`, current, candidate, and release artifacts
+  were not changed.
 - Local side-effect verification: fixture snapshots changed only the test
   `weekly.json`; atomic temporary files were cleaned on success and simulated
   replace failure.

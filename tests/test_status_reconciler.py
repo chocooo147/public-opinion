@@ -234,6 +234,39 @@ class StatusReconcilerTests(unittest.TestCase):
             rendered = json.dumps(written, ensure_ascii=False)
             self.assertNotIn("/private/should-not-leak", rendered)
 
+    def test_legacy_latest_state_without_workflow_phase_is_allowed(self):
+        with tempfile.TemporaryDirectory(prefix="apex-status-reconcile-") as temp:
+            fixture = self._fixture(Path(temp))
+            latest_state = json.loads(
+                fixture["latest_state"].read_text(encoding="utf-8")
+            )
+            latest_state.pop("workflow_phase")
+            write_json(fixture["latest_state"], latest_state)
+
+            payload = self.module.reconcile(**self._reconcile_kwargs(fixture))
+
+            self.assertIsNone(payload["latest_pipeline_run"]["workflow_phase"])
+            self.assertIsNone(payload["workflow_phase"])
+
+    def test_invalid_workflow_phase_type_remains_fail_closed(self):
+        with tempfile.TemporaryDirectory(prefix="apex-status-reconcile-") as temp:
+            fixture = self._fixture(Path(temp))
+            before = fixture["status_path"].read_bytes()
+            latest_state = json.loads(
+                fixture["latest_state"].read_text(encoding="utf-8")
+            )
+            latest_state["workflow_phase"] = {"unexpected": "object"}
+            write_json(fixture["latest_state"], latest_state)
+
+            with self.assertRaises(self.module.ReconciliationError):
+                self.module.reconcile(**self._reconcile_kwargs(fixture))
+
+            self.assertEqual(fixture["status_path"].read_bytes(), before)
+            self.assertEqual(
+                list(fixture["status_path"].parent.glob(".weekly.json.*.tmp")),
+                [],
+            )
+
     def test_missing_evidence_is_fail_closed_and_preserves_status(self):
         with tempfile.TemporaryDirectory(prefix="apex-status-reconcile-") as temp:
             fixture = self._fixture(Path(temp))
