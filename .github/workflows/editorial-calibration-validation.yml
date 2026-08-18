@@ -1,0 +1,34 @@
+name: Editorial Calibration Validation
+
+on:
+  push:
+    branches:
+      - validation/editorial-calibration-loow-20260818
+  workflow_dispatch:
+
+jobs:
+  targeted-validation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Run targeted rule and contract tests
+        run: |
+          python -m unittest \
+            tests.test_narrative_length_contract \
+            tests.test_rule_workflow_integrity \
+            tests.test_driver_ordering_enforcement \
+            tests.test_checkpoint_and_editorial_governance \
+            -v
+      - name: Parse policy and print calibration metadata
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=json.loads(Path('config/weekly_production_policy.json').read_text(encoding='utf-8'))
+          print(p['policy_version'])
+          print(p['weekly_report']['skill_version'])
+          print(p['weekly_report']['narrative_rule_version'])
+          PY
