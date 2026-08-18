@@ -1,5 +1,5 @@
 {
-  "policy_version": "1.5.1-editorial-driver-selection-2026-08-12",
+  "policy_version": "1.5.2-editorial-calibration-2026-08-18",
   "timezone": "Asia/Shanghai",
   "workflow": {
     "path": "config/workflow_v1.json",
@@ -12,11 +12,11 @@
   },
   "weekly_report": {
     "skill_name": "apex-weekly-report-writing",
-    "skill_version": "w30-editorial-driver-selection-mixed-sentiment-2026-08-12",
+    "skill_version": "w30-editorial-calibration-v1-2026-08-18",
     "skill_path": "skills/apex-weekly-report-writing/SKILL.md",
     "writing_pattern_path": "skills/apex-weekly-report-writing/references/w30-writing-pattern.md",
     "narrative_validator_path": "scripts/validate_narratives.py",
-    "narrative_rule_version": "event-driver-four-class-sentiment-2026-08-12",
+    "narrative_rule_version": "editorial-calibration-v1-2026-08-18",
     "narrative_rule_path": "templates/社区话题驱动因素表单叙述规则.md",
     "contract_path": "config/weekly_bilingual_report_contract.json",
     "template_path": "templates/APEX_CHINA_W30_10_DRIVER_TEMPLATE.xlsx",
